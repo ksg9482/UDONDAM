@@ -44,6 +44,7 @@ module.exports = {
     },
     guest: async (req, res) => {
         const userData = {
+            userId: 5,
             nickname: '게스트',
             manager: false,
             socialType: 'basic'
@@ -317,7 +318,7 @@ module.exports = {
                 expires: new Date(Date.now() + 1000 * 60 * 60 * 48),
             });
 
-            res.redirect(`${process.env.CLIENT_URI}/search`);
+            res.redirect(`${process.env.CLIENT_URI}/mypage`);
         } catch (error) {
             res.sendStatus(500);
         }
@@ -359,7 +360,7 @@ module.exports = {
             }
         });
         const userData = generateAccessToken({
-            id: naverUser[0].dataValues.id,
+            userId: naverUser[0].dataValues.id,
             email: naverUser[0].dataValues.email,
             nickname: naverUser[0].dataValues.nickname,
             socialType: naverUser[0].dataValues.socialType,
@@ -374,10 +375,10 @@ module.exports = {
             httpOnly: true,
             expires: new Date(Date.now() + 1000 * 60 * 60 * 48),
         });
-        res.redirect(`${process.env.CLIENT_URI}/search`);
+        res.redirect(`${process.env.CLIENT_URI}/mypage`);
         } catch (error) {
         console.error(error);
-        res.sendStatus(500);
+        res.status(500).json({"message" : "Server Error"});
         }
     },
 
@@ -433,10 +434,10 @@ module.exports = {
             httpOnly: true,
             expires: new Date(Date.now() + 1000 * 60 * 60 * 48),
         });
-        return res.redirect(`${CLIENTURI}/search`);
+        return res.redirect(`${CLIENTURI}/mypage`);
         } catch (error) {
         console.error(error);
-        res.sendStatus(500);
+        res.status(500).json({"message": "Server Error"});
         }
     }
 }

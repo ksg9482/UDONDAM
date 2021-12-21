@@ -25,7 +25,7 @@ import { UserInfoHandler } from '../../redux/modules/UserInfo';
    top:0;
    left:0;
    z-index: 999;
-   background-color: rgba(117, 190, 218, 0.3);
+   background-color: rgba(107, 112, 114, 0.37);
    
    width: 100%;
    height: 100%;
@@ -43,24 +43,34 @@ import { UserInfoHandler } from '../../redux/modules/UserInfo';
   transform: translate(-50%, -50%);
   background-color: white;
   padding:40px;
-  width: 20em;
+  width: 18em;
+  max-width: 90vw;
   //height: 20em;
   border-radius: 10px;
   text-align: center;
   border: solid 1px black;
+  display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* align-items: center; */
   
   .close-btn{
     position:relative;
-    color:red;
-    bottom:3rem;
-    left:9rem;
+    color:black;
+    bottom:2rem;
+    left:7rem;
+    font-size:1.7rem
   }
   
   & .modal_text{
     position:relative;
     bottom: 3rem;
-    font-size:1.5rem;
-    line-height:7rem
+    font-size:1.3rem;
+    height:15rem;
+    /* line-height:7rem */
+    display:flex;
+    flex-direction:column;
+    justify-content: center;
     
   }
   & .modal_title{
@@ -84,6 +94,9 @@ import { UserInfoHandler } from '../../redux/modules/UserInfo';
     height: 18px;
     bottom:1px
   }
+  & button {
+    margin:5px
+  }
   
   
   `;
@@ -106,28 +119,45 @@ function GuestLoginModal (props:any) {
         
       setIsOpen(false)
       if(document.querySelector('.logo_nav')?.classList.contains('hide')===true){
-            console.log('.맨처음 로그인 하이드 작동')
+            // console.log('.맨처음 로그인 하이드 작동')
             document.querySelector('.logo_nav')?.classList.remove('hide')
             document.querySelector('#nav_bar')?.classList.remove('hide')
             document.querySelector('#nav_bar_desktop')?.classList.remove('hide')
+            document.querySelector('.logo_nav_place')?.classList.remove('hide')
         }
         const guestLogin = await axios.post(`${process.env.REACT_APP_API_URL}/guest`, {withCredentials: true })
-        console.log(guestLogin)
+        // console.log(guestLogin)
         const guestInfo = guestLogin.data.data
         dispatch(UserInfoHandler({
-          userId: guestInfo.userId || 0,
+          userId: 5,
           email: guestInfo.email || 'guest',
           nickname: guestInfo.nickname || null,
-          area: guestInfo.area || '인증해주세요',
-          area2: guestInfo.area2 || '인증해주세요',
+          // area: guestInfo.area !== null ? guestInfo.area : '인증해주세요',
+          // area2: guestInfo.area2 !== null ? guestInfo.area2 : '인증해주세요',
+           area: '인증해주세요',
+           area2: '인증해주세요',
           manager: guestInfo.manager || false, 
           socialType: guestInfo.socialType || null
       }))
+      //세션 관련
+      const changeJson:string = JSON.stringify({
+        userId: 5,
+        email: guestInfo.email || 'guest',
+        nickname: guestInfo.nickname || null,
+        area: '인증해주세요',
+        area2: '인증해주세요',
+        manager: guestInfo.manager || false, 
+        socialType: guestInfo.socialType || null
+    })
+    const areadata:string = JSON.stringify(['인증해주세요','인증해주세요'])
+    // console.log('세션작동:',changeJson)
+    sessionStorage.setItem('user',changeJson)
+    sessionStorage.setItem('areaData',areadata)
         closeGuestModal()
         dispatch(IsGuestHandler(true))
       history.push('/Search')
       } catch (error:any) {
-        console.log(error.response)
+        // console.log(error.response)
       }
       
     }
@@ -144,7 +174,8 @@ function GuestLoginModal (props:any) {
                     <span className='modal_title' >게스트 로그인</span>
                     <span className="close-btn" onClick={openModalHandler}>&times;</span>
                   </div>
-                  <div className='modal_text'>회원가입 없이 서비스를 체험하세요!</div>
+                  <div className='modal_text'>회원가입 없이<br /> 서비스를 체험하세요!<br /><br />읽기만 가능합니다!</div>
+
                   <div className='submit_container'>
                    <button onClick={guestLogin}>확인</button>
                    <button onClick={openModalHandler}>취소</button>

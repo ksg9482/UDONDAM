@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components"
 import Interest from "./Interest";
 import TimeLine from "./timeLine/TimeLine";
-import Content from "./Content";
+import Content from "./content/Content";
 import { RouteComponentProps } from 'react-router-dom';
 import { useSelector, useDispatch, RootStateOrAny } from "react-redux";
 import { MainPageHandler } from "../redux/modules/MainPageHandle";
@@ -15,7 +15,6 @@ export interface pageOnOffState {
 
 function MainPage () {
     const test = useSelector((state: RootStateOrAny)=>state.MainPageReducer)
-    console.log(useSelector((state: RootStateOrAny)=>state.MainPageReducer))
 
     const dispatch = useDispatch()
     const [pageOnOff, setPageOnOff] = useState<pageOnOffState>({
@@ -33,9 +32,7 @@ function MainPage () {
     const TimeLineContainer =styled.div``;
     const ContentContainer =styled.div``;
     
-    console.log('interestBoxOn내용:',useSelector((state: RootStateOrAny)=>state.MainPageReducer).interestBoxOn)
     useEffect(()=>{
-        console.log('useEffect작동')
         
     },[triger])
     

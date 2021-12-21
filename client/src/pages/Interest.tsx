@@ -23,85 +23,59 @@ function Interest() {
         //클릭별로 바뀜
         if(key === 'my_interest'){
             const mypost = await axios.get(`${process.env.REACT_APP_API_URL}/${key}`,{withCredentials: true})
-            console.log(mypost)
+            // console.log(mypost)
             formChange(mypost.data)
             return mypost
         }else{
             const mypost = await axios.get(`${process.env.REACT_APP_API_URL}/${key}`,{withCredentials: true})
-            console.log(mypost)
+            // console.log(mypost)
             formChange(mypost.data)
             return mypost
         }
         
-        
-        //setResult(mypost.data)
-        //더미데이터
-        // const post = [
-        //     {
-        //         id: 1, //postId
-        //         nickname: "oh", //유저 닉네
-        //         content: "그.....", //게시글내
-        //         tag: ['서울', '운동', '식사', '독서'], //태그
-        //         commentCount: 20, //댓글 
-        //         likeCount: 10, //따봉 수
-        //         likeCheck: false,  //따봉 눌렀는지 체
-        //         createAt: '2019-10-10 09:10',  //생성날
-        //         public: true  // 1 대 1 채팅 활성화, 비활성화
-        //     },
-        //     {
-        //         id: 2,
-        //         nickname: "gang",
-        //         content: "나...",
-        //         userId: 1,
-        //         tag: ['서울', '운동'],
-        //         commentCount: 10,
-        //         likeCount: 5,
-        //         likeCheck: false,
-        //         createAt: '2020-10-15 10:10',
-        //         public: false
-        //     },
-        //     {
-        //         id: 5,
-        //         nickname: "kim",
-        //         content: "잘...",
-        //         tag: ['서울', '독서'],
-        //         commentCount: 5,
-        //         likeCount: 2,
-        //         likeCheck: false,
-        //         createAt: '2020-10-20 12:10',
-        //         public: true
-        //     },
-        //     {
-        //         id: 11,
-        //         nickname: "kim",
-        //         content: "이거...",
-        //         tag: ['서울', '독서'],
-        //         commentCount: 5,
-        //         likeCount: 2,
-        //         likeCheck: false,
-        //         createAt: '2020-10-21 11:10',
-        //         public: true
-        //     },
-        //     {
-        //         id: 21,
-        //         nickname: "kim",
-        //         content: "왜...",
-        //         tag: ['서울', '독서'],
-        //         commentCount: 5,
-        //         likeCount: 2,
-        //         likeCheck: false,
-        //         createAt: '2021-01-20 11:55',
-        //         public: true
-        //     }
-        // ]
-        //setResult(post)
-        //더미데이터
-        //더미데이터
+      
     };
 
     const formChange = (origin: Array<any>) => {
         let yearArray: Array<any> = [];
         let sortedArray: Array<any> = [];
+
+
+        const createAtDesign = (data:string) => {
+            const timeStamp = Date.now() - new Date(data).getTime()
+            const second = timeStamp / 1000
+            const minute = second / 60
+            const hour = minute / 60
+            const days = hour / 24
+            if(second < 60){
+                return '방금 전'}
+            if(minute < 60){
+                return `${Math.floor(minute)}분 전`}
+            if(hour < 24){
+                return `${Math.floor(hour)}시간 전`}
+            // if(days < 7){
+            //     return `${Math.floor(days)}일 전`}
+            
+            const WEEKDAY = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+            let week = WEEKDAY[new Date(data).getDay()];
+    
+            let a:any = ''
+            let b = ''
+            let c:any = ''
+            
+            a = new Date(data)
+            c = new Date(a.getTime() - (a.getTimezoneOffset() * 60000)).toISOString()
+            a = c.slice(0,10)
+            b = b + a
+            a = c.slice(11,16)
+            b = b + ' ' + a + ' ' + week 
+    
+            return b
+        }
+
+        
+
+
         const splitNum = function (createAt: string) {
 
             const splited:Array<any> = createAt.split('-');
@@ -124,7 +98,7 @@ function Interest() {
             return {
                 id: el.id,
                 createAtYearMonth: splitNum(el.createAt),
-                createAt: chancgeCreateAt(el.createAt),
+                createAt: createAtDesign(el.createAt),
                 content: el.content
             }
         });
@@ -155,7 +129,7 @@ function Interest() {
             const result = yearlist.map((el)=>{
                 return el = [el]
             })
-            console.log(result)
+            // console.log(result)
             
             return setResult(result)
         }
@@ -168,7 +142,7 @@ function Interest() {
     const CreateMyChat = (): JSX.Element => {
         //const mypost = await axios.get(`${process.env.REACT_APP_API_URL}/like`,{withCredentials: true})
         return (
-            <div>준비중입니다</div>
+            <div className='interest_chat'>준비중입니다</div>
         )
 
     };
@@ -187,11 +161,15 @@ function Interest() {
     }
 
     const InterestNav = styled.div`
-        font-size: 1rem;
+        font-size: 1.5rem;
+
         
         .interest_nav_box_${targetPage}{
             border-bottom: solid 2px gray;
            
+        }
+        & .margin_b_8{
+            margin-bottom:8px
         }
     `;
 
@@ -205,15 +183,15 @@ function Interest() {
                 <div className='interest_cotainer' >
             <InterestNav className='interest_nav_cotainer'>
                 <div className='interest_nav_box interest_nav_box_my_post ' onClick={targetHandler('my_post')}>
-                <span className='my_post border_line_my_post' >내 작성글</span>
+                <span className='my_post border_line_my_post margin_b_8' >내 작성글</span>
                 </div>
                 <div className='interest_nav_box interest_nav_box_my_comment ' onClick={targetHandler('my_comment')}>
-                <span className='my_comment border_line_my_comment' >댓글</span>
+                <span className='my_comment border_line_my_comment margin_b_8' >댓글</span>
                 </div>
                 <div className='interest_nav_box interest_nav_box_my_interest' onClick={targetHandler('my_interest')}>
-                <span className='my_interest border_line_my_interest' >따봉</span>
+                <span className='my_interest border_line_my_interest margin_b_8' >따봉</span>
                 </div>
-                <div className='interest_nav_box interest_nav_box_my_chat' onClick={targetHandler('my_chat')}>
+                <div className='interest_nav_box interest_nav_box_my_chat margin_b_8' onClick={targetHandler('my_chat')}>
                 <span className='my_chat border_line_my_chat' >1:1쪽지</span>
                 </div>
             </InterestNav> <br />

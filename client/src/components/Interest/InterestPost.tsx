@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { useHistory } from 'react-router';
 import axios from 'axios';
-import Content from '../../pages/Content';
+import Content from '../../pages/content/Content';
 import styled from 'styled-components';
 import './style.css'
 //날짜별로 나눠야함
@@ -14,11 +14,11 @@ export default function InterestPost({ post }: any) {
     const isMobile = useSelector((state: RootStateOrAny) => state.IsMobileReducer.isMobile)
     const clickHandler = async (e: React.MouseEvent<HTMLDivElement>) => {
         const postId = e.currentTarget.id;
-        console.log(postId)
+        // console.log(postId)
         try {
             const mypost = await axios.get(`${process.env.REACT_APP_API_URL}/post/${postId}`, { withCredentials: true })
-            console.log(mypost.data)
-            console.log(isMobile)
+            // console.log(mypost.data)
+            // console.log(isMobile)
             if (isMobile) {
                 //모바일인 경우
                 if(mypost.status === 200){
@@ -27,18 +27,18 @@ export default function InterestPost({ post }: any) {
                     state:{ida: postId}
                 })
                 }
-                return console.log('모바일작동')
+                return ; //console.log('모바일작동')
             }
             history.push({
                 pathname: '/Content',
                 state:{ida: postId}
             })
-            return console.log('데스크탑 작동')
+            return ; //console.log('데스크탑 작동')
         } catch (error: any) {
             if (error.response.status === 500) {
-                return console.log('서버이상')
+                return ; //console.log('서버이상')
             }
-            console.log(error.response)
+            // console.log(error.response)
         }
 
         //이거 컨텐트로 보내야 됨
@@ -46,11 +46,13 @@ export default function InterestPost({ post }: any) {
     }
 
     const onOffHandler = (key: string) => (e: React.MouseEvent<HTMLDivElement>) => {
-        const list = document.getElementsByClassName(`container_value_${key}`)
-
-        for (let i = 0; i <= list.length - 1; i++) {
-            list[i].classList.toggle('hide')
-        }
+        const list = document.getElementsByClassName(`container_value_${key}`);
+        const open = document.getElementsByClassName(`open_icon_${key}`);
+        const close = document.getElementsByClassName(`close_icon_${key}`);
+            list[0].classList.toggle('hide');
+            open[0].classList.toggle('hide');
+            close[0].classList.toggle('hide');
+        
     }
 
 
@@ -59,6 +61,7 @@ export default function InterestPost({ post }: any) {
     const YearMonth = styled.div`
         background-color: #6b686544;
         padding:2px;
+        font-size:1.3rem;
     `;
     return (
         <div className='interest_post_container'>
@@ -67,14 +70,18 @@ export default function InterestPost({ post }: any) {
                     return (//년-월별 컨테이너
                         <div className={`container_${key} interest_post_place`} key={key}>
                             <div className ='interest_post_detail_container'>
-                            <YearMonth className='interest_post_box' onClick={onOffHandler(`${key}`)} >{key}</YearMonth>
+                            <YearMonth className={`interest_post_box interest_post_box_${key}`} onClick={onOffHandler(`${key}`)} >
+                                <span className={`open_icon_${key}`}>▼ </span>
+                                <span className={`close_icon_${key} hide`}>▲ </span>
+                                {key}
+                                </YearMonth>
                             </div>
-                            <div>{el[0][key].map((value: any) => {
+                            <div className={`container_value_${key} container_value_box hide`}>{el[0][key].map((value: any) => {
                                 return (//내용물
-                                    <div>
-                                        <div className={`container_value_${key} hide`} key={value.id} id={value.id} onClick={clickHandler}>
+                                    <div className='content_box'>
+                                        <div  key={value.id} id={value.id} className='interest_post_item' onClick={clickHandler}>
                                             <div >{value.createAt}</div>
-                                            <div >{value.content}</div>
+                                            <div className='content_text'>{value.content}</div>
                                         </div><br />
                                     </div>
                                 )

@@ -1,11 +1,10 @@
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector, RootStateOrAny } from "react-redux";
-import { UserInfoHandler } from '../../redux/modules/UserInfo';
-import { IsLoginHandler } from '../../redux/modules/IsLogin';
+
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
-import { IProps } from '../../pages/Mypage';
+
 
 
     export const ModalContainer = styled.div`
@@ -19,6 +18,11 @@ import { IProps } from '../../pages/Mypage';
     //align-content:center;
     
   `;
+const ContanierBox = styled.div`
+  border: '2px solid black';
+  
+`;
+  
   
   export const ModalBackdrop = styled.div`
    position:absolute;
@@ -26,7 +30,7 @@ import { IProps } from '../../pages/Mypage';
    top:0;
    left:0;
    z-index: 999;
-   background-color: rgba(117, 190, 218, 0.3);
+   background-color: rgba(107, 112, 114, 0.37);
    
    width: 100%;
    height: 100%;
@@ -44,39 +48,46 @@ import { IProps } from '../../pages/Mypage';
   transform: translate(-50%, -50%);
   background-color: white;
   padding:40px;
-  width: 20em;
+  width: 30em;
+  max-width: 90vw;
   //height: 20em;
   border-radius: 10px;
   text-align: center;
   border: solid 1px black;
   
+
+  
   .close-btn{
     position:relative;
-    color:red;
-    bottom:3rem;
-    left:9rem;
+    color:black;
+    bottom:2rem;
+    left:8rem;
+    font-size:1.7rem
   }
   
   & .modal_text{
     position:relative;
-    bottom: 3rem;
-    font-size:1.5rem;
-    line-height:7rem
+
+    font-size:1.4rem;
+
     
   }
   & .modal_title{
     position:relative;
     bottom:2rem;
+    font-size:2rem;
   }
   
   & .long{
     position:relative;
-    line-height:2.5rem
+ 
+    font-size:1.3rem;
   }
   
   & .modal_text_password{
     position:relative;
-    font-size:2rem;
+    font-size:1.5rem;
+    margin-top: 10px; 
   }
   
   & .input_password{
@@ -84,14 +95,28 @@ import { IProps } from '../../pages/Mypage';
     right:0.5rem;
     height: 18px;
     bottom:1px
+
   }
-  
-  
+
+  & .ab{
+    text-align: left;
+    margin-left: 10px;
+    font-size:1.3rem;
+    
+  }
+  & .abc{
+    margin-top: 10px; 
+  }
+
   `;
 
 
 //모달창 유무, 태그로 검색, 태그수정 핸들러, 낫태그수정 핸들러
 function RecentViewModal ({recentSearchHandle,selectTagSearchHandle,setGiftTag,setNotGiftTag}: any) {
+    const boxBorder = {
+        border: '1px solid black',
+    }
+  
     const dispatch = useDispatch();
     const history = useHistory();
     const userInfo = useSelector((state: RootStateOrAny) => state.UserInfoReducer);
@@ -129,15 +154,15 @@ function RecentViewModal ({recentSearchHandle,selectTagSearchHandle,setGiftTag,s
                 <div>
                 <span className='modal_title' >최근 검색 내역</span>
                 </div>
-                <div className='modal_text_long'>최근 3개의 검색 내역을 표시합니다.</div>
+                <div className='modal_text'>최근 3개의 검색 내역을 표시합니다.</div>
 
                 {recentDataParsing && recentDataParsing.map((el:any) => {
 
-                    return (<div onClick={() => recentTagSearchHandle(el)}>
-                        <div>{`태그 : ${el.tag}`}</div>
-                        {el.nottag === null ? null 
+                    return (<div className="abc" style={boxBorder} onClick={() => recentTagSearchHandle(el)}>
+                        <div className="ab">{`태그 : ${el.tag}`}</div>
+                        {el.notTag === null ? null 
                         :
-                        <div>{`금지태그 : ${el.notTag}`}</div>
+                        <div className="ab">{`금지태그 : ${el.notTag}`}</div>
                         }
 
                     </div>)

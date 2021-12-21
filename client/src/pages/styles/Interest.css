@@ -4,6 +4,8 @@
 }
 
 .interest_nav_cotainer{
+    margin-top: 5px;
+    margin-bottom: 5px;
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -21,10 +23,16 @@
 .interest_post_container{
     width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    /* align-items: center; */
-    
+    align-items: center;
 }
 .interest_post_place{
     width: 80%;
+}
+
+.interest_chat{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 }

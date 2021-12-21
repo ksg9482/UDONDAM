@@ -1,8 +1,12 @@
 #mypage_container{
     flex: none; 
-    height: 100%;
-    width: 100%;
+    height: 80%;
+    width: 80%;
+    border: 2px solid white;
+    border-radius: 9px;
+    /* max-width: 1200px; */
 }
+
 
 .mypage_request_box{
     height: 15%;
@@ -42,7 +46,7 @@
 .mypage_userinfo_box{
     width: auto;
     max-width: 100%;
-    height: 40%;
+    height: 60%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -52,6 +56,10 @@
 
 .mypage_input_box{
     padding: 0.5%;
+    margin: 5px;
+    display: flex;
+    flex-direction: column;
+
 }
 
 .mypage_request_box_container{
@@ -66,8 +74,8 @@
 }
 
 .mypage_button_box{
-    width: 45%;
-    min-width: 300px;
+    width: 40%;
+    min-width: 280px;
     height: 30%;
     display: flex;
     flex-direction: row;
@@ -76,8 +84,16 @@
 }
 
 .mypage_userinfo_input{
-    height: 30%;
+    height: 100%;
+    width: 80%;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    font-size: 1.3rem;
 }
+
+input[type="text"]:disabled {
+    background: rgb(206, 204, 204);
+    color: rgb(53, 53, 53);
+  }

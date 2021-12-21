@@ -8,6 +8,8 @@ import { UserInfoHandler } from '../redux/modules/UserInfo';
 import { IsGuestHandler } from '../redux/modules/IsGuest';
 import SearchPassword from '../components/Login/SearchPassword';
 import GuestLoginModal from '../components/Login/GuestLoginModal';
+import LoadingIndicator from '../components/utils/LoadingIndicator';
+import SocialGoogleLogin from '../components/SocialGoogleLogin';
 import './styles/IntroStyle.css';
 const NAVER = process.env.NAVER || 'http://localhost:8080/naver';
 const KAKAO = process.env.KAKAO || 'http://localhost:8080/kakao';
@@ -30,15 +32,23 @@ export interface modalOnOffState {
 function Login() {
     const dispatch = useDispatch()
     const history = useHistory()
+
+    function sleep(ms:any) {
+        const wakeUpTime = Date.now() + ms;
+        while (Date.now() < wakeUpTime) {}
+      }
+
     dispatch(IsGuestHandler(false))
     if (useSelector((state: RootStateOrAny) => state.IsLoginReducer.isLogin) === true) {
-        console.log('로그인 트루')
+        
         if (document.querySelector('.logo_nav')?.classList.contains('hide') === true) {
-            console.log('.맨처음 로그인 하이드 작동')
+            
+            document.querySelector('.logo_nav_place')?.classList.add('hide')
             document.querySelector('.logo_nav')?.classList.toggle('hide')
             document.querySelector('#nav_bar')?.classList.toggle('hide')
 
         }
+        
         history.push('/Search')
 
     }
@@ -52,6 +62,8 @@ function Login() {
     })
 
     const [errorMessage, setErrorMessage] = useState<string>('')
+    const [isLoading, setIsLoading] = useState<boolean>(true)
+    
     const inputHandler = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setLoginInfo({ ...loginInfo, [key]: e.target.value })
     }
@@ -64,9 +76,22 @@ function Login() {
         const body = { email: loginInfo.email, password: loginInfo.password }
 
         try {
+            setIsLoading(true)
             const loginInfoPost = await axios.post(`${process.env.REACT_APP_API_URL}/login`, body, { withCredentials: true })
+            setIsLoading(false)
             const userInfo = loginInfoPost.data.data
-            console.log(userInfo.userId)
+            const changeJson:string = JSON.stringify({
+                userId: userInfo.userId,
+                email: loginInfo.email,
+                nickname: userInfo.nickname,
+                area: userInfo.area,
+                area2: userInfo.area2,
+                manager: userInfo.manager,
+                socialType: userInfo.socialType
+            })
+            sessionStorage.setItem('user',changeJson)
+            const areadata:string = JSON.stringify([userInfo.area,userInfo.area2])
+            sessionStorage.setItem('areaData',areadata)
             dispatch(UserInfoHandler({
                 userId: userInfo.userId,
                 email: loginInfo.email,
@@ -78,39 +103,19 @@ function Login() {
             }))
             dispatch(IsLoginHandler(true))
             dispatch(IsGuestHandler(false))
-            // const loginData:string = JSON.stringify({
-            //     userId: userInfo.userId,
-            //     email: loginInfo.email,
-            //     nickname: userInfo.nickname,
-            //     area: userInfo.area,
-            //     area2: userInfo.area2,
-            //     manager: userInfo.manager,
-            //     socialType: userInfo.socialType
-            // })
-            // console.log(loginData)
-            // localStorage.setItem('LoginData',loginData)
-            // console.log(localStorage.getItem('LoginData'))
 
             hideLogo()
             document.querySelector('#nav_bar_desktop')?.classList.remove('hide')
+            document.querySelector('.logo_nav_place')?.classList.remove('hide')
             history.push('/Search')
 
         } catch (error: any) {
+            setIsLoading(false)
             if (error.response.status === 401) {
-                console.log('이메일이나 비밀번호가 맞지 않습니다')
             }
-            console.log(error)
             return;
         }
-
-
-
     }
-
-    const loginUserInfo = useSelector((state: RootStateOrAny) => state.UserInfoReducer);
-    console.log(loginUserInfo)
-
-
 
     const guestModalHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault()
@@ -122,9 +127,9 @@ function Login() {
     }
 
     const socialLoginHandler = (key: string) => async (e: React.MouseEvent<HTMLSpanElement/*이거 바뀜 */>) => {
+        setIsLoading(true)
         if (key === 'kakao') {
           window.location.href = KAKAO
-          //window.location.href = `${process.env.REACT_APP_API_URL}/kakao`
         } else if(key === 'google'){
             window.location.href = `${process.env.REACT_APP_API_URL}/google`
         } else if(key === 'naver') {
@@ -153,16 +158,18 @@ function Login() {
         if (document.querySelector('.logo_nav')?.classList.contains('hide') === false) {
             document.querySelector('.logo_nav')?.classList.toggle('hide')
             document.querySelector('#nav_bar')?.classList.toggle('hide')
-            document.querySelector('#nav_bar_desktop')?.classList.add('hide')
+            
+        }
+        if(document.querySelector('.logo_nav_place')?.classList.toggle('hide') === false){
+            document.querySelector('.logo_nav_place')?.classList.add('hide')
         }
     }
 
     const hideLogo = function () {
-        console.log('로그인 하이드 작동')
         if (document.querySelector('.logo_nav')?.classList.contains('hide') === true) {
             document.querySelector('.logo_nav')?.classList.toggle('hide')
             document.querySelector('#nav_bar')?.classList.toggle('hide')
-
+            document.querySelector('.logo_nav_place')?.classList.toggle('hide')
         }
 
     }
@@ -172,65 +179,68 @@ function Login() {
     }
     useEffect(() => {
         hideLogoFirsf()
+        setIsLoading(false)
     }, [])
 
     return (
         <div className='container'>
+            {isLoading? <LoadingIndicator /> : 
+            <div className='login_container'>
+            <div></div>
+            <div className='login_img_place'>
+                <div className='logo_page_div'>
+                    <img className='logo_page' src="로고-우동담-Dark-배경x.png" alt="logo" />
+                </div>
+            </div>
+            <form className='submit_box'>
+                <div className='submit_box_input'>
+                    <input className='login_input' type="text" onChange={inputHandler('email')} placeholder='이메일' />
+                    <input className='login_input' type="password" onChange={inputHandler('password')} placeholder='비밀번호' />
+                    {errorMessage !== '' ? 
+                    <div>{errorMessage}</div> 
+                    : <br />}
+                </div>
+                <div className='login_button_place'>
+                <div className='login_button_box'>
+                    <button className='login_button gray_button' onClick={submitHandler}>로그인</button>
+                    <button className='login_button gray_button' onClick={guestModalHandler}>게스트로그인</button>
+                </div>
+                </div>
+
+            </form>
+            <div className='userguide_box'>
+                <ul>
+                    <li className='login_li' onClick={inSignUp}>회원가입</li>
+                    <li className='login_li' onClick={passwordSearchModalHandler}>비밀번호를 잊으셨나요?</li>
+                </ul>
+            </div>
+            <div className='social'>
+                <div className='social_container'>
+                    <div className='social_button_container social_google_container' onClick={socialLoginHandler('google')}>
+                        <div className='social_container_box'>
+                        <img className='social_button social_google' src='Google.png' alt='social' />
+                        <div className='social_text social_text_google'>구글 로그인</div>
+                        {/* <SocialGoogleLogin /> */}
+                        </div>
+                    </div>
+                    <div className='social_button_container social_naver_container' onClick={socialLoginHandler('naver')}>
+                    <div className='social_container_box'>
+                        <img className='social_button social_naver' src='Naver.png' alt='social' />
+                        <div className='social_text'>네이버 로그인</div>
+                        </div>
+                    </div>
+                    <div className='social_button_container social_kakao_container' onClick={socialLoginHandler('kakao')}>
+                    <div className='social_container_box'>
+                        <img className='social_button social_kakao' src='Kakao.png' alt='social' />
+                        <div className='social_text'>카카오 로그인</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>}
             {modalOnOff.seaerchPasswordModal ? <SearchPassword closeSeaerchPasswordModal={closeSeaerchPasswordModal} /> : null}
             {modalOnOff.guestModal ? <GuestLoginModal closeGuestModal={closeGuestModal} /> : null}
-            <div className='login_container'>
-                <div></div>
-                <div className='login_img_place'>
-                    <div className='logo_page_div'>
-                        <img className='logo_page' src="로고-우동담-Dark-배경x.png" alt="logo" />
-                    </div>
-                </div>
-                <form className='submit_box'>
-                    <div className='submit_box_input'>
-                        <input className='login_input' type="text" onChange={inputHandler('email')} placeholder='이메일' />
-                        <input className='login_input' type="password" onChange={inputHandler('password')} placeholder='비밀번호' />
-                        {errorMessage !== '' ? 
-                        <div>{errorMessage}</div> 
-                        : <br />}
-                    </div>
-                    <div className='login_button_place'>
-                    <div className='login_button_box'>
-                        <button className='login_button gray_button' onClick={submitHandler}>로그인</button>
-                        <button className='login_button gray_button' onClick={guestModalHandler}>게스트로그인</button>
-                    </div>
-                    </div>
-
-                </form>
-                <div className='userguide_box'>
-                    <ul>
-                        <li className='login_li' onClick={inSignUp}>회원가입</li>
-                        <li className='login_li' onClick={passwordSearchModalHandler}>비밀번호를 잊으셨나요?</li>
-                    </ul>
-                </div>
-                <div className='social'>
-                    <div className='social_container'>
-                        <div className='social_button_container social_google_container' onClick={socialLoginHandler('google')}>
-                            <div className='social_container_box'>
-                            <img className='social_button social_google' src='Google.png' alt='social' />
-                            <div className='social_text social_text_google'>구글 로그인</div>
-                            </div>
-                        </div>
-                        <div className='social_button_container social_naver_container' onClick={socialLoginHandler('naver')}>
-                        <div className='social_container_box'>
-                            <img className='social_button social_naver' src='Naver.png' alt='social' />
-                            <div className='social_text'>네이버 로그인</div>
-                            </div>
-                        </div>
-                        <div className='social_button_container social_kakao_container' onClick={socialLoginHandler('kakao')}>
-                        <div className='social_container_box'>
-                            <img className='social_button social_kakao' src='Kakao.png' alt='social' />
-                            <div className='social_text'>카카오 로그인</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* <div></div> */}
-            </div>
+            
         </div>
     )
 }

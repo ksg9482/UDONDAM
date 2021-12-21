@@ -8,11 +8,11 @@ import { IsLoginHandler } from './redux/modules/IsLogin';
 import Intro from './pages/Intro';
 import Login from './pages/Login';
 import Area from './pages/area/Area';
-import Content from './pages/Content';
+import Content from './pages/content/Content';
 import Interest from './pages/Interest';
 import Mypage from './pages/Mypage';
 import Nav from './pages/Nav';
-import Postcontent from './pages/Postcontent';
+import Postcontent from './pages/postcontent/Postcontent';
 import Search from './pages/search/Search';
 import Signup from './pages/Signup';
 import MainPage from './pages/MainPage';
@@ -32,6 +32,7 @@ function App() {
   // }
   
   const isMobile = () => {
+    // console.log('모바일여부 확인')
     try { //이건 주먹구구라 일단 이렇게 해둠. 테스트때는 터치가 안먹혀서 터치로 판단못함.
       if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)/* || window.innerWidth < 640*/) {
         return true;
@@ -46,10 +47,27 @@ function App() {
   };
 
   const getuserInfo = async function(){
-    console.log('작동')
-    const getUserData = await axios.get(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
-    console.log(getUserData)
-    console.log('getUserData왔음')
+    // console.log('작동')
+    
+    // console.log('로그인재입력')
+    if(sessionStorage.getItem('user')){
+      // console.log('유저입력')
+      const sessionData = String(sessionStorage.getItem('user')) 
+      const formChange = JSON.parse(sessionData)
+      dispatch(UserInfoHandler(formChange))
+      dispatch(IsLoginHandler(true))
+      // console.log('세션 삭제')
+      // sessionStorage.removeItem('areaData')
+      // sessionStorage.removeItem('user')
+     
+      
+    } else {
+      return ;
+    }
+    try {
+      const getUserData = await axios.get(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
+    // console.log(getUserData)
+    // console.log('getUserData왔음')
     const userInfo = getUserData.data
     if(userInfo === null){
       return ;
@@ -63,12 +81,20 @@ function App() {
       manager: userInfo.manager,
       socialType: userInfo.socialType
   }))
-  dispatch(IsLoginHandler(true))
+  
   const areadata:string = JSON.stringify([userInfo.area,userInfo.area2])
   sessionStorage.setItem('areaData',areadata)
-   
+    } catch (error:any) {
+      // console.log(error.response)
+    }
     
+   
   }
+  
+  useEffect(()=>{
+    // console.log('유즈이펙트작동')
+    getuserInfo()
+  },[])
   getuserInfo()
   isMobile()
 
@@ -87,7 +113,7 @@ function App() {
       // console.log(document.querySelector('.social')?.classList)
     }
     test()
-    console.log(refresh)
+    // console.log(refresh)
   }, [refresh])
 
 
@@ -96,8 +122,9 @@ function App() {
   //console.log(useSelector((state: RootStateOrAny)=>state.IsMobileReducer.isMobile))
   return (
     <>
+    {/* <div id='root_container'> */}
       <div id='grid_h3'>
-        <header id='logo'>
+        <header id='logo' className='logo_nav_place'>
           <div className='logo_nav_left'></div>
           <div className='logo_nav_center'>
             <div className='logo_nav_center_logo'>
@@ -109,7 +136,7 @@ function App() {
           </div>
         </header>
         <div id='grid_w3'>
-          <div id='grid_w3_left'></div>
+         <div id='grid_w3_left'></div> 
           <div id='container'>
             {/* {!useSelector((state: RootStateOrAny)=>state.IsMobileReducer.isMobile)? <div id='nav_bar'><Nav /></div> : null} */}
             {/* 조건부렌더링이용:게스트/로그인 구분, 나오면 안되는창 구분 */}
@@ -153,7 +180,7 @@ function App() {
         {/* </footer> */}
       </div>
       {!useSelector((state: RootStateOrAny) => state.IsMobileReducer.isMobile) ? <Footer /> : null}
-
+      {/* </div> */}
 
 
     </>
