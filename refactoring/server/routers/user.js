@@ -5,9 +5,9 @@ const auth = require('../middleware/verifyToken')
 
 router.use(auth)
 
-router.get()
-router.patch()
-router.patch()
-router.delete()
+router.get('/', userController.userInfo)
+router.patch('/', userController.userPatch)
+router.patch('/area', userController.areaPatch)
+router.delete('/', userController.userDelete)
 
 module.exports = router
