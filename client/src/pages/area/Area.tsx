@@ -137,7 +137,7 @@ function Area({ history }: RouteComponentProps) {
             if(ida === 0){
                 setIsLoding(true)
 
-                await axios.patch(`${process.env.REACT_APP_API_URL}/user/area`, {
+                await axios.patch(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user/area`, {
                     area : areaSearch
                 },{withCredentials: true}).then((respone:any) => {
                   
@@ -162,7 +162,7 @@ function Area({ history }: RouteComponentProps) {
                 
             }else{
                 setIsLoding(true)
-                await axios.patch(`${process.env.REACT_APP_API_URL}/user/area`, {
+                await axios.patch(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user/area`, {
                     area2 : areaSearch
                 },{withCredentials: true}).then((respone:any) => {
                
@@ -228,7 +228,7 @@ function Area({ history }: RouteComponentProps) {
         {
             if(ida === 0){
                 setIsLoding(true)
-                await axios.patch(`${process.env.REACT_APP_API_URL}/user/area`, {
+                await axios.patch(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user/area`, {
                     area : giftTag2[0]
                 },{withCredentials: true}).then((respone:any) => {
               
@@ -252,7 +252,7 @@ function Area({ history }: RouteComponentProps) {
          
             }else{
                 setIsLoding(true)
-                await axios.patch(`${process.env.REACT_APP_API_URL}/user/area`, {
+                await axios.patch(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user/area`, {
                     area2 : giftTag2[0]
                 },{withCredentials: true}).then((respone:any) => {
                    

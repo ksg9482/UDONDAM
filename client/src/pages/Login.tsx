@@ -77,7 +77,7 @@ function Login() {
 
         try {
             setIsLoading(true)
-            const loginInfoPost = await axios.post(`${process.env.REACT_APP_API_URL}/login`, body, { withCredentials: true })
+            const loginInfoPost = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/login`, body, { withCredentials: true })
             setIsLoading(false)
             const userInfo = loginInfoPost.data.data
             const changeJson:string = JSON.stringify({
@@ -131,7 +131,7 @@ function Login() {
         if (key === 'kakao') {
           window.location.href = KAKAO
         } else if(key === 'google'){
-            window.location.href = `${process.env.REACT_APP_API_URL}/google`
+            window.location.href = `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/google`
         } else if(key === 'naver') {
             window.location.href = NAVER
         }

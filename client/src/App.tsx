@@ -20,7 +20,6 @@ import Footer from './pages/Footer';
 import { useHistory } from 'react-router-dom';
 import TimeLine from './pages/timeLine/TimeLine';
 import './styles/App.css';
-import { contains } from 'jquery';
 
 function App() {
   const history = useHistory()
@@ -68,7 +67,7 @@ function App() {
       return ;
     }
     try {
-      const getUserData = await axios.get(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
+      const getUserData = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080" }/user`, { withCredentials: true })
     // console.log(getUserData)
     // console.log('getUserData왔음')
     const userInfo = getUserData.data

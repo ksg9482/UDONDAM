@@ -104,7 +104,7 @@ function Postcontent({ notGiftTag,giftTag,setPostData }: any) {
 
             await axios(
                 {
-                    url: `${process.env.REACT_APP_API_URL}/post`,
+                    url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                     method: 'get',
                     params: {
                         tag: giftTag,
@@ -128,7 +128,7 @@ function Postcontent({ notGiftTag,giftTag,setPostData }: any) {
         }
 
         if(contentGiftTag.includes(loginUserInfo.area) || contentGiftTag.includes(loginUserInfo.area2)){
-            await axios.post(`${process.env.REACT_APP_API_URL}/post`,{
+            await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,{
                 content: replaceHandle(),
                 public: false,
                 tag: contentGiftTag

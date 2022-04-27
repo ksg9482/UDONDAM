@@ -165,7 +165,7 @@ function SearchPassword(props: any) {
     //이메일 스테이트 전송->
     //true- validEmail:true로. 아니면 안내 
     try {
-      const emailSameCheck = await axios.post(`${process.env.REACT_APP_API_URL}/emailCheck`, { email: inputValue.email }, { withCredentials: true })
+      const emailSameCheck = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/emailCheck`, { email: inputValue.email }, { withCredentials: true })
       setEmailErrMessage('등록되지 않은 이메일입니다')
       return;
     } catch (error:any) {
@@ -182,7 +182,7 @@ function SearchPassword(props: any) {
       setNumberErrMessage('이메일을 확인해 주세요')
     }else{
       try {
-      const emailNumberCheck = await axios.post(`${process.env.REACT_APP_API_URL}/email`, { email: inputValue.email }, { withCredentials: true })
+      const emailNumberCheck = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/email`, { email: inputValue.email }, { withCredentials: true })
       const emailNumber = emailNumberCheck.data.verificationCode //여기에 숫자저장
       setNumber(emailNumber);
       setTimerOnOff(<EmailTimer />)
@@ -199,7 +199,7 @@ function SearchPassword(props: any) {
       setNumberErrMessage('인증번호가 다릅니다')
   } else if (inputValue.number === number && inputValue.number !== '' && number !== '') {
     try {
-      const tempPassword = await axios.post(`${process.env.REACT_APP_API_URL}/tempp`, { email: inputValue.email }, { withCredentials: true })
+      const tempPassword = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/tempp`, { email: inputValue.email }, { withCredentials: true })
    
     
     } catch (error) {

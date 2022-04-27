@@ -159,8 +159,8 @@ function Mypage(props: any) {
             //비밀번호 수정인지 아닌지 구분
             try {
                 const body = { nickname: userData.nickname, password: userData.password }
-                const userDataChange = await axios.patch(`${process.env.REACT_APP_API_URL}/user`, body, { withCredentials: true })
-                const getUserData = await axios.get(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
+                const userDataChange = await axios.patch(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user`, body, { withCredentials: true })
+                const getUserData = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user`, { withCredentials: true })
                 dispatch(UserInfoHandler({
                     email: userInfo.email,
                     userId: userInfo.userId,
@@ -196,7 +196,7 @@ function Mypage(props: any) {
     }
     //구글 로그인 관련
     const getData = async () => {
-        const tempData = await axios.get(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
+        const tempData = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user`, { withCredentials: true })
         dispatch(UserInfoHandler({
             email: tempData.data.email,
             userId: tempData.data.userId,
@@ -237,7 +237,7 @@ function Mypage(props: any) {
     const logoutHandler = async function () {
         try {
             setIsLoading(true)
-            const logoutResult = await axios.get(`${process.env.REACT_APP_API_URL}/logout`, { withCredentials: true })
+            const logoutResult = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/logout`, { withCredentials: true })
             setIsLoading(false)
 
             dispatch(UserInfoHandler({

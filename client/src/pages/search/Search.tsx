@@ -209,7 +209,7 @@ function Search() {
                 setIsLoading(true)
                 await axios(
                     {
-                        url: `${process.env.REACT_APP_API_URL}/post`,
+                        url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                         method: 'get',
                         params: {
                             tag: giftTag,
@@ -229,7 +229,7 @@ function Search() {
                 try {setIsLoading(false)}
             catch (err) {}
                 
-                await axios.post(`${process.env.REACT_APP_API_URL}/recent`, {tag:giftTag, notTag: null}, { withCredentials: true })
+                await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/recent`, {tag:giftTag, notTag: null}, { withCredentials: true })
             
 
                 try {setIsLoading(false)}
@@ -246,7 +246,7 @@ function Search() {
                 setIsLoading(true)
                 await axios(
                     {
-                        url: `${process.env.REACT_APP_API_URL}/post`,
+                        url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                         method: 'get',
                         params: {
                             tag: giftTag,
@@ -266,7 +266,7 @@ function Search() {
                     })
                     
                     
-                       await axios.post(`${process.env.REACT_APP_API_URL}/recent`,{
+                       await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/recent`,{
                             tag: giftTag,
                             notTag: notGiftTag
                         },{withCredentials: true})
@@ -304,7 +304,7 @@ function Search() {
             setIsLoading(true)
             await axios(
             {
-                url: `${process.env.REACT_APP_API_URL}/post`,
+                url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                 method: 'get',
                 params: {
                     tag: userAreaData,

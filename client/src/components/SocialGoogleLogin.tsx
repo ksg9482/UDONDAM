@@ -24,20 +24,20 @@ function SocialGoogleLogin(props:any) {
     // const userCheck = async function(res:any){
         
     //         console.log(res.profileObj.email)
-    //         const emailCheck = await axios.post(`${process.env.REACT_APP_API_URL}/emailCheck`, { email: res.profileObj.email }, { withCredentials: true })
+    //         const emailCheck = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/emailCheck`, { email: res.profileObj.email }, { withCredentials: true })
     //         .then((resp)=>{
     //              console.log(resp)
     //              if(resp.status === 200){
-    //             const SignupInfoPost = await axios.post(`${process.env.REACT_APP_API_URL}/signup`, {email: res.profileObj.email, password:null}, { withCredentials: true })
+    //             const SignupInfoPost = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/signup`, {email: res.profileObj.email, password:null}, { withCredentials: true })
     //         console.log(SignupInfoPost)
-    //         const getUserData = await axios.get(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
+    //         const getUserData = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user`, { withCredentials: true })
     //         console.log(getUserData)
     //         //가입을 시켰으면 들여보내야함->필요한거? 이메일, 닉네임, 에리어 데이터, 유저아이디 등. 결국 가입된 내용을 받아와야함
     //         //리덕스, 세션에 넣고 보냄
     //         //로그인 여부등도 제어해야함
     //         history.push('/Mypage')
     //         } else if(emailCheck.status === 409){
-    //             const getUserData = await axios.get(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
+    //             const getUserData = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user`, { withCredentials: true })
     //         console.log(getUserData)
     //         history.push('/Mypage')
     //         }
@@ -50,7 +50,7 @@ function SocialGoogleLogin(props:any) {
     //         //    //등록된 이메일->이메일 보내서 유저정보 받기. 문제는 서버에서 진위여부를 토큰으로 함. 근데 토큰이 없음.왜? 아직 로그인하지 않았으니까
     //         //    //유저정보 받음.
     //         //    //리덕스, 세션에 넣고 보냄.
-    //         //    const getUserData = await axios.get(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
+    //         //    const getUserData = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user`, { withCredentials: true })
     //         //    console.log(getUserData)
     //         //    history.push('/Mypage')
     //         // }
