@@ -122,7 +122,7 @@ function Nav() {
             dispatch(isPostContentHandler(true))
             await axios(
                 {
-                    url: `${process.env.REACT_APP_API_URL}/post`,
+                    url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                     method: 'get',
                     params: {
                         tag: [loginUserInfo.userarea,loginUserInfo.userarea2],

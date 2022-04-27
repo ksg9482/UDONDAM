@@ -22,12 +22,12 @@ function Interest() {
     const InterestList = async function (key: string) {
         //클릭별로 바뀜
         if(key === 'my_interest'){
-            const mypost = await axios.get(`${process.env.REACT_APP_API_URL}/${key}`,{withCredentials: true})
+            const mypost = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/${key}`,{withCredentials: true})
             // console.log(mypost)
             formChange(mypost.data)
             return mypost
         }else{
-            const mypost = await axios.get(`${process.env.REACT_APP_API_URL}/${key}`,{withCredentials: true})
+            const mypost = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/${key}`,{withCredentials: true})
             // console.log(mypost)
             formChange(mypost.data)
             return mypost
@@ -140,7 +140,7 @@ function Interest() {
 
 
     const CreateMyChat = (): JSX.Element => {
-        //const mypost = await axios.get(`${process.env.REACT_APP_API_URL}/like`,{withCredentials: true})
+        //const mypost = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/like`,{withCredentials: true})
         return (
             <div className='interest_chat'>준비중입니다</div>
         )

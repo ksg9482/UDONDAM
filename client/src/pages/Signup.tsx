@@ -134,7 +134,7 @@ function Signup() {
             const body = { email: signupInfo.email, password: signupInfo.password }
             try {
                 setIsLoading(true)
-                const SignupInfoPost = await axios.post(`${process.env.REACT_APP_API_URL}/signup`, body, { withCredentials: true })
+                const SignupInfoPost = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080" }/signup`, body, { withCredentials: true })
                 setIsLoading(false)
                 history.push('/')
             } catch (error) {
@@ -149,7 +149,8 @@ function Signup() {
             setEmailErrorMessage('이메일 형식이 잘못되었습니다.');
         } else {
             try {
-                const emailSameCheck = await axios.post(`${process.env.REACT_APP_API_URL}/emailCheck`, { email: signupInfo.email }, { withCredentials: true })
+                const emailSameCheck = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/emailCheck`, { email: signupInfo.email }, { withCredentials: true })
+                /*process.env.REACT_APP_API_URL*/
                 setPassEmail(true);
                 setEmailErrorMessage('사용 할 수 있는 이메일입니다')
             } catch (error: any) {
@@ -170,7 +171,7 @@ function Signup() {
             if(Validation.validEmail === false){
                 setNumberErrorMessage('이메일을 확인해주세요')
             } else{
-                const emailNumberCheck = await axios.post(`${process.env.REACT_APP_API_URL}/email`, { email: signupInfo.email }, { withCredentials: true })
+                const emailNumberCheck = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/email`, { email: signupInfo.email }, { withCredentials: true })
                 const emailNumber = emailNumberCheck.data.verificationCode //여기에 숫자저장
                 setNumber(emailNumber);
                 setTimerOnOff(<EmailTimer />)

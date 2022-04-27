@@ -79,7 +79,7 @@ function TimeLine({ history }: RouteComponentProps){
                 setIsLoding(true)
                 await axios(
                     {
-                        url: `${process.env.REACT_APP_API_URL}/post`,
+                        url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                         method: 'get',
                         params: {
                             tag: [userData.area,userData.area2],
@@ -107,7 +107,7 @@ function TimeLine({ history }: RouteComponentProps){
                 setIsLoding(true)
                 await axios(
                     {
-                        url: `${process.env.REACT_APP_API_URL}/post`,
+                        url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                         method: 'get',
                         params: {
                             tag: giftTag,
@@ -133,7 +133,7 @@ function TimeLine({ history }: RouteComponentProps){
                 setIsLoding(true)
                 await axios(
                     {
-                        url: `${process.env.REACT_APP_API_URL}/post`,
+                        url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                         method: 'get',
                         params: {
                             tag: giftTag,

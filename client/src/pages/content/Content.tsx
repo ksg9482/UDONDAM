@@ -40,7 +40,7 @@ function Content({ history }: RouteComponentProps) {
     
     const dataParsingHandle = async () => {
         setIsLoading(true)
-         await axios.get(`${process.env.REACT_APP_API_URL}/post/${ida}`, {withCredentials: true}).then((respone) => {
+         await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post/${ida}`, {withCredentials: true}).then((respone) => {
             contentDataParsing.pop()
             contentDataParsing.push(respone.data)
             setPostDataDetail(contentDataParsing)
@@ -160,7 +160,7 @@ function Content({ history }: RouteComponentProps) {
         setIsLoading(true)
         await axios(
             {
-                url: `${process.env.REACT_APP_API_URL}/comment/${data}`,
+                url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/comment/${data}`,
                 method: 'delete',
                 withCredentials: true,
                 paramsSerializer: params => {
@@ -198,7 +198,7 @@ function Content({ history }: RouteComponentProps) {
     //대댓글 생성
     const giftCCommentHandle = async () => {
         setIsLoading(true)
-        await axios.post(`${process.env.REACT_APP_API_URL}/comment`,giftCComment[0],{withCredentials: true}).then((respone) => {
+        await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/comment`,giftCComment[0],{withCredentials: true}).then((respone) => {
 
         })
         try {setIsLoading(false)}
@@ -213,7 +213,7 @@ function Content({ history }: RouteComponentProps) {
     //댓글 생성
     const giftCommentHandle = async () => {
         setIsLoading(true)
-        await axios.post(`${process.env.REACT_APP_API_URL}/comment`,giftComment[0],{withCredentials: true}).then((respone) => {
+        await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/comment`,giftComment[0],{withCredentials: true}).then((respone) => {
         })
         try {setIsLoading(false)}
             catch (err) {}
@@ -225,7 +225,7 @@ function Content({ history }: RouteComponentProps) {
      //게시글 삭제
      const postDeleteHandle = async (data:number) => {
         setIsLoading(true)
-        await axios.delete(`${process.env.REACT_APP_API_URL}/post/${data}`,{withCredentials: true}).then((respone) => {
+        await axios.delete(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post/${data}`,{withCredentials: true}).then((respone) => {
         })
         try {setIsLoading(false)}
             catch (err) {}
@@ -241,7 +241,7 @@ function Content({ history }: RouteComponentProps) {
             setIsLoading(true)
             await axios(
                 {
-                    url: `${process.env.REACT_APP_API_URL}/post`,
+                    url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                     method: 'get',
                     params: {
                         tag: [loginUserInfo.area,loginUserInfo.area2],
@@ -274,7 +274,7 @@ function Content({ history }: RouteComponentProps) {
             setIsLoading(true)
             await axios(
                 {
-                    url: `${process.env.REACT_APP_API_URL}/post`,
+                    url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                     method: 'get',
                     params: {
                         tag: giftTag,
@@ -304,7 +304,7 @@ function Content({ history }: RouteComponentProps) {
             setIsLoading(true)
             await axios(
                 {
-                    url: `${process.env.REACT_APP_API_URL}/post`,
+                    url: `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post`,
                     method: 'get',
                     params: {
                         tag: giftTag,
@@ -341,7 +341,7 @@ function Content({ history }: RouteComponentProps) {
             postDataDetail[0].likeCheck = false
             postDataDetail[0].likeCount = postDataDetail[0].likeCount - 1
             setIsLoading(true)
-            await axios.delete(`${process.env.REACT_APP_API_URL}/likes/?userId=${loginUserInfo.userId}&postId=${postDataDetail[0].id}`,{withCredentials: true}).then((respone) => {
+            await axios.delete(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/likes/?userId=${loginUserInfo.userId}&postId=${postDataDetail[0].id}`,{withCredentials: true}).then((respone) => {
             })
             try {setIsLoading(false)}
             catch (err) {}
@@ -351,7 +351,7 @@ function Content({ history }: RouteComponentProps) {
             postDataDetail[0].likeCheck = true
             postDataDetail[0].likeCount++
             setIsLoading(true)
-            await axios.post(`${process.env.REACT_APP_API_URL}/likes`,{
+            await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/likes`,{
                 postId : postDataDetail[0].id,
                 userId : loginUserInfo.userId
             },{withCredentials: true}).then((respone) => {

@@ -114,8 +114,8 @@ function MypageModal(props: any) {
     e.preventDefault()
     //비밀번호 체크에서 authorize 안되서 오류남
     try {
-      const passwordCheckResp = await axios.post(`${process.env.REACT_APP_API_URL}/passwordcheck`, { email: userInfo.email, password: password }, { withCredentials: true })
-      const userDeleteResult = await axios.delete(`${process.env.REACT_APP_API_URL}/user`, { withCredentials: true })
+      const passwordCheckResp = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/passwordcheck`, { email: userInfo.email, password: password }, { withCredentials: true })
+      const userDeleteResult = await axios.delete(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/user`, { withCredentials: true })
 
       setPassword('')
       //세션삭제

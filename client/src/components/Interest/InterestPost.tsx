@@ -16,7 +16,7 @@ export default function InterestPost({ post }: any) {
         const postId = e.currentTarget.id;
         // console.log(postId)
         try {
-            const mypost = await axios.get(`${process.env.REACT_APP_API_URL}/post/${postId}`, { withCredentials: true })
+            const mypost = await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/post/${postId}`, { withCredentials: true })
             // console.log(mypost.data)
             // console.log(isMobile)
             if (isMobile) {

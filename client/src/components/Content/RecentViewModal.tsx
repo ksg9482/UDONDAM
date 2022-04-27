@@ -123,7 +123,7 @@ function RecentViewModal ({recentSearchHandle,selectTagSearchHandle,setGiftTag,s
     const [recentDataParsing, setRecentDataParsing] = useState<any>([])
 
     const dataParsingHandle = async () => {
-         await axios.get(`${process.env.REACT_APP_API_URL}/recent`,{withCredentials: true}).then((respone) => {
+         await axios.get(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/recent`,{withCredentials: true}).then((respone) => {
              //console.log(respone)
             return setRecentDataParsing(respone.data)
          })

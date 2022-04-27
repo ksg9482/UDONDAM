@@ -125,7 +125,7 @@ function GuestLoginModal (props:any) {
             document.querySelector('#nav_bar_desktop')?.classList.remove('hide')
             document.querySelector('.logo_nav_place')?.classList.remove('hide')
         }
-        const guestLogin = await axios.post(`${process.env.REACT_APP_API_URL}/guest`, {withCredentials: true })
+        const guestLogin = await axios.post(`${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : "http://localhost:8080"}/guest`, {withCredentials: true })
         // console.log(guestLogin)
         const guestInfo = guestLogin.data.data
         dispatch(UserInfoHandler({
