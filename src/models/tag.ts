@@ -3,31 +3,32 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class recentsearch extends Model {
+  class tag extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      models.recentsearch.belongsTo(models.user, {
-        foreignKey: 'userId',
+      // define association here
+      models.tag.belongsToMany(models.post, {
+        through: 'post_tag',
         sourceKey: 'id',
-        onDelete: 'CASCADE',
+        foreignKey: 'tagId',
+        onDelete: 'CASCADE'
       });
     }
   };
-  recentsearch.init({
-    userId: DataTypes.INTEGER,
-    tag: DataTypes.STRING,
-    notTag: DataTypes.STRING
+  tag.init({
+    content: DataTypes.STRING
   }, {
     sequelize,
-    modelName: 'recentsearch',
+    modelName: 'tag',
     freezeTableName: true,
-    timestamps: true,
-    createdAt: "createAt",
-    updatedAt: false
+    timestamps: false,
+
   });
-  return recentsearch;
+  return tag;
 };
+
+export = {}

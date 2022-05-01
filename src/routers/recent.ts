@@ -11,3 +11,5 @@ router.get('/', recentController.get);
 router.post('/', recentController.post);
 
 module.exports = router
+
+export = {}

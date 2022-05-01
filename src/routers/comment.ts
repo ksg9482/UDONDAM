@@ -11,3 +11,5 @@ router.post('/', commentRouter.commentCreate);
 router.delete('/:commentId', commentRouter.commentDelete);
 
 module.exports = router
+
+export = {}
