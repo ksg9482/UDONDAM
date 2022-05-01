@@ -52,3 +52,5 @@ server = app.listen(PORT, ()=> {
     console.log(`http://localhost:${PORT} 로 실행`)
 })
 }
+
+export {}

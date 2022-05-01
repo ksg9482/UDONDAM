@@ -11,3 +11,5 @@ router.post('/', likesController.likesCreate);
 router.delete('/', likesController.likesDelete);
 
 module.exports = router
+
+export = {}

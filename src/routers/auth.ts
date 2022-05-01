@@ -17,3 +17,5 @@ router.get('/navercallback', authRouter.naverCallback)
 router.get('/kakao', authRouter.kakao);
 router.get('/kakaocallback', authRouter.kakaoCallback);
 module.exports = router
+
+export = {}

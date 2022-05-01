@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "<img width=\"300\" alt=\"로고-우동담-Light-배경o\" src=\"https://user-images.githubusercontent.com/87490361/143793771-ab32461e-2a76-4f2b-b96f-55241c2a9d98.png\">",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js"
@@ -21,5 +21,17 @@
     "nodemon": "^2.0.15",
     "sequelize": "^6.12.0-alpha.1",
     "sequelize-cli": "^6.3.0"
-  }
+  },
+  "devDependencies": {
+    "typescript": "^4.6.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ksg9482/UDONDAM.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/ksg9482/UDONDAM/issues"
+  },
+  "homepage": "https://github.com/ksg9482/UDONDAM#readme"
 }

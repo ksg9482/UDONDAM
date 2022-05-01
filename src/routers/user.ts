@@ -13,3 +13,5 @@ router.patch('/area', userController.areaPatch);
 router.delete('/', userController.userDelete);
 
 module.exports = router
+
+export = {}
