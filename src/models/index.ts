@@ -1,4 +1,4 @@
-'use strict';
+
 
 const fs = require('fs');
 const path = require('path');
@@ -36,4 +36,4 @@ db.Sequelize = Sequelize;
 
 module.exports = db;
 
-export = {}
+//export = {}
