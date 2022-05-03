@@ -1,40 +1,32 @@
-'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('likes', {
+    await queryInterface.createTable('tag', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      createAt: {
+      content: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.STRING
       }
     })
     .then(() => {
-      queryInterface.addColumn('likes', 'userId', {
+      queryInterface.addColumn('post_tag', 'tagId', {
         type: Sequelize.INTEGER,
         allowNull: false,
         onDelete: 'CASCADE',
-        references: {model: 'user', key:'id'}
+        references: {model: 'tag', key:'id'}
       })
-    })
-    .then(() => {
-      queryInterface.addColumn('likes', 'postId', {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        onDelete: 'CASCADE',
-        references: {model: 'post', key:'id'}
-      })
-    })
+    });
   },
   down: async (queryInterface, Sequelize) => {
     let sql ='SET FOREIGN_KEY_CHECKS = 0';
     await queryInterface.sequelize.query(sql, {
         type: Sequelize.QueryTypes.RAW,
     })
-    await queryInterface.dropTable('likes');
+    await queryInterface.dropTable('tag');
   }
 };

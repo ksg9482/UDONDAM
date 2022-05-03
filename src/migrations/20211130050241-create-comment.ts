@@ -1,7 +1,8 @@
-'use strict';
+
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('post', {
+    await queryInterface.createTable('comment', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -12,9 +13,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
-      public: {
-        allowNull: false,
-        type: Sequelize.BOOLEAN
+      commentId: {
+        allowNull: true,
+        type: Sequelize.INTEGER
       },
       createAt: {
         allowNull: false,
@@ -22,7 +23,7 @@ module.exports = {
       }
     })
     .then(() => {
-      queryInterface.addColumn('post', 'userId', {
+      queryInterface.addColumn('comment', 'userId', {
         type: Sequelize.INTEGER,
         allowNull: false,
         onDelete: 'CASCADE',
@@ -30,7 +31,7 @@ module.exports = {
       })
     })
     .then(() => {
-      queryInterface.addColumn('post_tag', 'postId', {
+      queryInterface.addColumn('comment', 'postId', {
         type: Sequelize.INTEGER,
         allowNull: false,
         onDelete: 'CASCADE',
@@ -42,7 +43,7 @@ module.exports = {
     let sql ='SET FOREIGN_KEY_CHECKS = 0';
     await queryInterface.sequelize.query(sql, {
         type: Sequelize.QueryTypes.RAW,
-    })
-    await queryInterface.dropTable('post');
+      })
+    await queryInterface.dropTable('comment');
   }
 };

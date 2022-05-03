@@ -138,7 +138,7 @@ module.exports = {
             limit: 10
         })
         const resPosts =  posts.map((post)=> {
-            const {id, content, createAt, public, userId, user, likes, tags, comments} = post;
+            const {id, content, createAt, _public, userId, user, likes, tags, comments} = post;
             let tag = [];
             for(let el of tags) {
                 tag.push(el.content)
@@ -159,7 +159,7 @@ module.exports = {
                 likeCount: likes.length,
                 likeCheck: likeCheck,
                 createAt: createAt,
-                public: public
+                public: _public
             };
         });
         return res.status(200).json(resPosts)
@@ -240,7 +240,7 @@ module.exports = {
             ]
         });
         try{
-        const {id, userId, public, content, createAt, user, tags, comments, likes} = postPick
+        const {id, userId, _public, content, createAt, user, tags, comments, likes} = postPick
         let tag = [];
         for(let el of tags) {
             tag.push(el.content)
@@ -342,7 +342,7 @@ module.exports = {
             userId: userId,
             nickname: user.nickname,
             content: content,
-            public: public,
+            public: _public,
             likeCount: likes.length,
             commentCount: comments.length,
             likeCheck: likeCheck,
@@ -359,11 +359,11 @@ module.exports = {
 
     postCreate : async (req, res) => {
         req.userId = req.userId || 1;
-        const {content, public} = req.body;
+        const {content, _public} = req.body;
 
         try{
             let Post = await post.create({
-                content: content, public: public, userId: req.userId
+                content: content, public: _public, userId: req.userId
             })
             const tagArr = await tag.findAll({
                 attributes:['id','content'],

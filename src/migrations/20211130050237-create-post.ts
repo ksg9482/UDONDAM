@@ -1,18 +1,20 @@
-'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('recentsearch', {
+    await queryInterface.createTable('post', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      tag: {
+      content: {
+        allowNull: false,
         type: Sequelize.STRING
       },
-      notTag: {
-        type: Sequelize.STRING
+      public: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN
       },
       createAt: {
         allowNull: false,
@@ -20,11 +22,19 @@ module.exports = {
       }
     })
     .then(() => {
-      queryInterface.addColumn('recentsearch', 'userId', {
+      queryInterface.addColumn('post', 'userId', {
         type: Sequelize.INTEGER,
         allowNull: false,
         onDelete: 'CASCADE',
         references: {model: 'user', key:'id'}
+      })
+    })
+    .then(() => {
+      queryInterface.addColumn('post_tag', 'postId', {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        onDelete: 'CASCADE',
+        references: {model: 'post', key:'id'}
       })
     })
   },
@@ -33,6 +43,6 @@ module.exports = {
     await queryInterface.sequelize.query(sql, {
         type: Sequelize.QueryTypes.RAW,
     })
-    await queryInterface.dropTable('recentsearch');
+    await queryInterface.dropTable('post');
   }
 };
