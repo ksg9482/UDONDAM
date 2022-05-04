@@ -1,7 +1,7 @@
 
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async (queryInterface:any, Sequelize:any) => {
     let postId;
     await queryInterface.bulkInsert('comment', [
       {
@@ -71,7 +71,7 @@ module.exports = {
       ], {});
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface:any, Sequelize:any) => {
     await queryInterface.bulkDelete('comment', null, {});
   }
 };

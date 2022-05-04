@@ -1,6 +1,6 @@
 const {post, tag, user, comment, likes, post_tag} = require('../models/index');
 module.exports = {
-    postTag : async (req, res) => {
+    postTag : async (req:any,  res:any) => {
         req.query.page = req.query.page || '1';
         //req.query.size = req.query.size || '2';
         req.userId = req.userId || 1;
@@ -12,10 +12,10 @@ module.exports = {
         if(page !== 0) {
             offset = page * 10;
         }
-        const areaTag = req.query.tag.filter((el) => {
+        const areaTag = req.query.tag.filter((el:any) => {
             return el[el.length-1] === '시' || el[el.length-1] === '군'
         })
-        const contentTag = req.query.tag.filter((el) => {
+        const contentTag = req.query.tag.filter((el:any) => {
             return el[el.length-1] !== '시' && el[el.length-1] !== '군' && el[el.length-1] !== '요'
         })
         try{
@@ -34,7 +34,7 @@ module.exports = {
         if(areaPosts.length === 0) {
             return res.status(200).json(areaPosts);
         }
-        let areaPostId = areaPosts.map((el)=>{
+        let areaPostId = areaPosts.map((el:any)=>{
             return el.dataValues.id
         })
         if(contentTag.length !== 0) {
@@ -49,7 +49,7 @@ module.exports = {
                 }
             ]
             })
-            const postTags = areaPostTags.filter((el)=> {
+            const postTags = areaPostTags.filter((el:any)=> {
             const {tags} = el.dataValues;
             let tagCheck = false;
             const tagArr = [];
@@ -77,7 +77,7 @@ module.exports = {
             }
             return tagCheck === true
             })
-            areaPostId = postTags.map((el)=> {
+            areaPostId = postTags.map((el:any)=> {
                 return el.id
             })
         }
@@ -93,7 +93,7 @@ module.exports = {
                     }
                 ]
                 })
-            const areaNotTagFilter = areaNotTags.filter((el)=> {
+            const areaNotTagFilter = areaNotTags.filter((el:any)=> {
                 const {tags} = el.dataValues;
                 let notCheck = true;
                 for(let el of tags) {
@@ -105,7 +105,7 @@ module.exports = {
                 }
                 return notCheck === true
             })
-            areaPostId = areaNotTagFilter.map((el) => {
+            areaPostId = areaNotTagFilter.map((el:any) => {
                 return el.id
             })
         }
@@ -137,7 +137,7 @@ module.exports = {
             offset: offset,
             limit: 10
         })
-        const resPosts =  posts.map((post)=> {
+        const resPosts =  posts.map((post:any)=> {
             const {id, content, createAt, _public, userId, user, likes, tags, comments} = post;
             let tag = [];
             for(let el of tags) {
@@ -169,7 +169,7 @@ module.exports = {
         }
     },
 
-    postUser : async (req, res) => {
+    postUser : async (req:any,  res:any) => {
         req.userId = req.userId || 1;
         const posts = await post.findAll({
             attributes: ['id', 'content', 'createAt'],
@@ -191,8 +191,8 @@ module.exports = {
         if(posts.length === 0) {
             return res.status(200).json(posts);
         }
-        let resPosts = [];
-        posts.map((post)=> {
+        let resPosts:any = [];
+        posts.map((post:any)=> {
             const {id, content, createAt, likes, comments} = post;
             resPosts.push({
                 id:id,
@@ -205,7 +205,7 @@ module.exports = {
         res.status(200).send(resPosts);
     },
 
-    postPick : async (req,res) => {
+    postPick : async (req:any,res:any) => {
         req.userId = req.userId || 1
         req.params.postId = req.params.postId || 1;
         const postPick = await post.findOne({
@@ -251,10 +251,10 @@ module.exports = {
                 likeCheck = true;
             }
         }
-        let commentArr = [];
-        let deleteArr = [];
+        let commentArr:any = [];
+        let deleteArr:any = [];
         if(comments.length !== 0) {
-            comments.map((el)=>{
+            comments.map((el:any)=>{
                 const {id, content, userId, postId, commentId, createAt, user} = el.dataValues
             if(commentId === null) {
                 commentArr.push({
@@ -326,7 +326,7 @@ module.exports = {
         }
         if(deleteArr.length !== 0) {
             for(let el of deleteArr) {
-                let idx = commentArr.findIndex((ele)=> el.id < ele.id);
+                let idx = commentArr.findIndex((ele:any)=> el.id < ele.id);
                 if(idx === -1) {
                     commentArr.push(el)
                 }
@@ -357,7 +357,7 @@ module.exports = {
         }
     },
 
-    postCreate : async (req, res) => {
+    postCreate : async (req:any,  res:any) => {
         req.userId = req.userId || 1;
         const {content, _public} = req.body;
 
@@ -385,7 +385,7 @@ module.exports = {
         }
         
     },
-    postDelete : async (req, res) => {
+    postDelete : async (req:any,  res:any) => {
         req.userId = req.userId || 1,
         req.params.postId = req.params.postId || 14;
         try{

@@ -1,7 +1,7 @@
 
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async (queryInterface:any, Sequelize:any) => {
     await queryInterface.bulkInsert('post_tag', [
       {
         id: 1,
@@ -151,7 +151,7 @@ module.exports = {
       ], {});
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface:any, Sequelize:any) => {
     await queryInterface.bulkDelete('post_tag', null, {});
   }
 };

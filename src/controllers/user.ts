@@ -1,7 +1,7 @@
 const {user} = require('../models/index');
 
 module.exports = {
-    userInfo : async (req, res) => { 
+    userInfo : async (req:any,  res:any) => { 
         req.userId = req.userId || 1
         //console.log(req.userId)
         try {
@@ -16,7 +16,7 @@ module.exports = {
         }
     },
 
-    userPatch : async (req, res) => {
+    userPatch : async (req:any,  res:any) => {
         req.userId = req.userId || 1;
         const {nickname, password} = req.body;
         try{
@@ -54,7 +54,7 @@ module.exports = {
         }
     },
 
-    areaPatch : async (req, res) => {
+    areaPatch : async (req:any,  res:any) => {
         req.userId = req.userId || 1
         const {area, area2} = req.body;
         try{
@@ -106,7 +106,7 @@ module.exports = {
         }
     },
     
-    userDelete : async (req, res) => {
+    userDelete : async (req:any,  res:any) => {
             req.userId = req.userId || 1        
         try{
             await user.destroy({

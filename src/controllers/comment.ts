@@ -1,7 +1,7 @@
 const {comment, post, likes} = require('../models/index')
 
 module.exports = {
-    commentUser: async (req, res) => {
+    commentUser: async (req:any,  res:any) => {
         req.userId = req.userId || 1;
         try{
         let posts = await post.findAll({
@@ -46,7 +46,7 @@ module.exports = {
             return res.status(500).json({"message": "Server Error"})
         }        
     },
-    commentCreate: async (req, res) => {
+    commentCreate: async (req:any,  res:any) => {
         req.userId = req.userId || 1;
         const {postId, content, commentId} = req.body;
         try{
@@ -65,7 +65,7 @@ module.exports = {
             return res.status(500).json({"message": "Server Error"})
         }
     },
-    commentDelete: async (req, res) => {
+    commentDelete: async (req:any,  res:any) => {
         req.userId = req.userId || 1;
         req.params.commentId = req.params.commentId || 5;
         try {

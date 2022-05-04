@@ -2,7 +2,7 @@ const { comment, likes, post, user } = require("../models");
 const { sequelize } = require("sequelize");
 const { isAuthorized } = require('../controllers/token.js');
 module.exports = {
-    likesUser: async (req, res) => {
+    likesUser: async (req:any,  res:any) => {
         const userId = req.userId || 1;
         //const { userId } = req.query;
         let userInfo = await user.findOne({
@@ -47,13 +47,13 @@ module.exports = {
                 return res.status(200).json(result);
             }
             else{
-                let likesCount = [];
-                tempLikeCount.map((count) => {
+                let likesCount:any = [];
+                tempLikeCount.map((count:any) => {
                     let { likes } = count;
                     likesCount.push(likes.length);
                 })
 
-                const response = result.map((post, idx) => {
+                const response = result.map((post:any, idx:any) => {
                     let { id, content, createAt, comments } = post;
                     
                     return {
@@ -71,7 +71,7 @@ module.exports = {
             
         }
     },
-    likesCreate: async (req, res) => {
+    likesCreate: async (req:any,  res:any) => {
         const userId = req.userId || 2;
         const { postId } = req.body;
         let userInfo = await user.findOne({
@@ -102,7 +102,7 @@ module.exports = {
             }
         }
     },
-    likesDelete: async (req, res) => {
+    likesDelete: async (req:any,  res:any) => {
         const userId = req.userId || 2;
         const { postId } = req.query;
         let userInfo = await user.findOne({

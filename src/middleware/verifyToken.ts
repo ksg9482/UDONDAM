@@ -2,13 +2,13 @@ const { user } = require('../models');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const isAuth = (req, res, next) => {
+const isAuth = (req:any, res:any, next:any) => {
     const token = req.cookies['jwt'];
     if (!token) {
         return res.status(401).json({ "message": "token doesn't exist" });
     }
     try {
-        jwt.verify(token, process.env.ACCESS_SECRET , async (err, encoded) => {
+        jwt.verify(token, process.env.ACCESS_SECRET , async (err:any, encoded:any) => {
             if (err) {
                 return res.status(401).json({ "message": "token doesn't exist" });
             }
