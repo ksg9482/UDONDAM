@@ -3,10 +3,10 @@ const { sign, verify } = require('jsonwebtoken');
 const DOMAIN = process.env.DOMAIN || 'localhost'
 
 module.exports = {
-    generateAccessToken: (data) => {
+    generateAccessToken: (data:any) => {
         return sign(data, process.env.ACCESS_SECRET, { expiresIn: "4h" });
     },
-    sendAccessToken: (res, token, userData) => {
+    sendAccessToken: (res:any, token:any, userData:any) => {
       userData = userData || {data: null};
       res.status(200).cookie("jwt", token,{
         sameSite: 'none',
@@ -18,7 +18,7 @@ module.exports = {
       }).json({ data: userData });
       return ;
     },
-    isAuthorized: (req) => {
+    isAuthorized: (req:any) => {
         const authorization = req.headers["authorization"];
         if (!authorization) {
           return null;

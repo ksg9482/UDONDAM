@@ -13,7 +13,7 @@ const NAVERSECRET = process.env.EC2_NAVER_SECRET || process.env.NAVER_SECRET;
 const NAVERRIDIRECT = process.env.EC2_NAVER_REDIRECT || process.env.NAVER_REDIRECT
 
 module.exports = {
-    login: async (req, res) => {
+    login: async (req:any,  res:any) => {
         //console.log(NAVERID, NAVERSECRET, NAVERRIDIRECT)
         const { email, password } = req.body;
         let userInfo = await user.findOne({
@@ -42,7 +42,7 @@ module.exports = {
             sendAccessToken(res, token, userData);
         }
     },
-    guest: async (req, res) => {
+    guest: async (req:any,  res:any) => {
         const userData = {
             userId: 5,
             nickname: '게스트',
@@ -52,7 +52,7 @@ module.exports = {
         const token = generateAccessToken(userData);
         sendAccessToken(res, token, userData);
     },
-    logout: async (req, res) => {
+    logout: async (req:any,  res:any) => {
         try {
             res.clearCookie('jwt',{
                 sameSite: 'none',
@@ -70,7 +70,7 @@ module.exports = {
             return res.status(401).json({ "message": "Unauthorized"});
         }
     },
-    signup: async (req, res) => {
+    signup: async (req:any,  res:any) => {
         const { email, password } = req.body;
         await user.create({
             email: email, password:password
@@ -78,12 +78,12 @@ module.exports = {
         res.status(201).json({ "message": "signUp!"});
         return;
     },
-    email: async (req, res) => {
+    email: async (req:any,  res:any) => {
         const { email } = req.body;
 
         try {
             // 인증코드 생성 함수
-            const generateRandomCode = (n) => {
+            const generateRandomCode = (n:any) => {
                 let str = "";
                 for (let i = 0; i < n; i++) {
                     str += Math.floor(Math.random() * 10);
@@ -124,7 +124,7 @@ module.exports = {
                 </div></div></div>`,
             };
 
-            transporter.sendMail(mailOptions, (err, info) => {
+            transporter.sendMail(mailOptions, (err:any, info:any) => {
                 if (err) {
                     //console.log(err);
                 }
@@ -142,7 +142,7 @@ module.exports = {
         }
     },
 
-    emailCheck: async (req, res) => {
+    emailCheck: async (req:any,  res:any) => {
         const { email } = req.body;
         const emailCheck = await user.findOne({
             where: {
@@ -158,7 +158,7 @@ module.exports = {
             res.status(200).json({ "message": "ok!"})
         }
     },
-    passwordCheck: async (req, res) => {
+    passwordCheck: async (req:any,  res:any) => {
         const { email, password } = req.body;
         const checkPassword = await user.findOne({
             where: { email: email, password: password}
@@ -176,7 +176,7 @@ module.exports = {
             res.status(500).json({ "message": "Server Error"})
         }
     },
-    tempp: async (req, res) => {
+    tempp: async (req:any,  res:any) => {
         const { email } = req.body;
         const emailCheck = await user.findOne({
             where: {
@@ -186,7 +186,7 @@ module.exports = {
         if (emailCheck) { // 이메일이 잘 있다면
             try {
                 // 인증코드 생성 함수
-                const generateRandomCode = (n) => {
+                const generateRandomCode = (n:any) => {
                     let str = "";
                     for (let i = 0; i < n; i++) {
                         str += Math.floor(Math.random() * 10);
@@ -227,7 +227,7 @@ module.exports = {
                     </div></div></div>`,
                 };
     
-                transporter.sendMail(mailOptions, (err, info) => {
+                transporter.sendMail(mailOptions, (err:any, info:any) => {
                     if (err) {
                         //console.log(err);
                     }
@@ -259,7 +259,7 @@ module.exports = {
             res.status(401).json({ "message" : "email check" })
         }
     },
-    google: async (req, res) => {
+    google: async (req:any,  res:any) => {
         try {
             return res.redirect(
               `https://accounts.google.com/o/oauth2/v2/auth?scope=https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile&access_type=offline&response_type=code&state=hello&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&client_id=${process.env.GOOGLE_CLIENT_ID}`
@@ -268,7 +268,7 @@ module.exports = {
             //console.log(err);
           }
     },
-    googlecallback: async (req, res) => {
+    googlecallback: async (req:any,  res:any) => {
         // authorization code
         const code = req.query.code;
         
@@ -323,12 +323,12 @@ module.exports = {
             res.sendStatus(500);
         }
     },
-    naver: (req, res) => {
+    naver: (req:any,  res:any) => {
         return res.redirect(
             `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVERID}&state=STATE_STRING&redirect_uri=${NAVERRIDIRECT}`
         );
     },
-    naverCallback: async (req, res) => {
+    naverCallback: async (req:any,  res:any) => {
         const code = req.query.code;
         const state = req.query.state;
         try {
@@ -382,12 +382,12 @@ module.exports = {
         }
     },
 
-    kakao: async (req, res) => {
+    kakao: async (req:any,  res:any) => {
             const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAOID}&redirect_uri=${KAKAOURL}&response_type=code`;
         return  res.redirect(kakaoAuthURL);
     },
 
-    kakaoCallback: async (req, res) => {
+    kakaoCallback: async (req:any,  res:any) => {
         const code = req.query.code;
         try {
         const result = await axios.post(

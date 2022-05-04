@@ -20,13 +20,13 @@ let areaTag = area.map((el,idx)=> {
     let tags = areaTag.concat(contentTag)
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  up: async (queryInterface:any, Sequelize:any) => {
     await queryInterface.bulkInsert('tag', [
     ...tags
       ], {});
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface:any, Sequelize:any) => {
     /**
      * Add commands to revert seed here.
      *

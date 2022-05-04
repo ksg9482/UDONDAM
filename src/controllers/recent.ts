@@ -1,7 +1,7 @@
 const e = require("express");
 const { user, recentsearch } = require("../models");
 module.exports = {
-    get: async(req, res) => {
+    get: async(req:any,  res:any) => {
         const userId = req.userId || 2;
         let userInfo = await user.findOne({
             where: {
@@ -24,7 +24,7 @@ module.exports = {
                 return res.status(200).json(recent);
             }
             else {
-                const result = recent.map((el,idx) =>{
+                const result = recent.map((el:any,idx:any) =>{
                     const { tag, notTag, createAt } = el;
                     if(notTag !== null){
                         return {
@@ -47,7 +47,7 @@ module.exports = {
             }
         }
     },
-    post: async(req, res) => {
+    post: async(req:any,  res:any) => {
         const userId = req.userId || 2;
         const { tag, notTag } = req.body;
         let stringNotTag = null;
