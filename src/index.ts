@@ -4,12 +4,12 @@ import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import userRouter from './routers/user';
-import postRouter from './routers/post';
-import commentRouter from './routers/comment';
-import likesRouter from './routers/likes';
-import authRouter from './routers/auth';
-import recentRouter from './routers/recent';
+//import {userRouter} from './routes/user';
+import postRouter from './routes/post';
+import commentRouter from './routes/comment';
+import likesRouter from './routes/likes';
+import authRouter from './routes/auth';
+import recentRouter from './routes/recent';
 import { sequelize } from './models';
 
 dotenv.config();
@@ -37,7 +37,7 @@ app.get('/', (req:any, res:any)=> {
     res.status(200).send("get 응답")
 })
 
-// app.use('/user', userRouter);
+//app.use('/user', userRouter);
 // app.use('/post', postRouter);
 // app.use('/comment', commentRouter);
 // app.use('/likes', likesRouter);

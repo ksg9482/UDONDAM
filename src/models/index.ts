@@ -1,5 +1,6 @@
 import {Sequelize} from 'sequelize';
 import {config} from '../config/config'
+import {User} from './user'
 
 // export const sequelize = new Sequelize('typescript_test', 'root','Jaehyeon2!',{
 //     host : 'localhost',
@@ -14,6 +15,7 @@ export const sequelize = new Sequelize(
         host: config.development.host,
         dialect: 'mysql'
     }
+    
 )
 
 // const fs = require('fs');

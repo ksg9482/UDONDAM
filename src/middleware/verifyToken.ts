@@ -20,7 +20,6 @@ const isAuth = (req:any, res:any, next:any) => {
             return next();
         });
     } catch (error) {
-        //console.log(error);
         return res.status(500).json({ "message": "Server Error" });
     }
 };
