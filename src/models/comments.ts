@@ -13,56 +13,73 @@ import {
 import { Posts } from './posts';
 import { Users } from './users';
 
-  export interface likesAttributes {
+    export interface commentsAttributes {
     id: number,
+    content: string,
     userId: number,
     postId: number,
+    commentId: number,
     createdAt: Date,
     updatedAt: Date
   }
 
-export type likesPk = "id";
-export type likesId = Likes[likesPk];
-export type likesOptionalAttribues = 
+export type commentsPk = "id";
+export type commentsId = Comments[commentsPk];
+export type commentsOptionalAttribues = 
 "id" 
-| "userId" 
+| "content" 
+| "userId"
 | "postId"
+| "commentId"
 | "createdAt"
 | "updatedAt"; 
-export type likesCreationAttributes = Optional<likesAttributes,likesOptionalAttribues>
+export type commentsCreationAttributes = Optional<commentsAttributes,commentsOptionalAttribues>
 
 
-export class Likes extends Model<likesAttributes, likesCreationAttributes> implements likesAttributes {
+
+export class Comments extends Model<commentsAttributes, commentsCreationAttributes> implements commentsAttributes {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    public readonly id!: number;
-    public userId!: number;
-    public postId!: number;
 
-    public readonly createdAt!: Date;
-    public readonly updatedAt!: Date;
+     public readonly id!: number;
+     public content!: string;
+     public userId!: number;
+     public postId!: number;
+     public commentId!: number;
+ 
+     public readonly createdAt!: Date;
+     public readonly updatedAt!: Date;
 
-    public static associations: {
-      likesBelongsToUsers: Association<Likes, Users>,
-      likesBelongsToPosts: Association<Likes, Posts>,
+     public static associations: {
+      commentsBelongsToUsers: Association<Comments, Users>,
+      commentsBelongsToPosts: Association<Comments, Posts>,
     };
 
-    static initModel(sequelize: Sequelize): typeof Likes {
-      Likes.init({
+    static initModel(sequelize: Sequelize): typeof Comments {
+      Comments.init({
         id: {
           autoIncrement:true,
           type: DataTypes.BIGINT,
           allowNull: false,
           primaryKey: true
         },
+        content: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
         userId: {
           type: DataTypes.INTEGER,
           allowNull: false
         },
         postId: {
+          type: DataTypes.INTEGER,
+          allowNull: false
+        },
+        //commentId는 왜 필요?? 그냥 id랑 무슨 차이가??
+        commentId: {
           type: DataTypes.INTEGER,
           allowNull: false
         },
@@ -76,26 +93,25 @@ export class Likes extends Model<likesAttributes, likesCreationAttributes> imple
         }
       }, {
         sequelize,
-        tableName: 'likes',
-        modelName: 'likes',
+        modelName: 'comment',
         freezeTableName: true,
         timestamps: true,
-        //createdAt: 'createAt',
-        //updatedAt: false
+        createdAt: "createAt",
+        updatedAt: false
       });
-      return Likes; 
+      return Comments;
     };
   };
-  Likes.belongsTo(Users, {
+  Comments.belongsTo(Users, {
     foreignKey: 'userId',
     //sourceKey: 'id',
     onDelete: 'CASCADE',
-    as: 'likesBelongsToUsers',
+    as: 'commentsBelongsToUsers',
   });
-  Likes.belongsTo(Posts, {
+  Comments.belongsTo(Posts, {
     foreignKey: 'postId',
     //sourceKey: 'id',
     onDelete: 'CASCADE',
-    as: 'likesBelongsToPosts',
+    as: 'commentsBelongsToPosts',
   });
   
