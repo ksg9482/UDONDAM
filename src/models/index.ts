@@ -1,11 +1,21 @@
-import {Sequelize} from 'sequelize';
-import {config} from '../config/config'
-import {User} from './user'
+import { Sequelize } from 'sequelize';
+import { config } from '../config/config';
 
-// export const sequelize = new Sequelize('typescript_test', 'root','Jaehyeon2!',{
-//     host : 'localhost',
-//     dialect : 'mysql',
-// })
+import type {usersAttributes, usersCreationAttributes} from './users';
+import type {commentsAttributes, commentsCreationAttributes} from './comments';
+import type {likesAttributes, likesCreationAttributes} from './likes';
+import type {postsAttributes, postsCreationAttributes} from './posts';
+import type {recentSearchsAttributes, recentSearchsCreationAttributes} from './recentsearchs';
+import type {tagsAttributes, tagsCreationAttributes} from './tags';
+import type {posts_tagsAttributes, posts_tagsCreationAttributes} from './posts_tags';
+
+import { Users } from './users';
+import { Comments } from './comments';
+import { Likes } from './likes';
+import { Posts } from './posts';
+import { RecentSearchs } from './recentsearchs';
+import { Tags } from './tags';
+import { Posts_Tags } from './posts_tags';
 
 export const sequelize = new Sequelize(
     config.development.database,
@@ -15,9 +25,40 @@ export const sequelize = new Sequelize(
         host: config.development.host,
         dialect: 'mysql'
     }
-    
+    //timezone 추가?
 )
 
+export {
+    Users,
+    Comments,
+    Likes,
+    Posts,
+    RecentSearchs,
+    Tags,
+    Posts_Tags,
+}
+
+export type {
+usersAttributes,
+commentsAttributes,
+likesAttributes,
+postsAttributes,
+recentSearchsAttributes,
+tagsAttributes,
+posts_tagsAttributes
+}
+
+// export function Sequelize() {
+//     Users.initModel(sequelize);
+// Comments.initModel(sequelize);
+// Likes.initModel(sequelize);
+// Posts.initModel(sequelize);
+// RecentSearchs.initModel(sequelize);
+// Tags.initModel(sequelize);
+// Posts_Tags.initModel(sequelize);
+
+
+// }
 // const fs = require('fs');
 // const path = require('path');
 // const Sequelize = require('sequelize');
