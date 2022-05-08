@@ -10,13 +10,13 @@ import {
   Association, 
   Sequelize} from 'sequelize';
 import { Comments } from './comments';
-  import { sequelize } from './index';
+ // import { sequelize } from './index';
 import { Likes } from './likes';
-import { RecentSearch } from './recentsearchs';
+import { RecentSearchs } from './recentsearchs';
 import { Tags } from './tags';
 import { Users } from './users';
 
-  export interface postsAttributes {
+  export interface IpostsAttributes {
     id: number,
     content: string,
     userId: number,
@@ -34,9 +34,9 @@ export type postsOptionalAttribues =
 | "public"
 | "createdAt"
 | "updatedAt"; 
-export type postsCreationAttributes = Optional<postsAttributes,postsOptionalAttribues>
+export type postsCreationAttributes = Optional<IpostsAttributes,postsOptionalAttribues>
 
-  export class Posts extends Model<postsAttributes, postsCreationAttributes> implements postsAttributes {
+  export class Posts extends Model<IpostsAttributes, postsCreationAttributes> implements IpostsAttributes {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -54,7 +54,7 @@ export type postsCreationAttributes = Optional<postsAttributes,postsOptionalAttr
       postsbelongsToUsers: Association<Posts, Users>,
       postshasManyComment:Association<Posts, Comments>
       postsHasManyLikes:Association<Posts, Likes>
-      postsbelongsToManyTags:Association<Posts, RecentSearch>
+      postsbelongsToManyTags:Association<Posts, RecentSearchs>
     }
     static initModel(sequelize: Sequelize): typeof Posts {
       Posts.init({
@@ -101,6 +101,7 @@ export type postsCreationAttributes = Optional<postsAttributes,postsOptionalAttr
 
   Posts.belongsTo(Users, {
     foreignKey: 'userId',
+    targetKey: 'id',
     //sourceKey: 'id',
     onDelete: 'CASCADE',
     as: 'postsbelongsToUsers',

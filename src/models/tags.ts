@@ -12,7 +12,7 @@ import {
   import { sequelize } from './index';
 import { Posts } from './posts';
 
-  export interface tagsAttributes {
+  export interface ItagsAttributes {
     id: number,
     content: string,
     createdAt: Date,
@@ -26,10 +26,10 @@ export type tagsOptionalAttribues =
 | "content"
 | "createdAt"
 | "updatedAt"; 
-export type tagsCreationAttributes = Optional<tagsAttributes,tagsOptionalAttribues>
+export type tagsCreationAttributes = Optional<ItagsAttributes,tagsOptionalAttribues>
 
 
-  export class Tags extends Model<tagsAttributes, tagsCreationAttributes> implements tagsAttributes {
+  export class Tags extends Model<ItagsAttributes, tagsCreationAttributes> implements ItagsAttributes {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.

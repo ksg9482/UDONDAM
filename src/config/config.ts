@@ -1,6 +1,5 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
-
 export const config = {
   development: {
     username: process.env.DATABASE_USERNAME || "",
@@ -26,4 +25,3 @@ export const config = {
     dialect: "mysql"
   }
 }
-

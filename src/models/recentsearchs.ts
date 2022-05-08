@@ -13,7 +13,7 @@ import {
 import { sequelize } from './index';
 import { Users } from './users';
 
-export interface recentSearchsAttributes {
+export interface IrecentSearchsAttributes {
   id: number,
   userId: number,
   tag: string,
@@ -31,10 +31,10 @@ export type recentSearchsOptionalAttribues =
   | "notTag"
   | "createdAt"
   | "updatedAt";
-export type recentSearchsCreationAttributes = Optional<recentSearchsAttributes, recentSearchsOptionalAttribues>
+export type recentSearchsCreationAttributes = Optional<IrecentSearchsAttributes, recentSearchsOptionalAttribues>
 
 
-export class RecentSearchs extends Model<recentSearchsAttributes, recentSearchsCreationAttributes> implements recentSearchsAttributes {
+export class RecentSearchs extends Model<IrecentSearchsAttributes, recentSearchsCreationAttributes> implements IrecentSearchsAttributes {
   /**
    * Helper method for defining associations.
    * This method is not a part of Sequelize lifecycle.
@@ -94,6 +94,7 @@ export class RecentSearchs extends Model<recentSearchsAttributes, recentSearchsC
 };
 RecentSearchs.belongsTo(Users, {
   foreignKey: 'userId',
+  targetKey: 'id',
   //sourceKey: 'id',
   onDelete: 'CASCADE',
   as: 'resentSearchBelongsToUsers',
