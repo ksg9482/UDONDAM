@@ -61,7 +61,7 @@ if (fs.existsSync("./key.pem") && fs.existsSync("./cert.pem")) {
     .then(async () => {
         console.log("Connection Success")
     })
-    .catch((e) => {
+    .catch((e:any) => {
         console.log('TT : ', e);
     })
     });
@@ -73,7 +73,7 @@ server = app.listen(PORT, HOST, async ()=> {
     .then(async () => {
         console.log("Connection Success")
     })
-    .catch((e) => {
+    .catch((e:any) => {
         console.log('TT : ', e);
     })
 })

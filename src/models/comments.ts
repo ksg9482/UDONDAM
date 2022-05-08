@@ -13,7 +13,7 @@ import {
 import { Posts } from './posts';
 import { Users } from './users';
 
-    export interface commentsAttributes {
+    export interface IcommentsAttributes {
     id: number,
     content: string,
     userId: number,
@@ -33,11 +33,11 @@ export type commentsOptionalAttribues =
 | "commentId"
 | "createdAt"
 | "updatedAt"; 
-export type commentsCreationAttributes = Optional<commentsAttributes,commentsOptionalAttribues>
+export type commentsCreationAttributes = Optional<IcommentsAttributes,commentsOptionalAttribues>
 
 
 
-export class Comments extends Model<commentsAttributes, commentsCreationAttributes> implements commentsAttributes {
+export class Comments extends Model<IcommentsAttributes, commentsCreationAttributes> implements IcommentsAttributes {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -104,12 +104,14 @@ export class Comments extends Model<commentsAttributes, commentsCreationAttribut
   };
   Comments.belongsTo(Users, {
     foreignKey: 'userId',
+    targetKey: 'id',
     //sourceKey: 'id',
     onDelete: 'CASCADE',
     as: 'commentsBelongsToUsers',
   });
   Comments.belongsTo(Posts, {
     foreignKey: 'postId',
+    targetKey: 'id',
     //sourceKey: 'id',
     onDelete: 'CASCADE',
     as: 'commentsBelongsToPosts',

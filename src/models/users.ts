@@ -12,12 +12,12 @@ import {
   Sequelize
 } from 'sequelize';
 import { Comments } from './comments';
-import { sequelize } from './index';
+ import { sequelize } from './index';
 import { Likes } from './likes';
 import { Posts } from './posts'
 import { RecentSearchs } from './recentsearchs';
 
-export interface usersAttributes {
+export interface IusersAttributes {
   id: number,
   email: string,
   password: string,
@@ -43,11 +43,11 @@ export type usersOptionalAttribues =
 | "area2"
 | "createdAt"
 | "updatedAt"; 
-export type usersCreationAttributes = Optional<usersAttributes,usersOptionalAttribues>
+export type usersCreationAttributes = Optional<IusersAttributes,usersOptionalAttribues>
 
-//type UsersCreateInterface = Pick<UsersAttributes,'type'>
+//type UsersCreateInterface = Pick<IusersAttributes,'type'>
 
-export class Users extends Model<usersAttributes, usersCreationAttributes> implements usersAttributes {
+export class Users extends Model<IusersAttributes, usersCreationAttributes> implements IusersAttributes {
   /**
    * Helper method for defining associations.
    * This method is not a part of Sequelize lifecycle.
@@ -154,54 +154,3 @@ Users.hasMany(RecentSearchs, {
   onDelete: 'CASCADE',
   as: 'userHasManyRecentsearch'
 });
-// Before
-// module.exports = (sequelize:any, DataTypes:any) => {
-//   class user extends Model {
-//     /**
-//      * Helper method for defining associations.
-//      * This method is not a part of Sequelize lifecycle.
-//      * The `models/index` file will call this method automatically.
-//      */
-//     static associate(models:any) {
-//       models.user.hasMany(models.post, {
-//         foreignKey: 'userId',
-//         sourceKey: 'id',
-//         onDelete: 'CASCADE'
-//       });
-//       models.user.hasMany(models.comment, {
-//         foreignKey: 'userId',
-//         sourceKey: 'id',
-//         onDelete: 'CASCADE'
-//       });
-//       models.user.hasMany(models.likes, {
-//         foreignKey: 'userId',
-//         sourceKey: 'id',
-//         onDelete: 'CASCADE'
-//       });
-//       models.user.hasMany(models.recentsearch, {
-//         foreignKey: 'userId',
-//         sourceKey: 'id',
-//         onDelete: 'CASCADE'
-//       });
-//     }
-//   };
-//   user.init({
-//     email: DataTypes.STRING,
-//     password: DataTypes.STRING,
-//     nickname: DataTypes.STRING,
-//     socialType: DataTypes.STRING,
-//     manager: DataTypes.BOOLEAN,
-//     area: DataTypes.STRING,
-//     area2: DataTypes.STRING
-//   }, {
-//     sequelize,
-//     modelName: 'user',
-//     freezeTableName: true,
-//     timestamps: true,
-//     createdAt: "createAt",
-//     updatedAt: "updateAt"
-//   });
-//   return user;
-// };
-
-// export = {}

@@ -13,7 +13,7 @@ import {
 import { Posts } from './posts';
 import { Users } from './users';
 
-  export interface likesAttributes {
+  export interface IlikesAttributes {
     id: number,
     userId: number,
     postId: number,
@@ -29,10 +29,10 @@ export type likesOptionalAttribues =
 | "postId"
 | "createdAt"
 | "updatedAt"; 
-export type likesCreationAttributes = Optional<likesAttributes,likesOptionalAttribues>
+export type likesCreationAttributes = Optional<IlikesAttributes,likesOptionalAttribues>
 
 
-export class Likes extends Model<likesAttributes, likesCreationAttributes> implements likesAttributes {
+export class Likes extends Model<IlikesAttributes, likesCreationAttributes> implements IlikesAttributes {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -88,12 +88,14 @@ export class Likes extends Model<likesAttributes, likesCreationAttributes> imple
   };
   Likes.belongsTo(Users, {
     foreignKey: 'userId',
+    targetKey: 'id',
     //sourceKey: 'id',
     onDelete: 'CASCADE',
     as: 'likesBelongsToUsers',
   });
   Likes.belongsTo(Posts, {
     foreignKey: 'postId',
+    targetKey: 'id',
     //sourceKey: 'id',
     onDelete: 'CASCADE',
     as: 'likesBelongsToPosts',
