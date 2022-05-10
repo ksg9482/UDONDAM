@@ -1,6 +1,6 @@
-const express = require('express');
-const recentController = require('../controllers/recent')
-const auth = require('../middleware/verifyToken')
+import express from 'express';
+import * as recentController from '../controllers/recent';
+import auth from '../middleware/verifyToken';
 
 
 export const path = '/user';

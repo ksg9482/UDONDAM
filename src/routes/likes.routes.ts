@@ -1,6 +1,6 @@
-const express = require('express');
-const likesController = require('../controllers/likes');
-const auth = require('../middleware/verifyToken')
+import express from 'express';
+import * as likesController from '../controllers/likes';
+import auth from '../middleware/verifyToken';
 
 export const path = '/user';
 export const router = express.Router();

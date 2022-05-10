@@ -1,6 +1,6 @@
-const express = require('express');
-const postController = require('../controllers/post')
-const auth = require('../middleware/verifyToken')
+import express from 'express';
+import * as postController from '../controllers/post';
+import auth from '../middleware/verifyToken';
 
 export const path = '/user';
 export const router = express.Router();
