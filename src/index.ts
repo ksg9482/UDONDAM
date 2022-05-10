@@ -4,13 +4,9 @@ import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-//import {userRouter} from './routes/user';
-import postRouter from './routes/post';
-import commentRouter from './routes/comment';
-import likesRouter from './routes/likes';
-import authRouter from './routes/auth';
-import recentRouter from './routes/recent';
-import { sequelize } from './models';
+import * as Api from './routes/routes';
+
+import sequelize  from './models';
 
 dotenv.config();
 
@@ -22,7 +18,7 @@ const whiteList = [
     'http://localhost:3000',
     'https://udondam.com', 
     'https://udondam-ref.link/'
-]
+];
 app.use(cors({
     origin:whiteList,
     credentials: true,
@@ -37,12 +33,11 @@ app.get('/', (req:any, res:any)=> {
     res.status(200).send("get 응답")
 })
 
-//app.use('/user', userRouter);
-// app.use('/post', postRouter);
-// app.use('/comment', commentRouter);
-// app.use('/likes', likesRouter);
-// app.use('/', authRouter);
-// app.use('/recent', recentRouter)
+
+app.use(Api.path, Api.router);
+
+
+
 
 let server ;
 if (fs.existsSync("./key.pem") && fs.existsSync("./cert.pem")) {

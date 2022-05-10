@@ -9,7 +9,7 @@
 // import type {ItagsAttributes, tagsCreationAttributes} from './tags';
 // import type {Iposts_tagsAttributes, posts_tagsCreationAttributes} from './posts_tags';
 
-// import { Users } from './users';
+ import { Users } from './users';
 // import { Comments } from './comments';
 // import { Likes } from './likes';
 // import { Posts } from './posts';

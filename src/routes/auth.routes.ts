@@ -1,6 +1,8 @@
 const express = require('express');
-const router = express.Router();
 const authRouter = require('../controllers/auth')
+
+export const path = '/user';
+export const router = express.Router();
 
 router.post('/login', authRouter.login);
 router.post('/guest', authRouter.guest);
@@ -16,6 +18,3 @@ router.get('/naver', authRouter.naver);
 router.get('/navercallback', authRouter.naverCallback)
 router.get('/kakao', authRouter.kakao);
 router.get('/kakaocallback', authRouter.kakaoCallback);
-module.exports = router
-
-export = {}
