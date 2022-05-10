@@ -15,8 +15,8 @@ import { Posts } from './posts';
   export interface ItagsAttributes {
     id: number,
     content: string,
-    //createdAt: Date,
-    //updatedAt: Date
+    createdAt: Date,
+    updatedAt: Date
   }
 
 // export type tagsPk = "id";
@@ -40,11 +40,10 @@ import { Posts } from './posts';
  
      public readonly createdAt!: Date;
      public readonly updatedAt!: Date;
+     
      public static associations: {
+      
     };
-    //  public static associations: {
-    //   tagsbelongsToManyPosts: Association<Tags, Posts>,
-    // }
 
     
   };
@@ -53,7 +52,7 @@ import { Posts } from './posts';
     Tags.init({
       id: {
         autoIncrement:true,
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true
       },
@@ -61,14 +60,14 @@ import { Posts } from './posts';
         type: DataTypes.STRING,
         allowNull: false
       },
-      // createdAt:{
-      //   type: DataTypes.DATE,
-      //   allowNull: false
-      // },
-      // updatedAt:{
-      //   type: DataTypes.DATE,
-      //   allowNull: false
-      // }
+      createdAt:{
+        type: DataTypes.DATE,
+        allowNull: false
+      },
+      updatedAt:{
+        type: DataTypes.DATE,
+        allowNull: false
+      }
     }, {
       sequelize,
       modelName: 'tag',
@@ -78,10 +77,4 @@ import { Posts } from './posts';
   //   return Tags;
   // };
 
-// Tags.belongsToMany(Posts, {
-//   through: 'post_tag',
-//   sourceKey: 'id',
-//   foreignKey: 'tagId',
-//   onDelete: 'CASCADE',
-//   as: 'tagsbelongsToManyPosts'
-// });
+  
