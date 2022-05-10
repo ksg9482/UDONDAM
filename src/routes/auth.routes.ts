@@ -1,5 +1,5 @@
-const express = require('express');
-const authRouter = require('../controllers/auth')
+import express from 'express';
+import * as authRouter from '../controllers/auth';
 
 export const path = '/user';
 export const router = express.Router();

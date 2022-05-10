@@ -12,8 +12,8 @@ const NAVERID = process.env.EC2_NAVER_ID || process.env.NAVER_ID;
 const NAVERSECRET = process.env.EC2_NAVER_SECRET || process.env.NAVER_SECRET;
 const NAVERRIDIRECT = process.env.EC2_NAVER_REDIRECT || process.env.NAVER_REDIRECT
 
-module.exports = {
-    login: async (req:any,  res:any) => {
+
+export const login = async (req:any,  res:any) => {
         //console.log(NAVERID, NAVERSECRET, NAVERRIDIRECT)
         const { email, password } = req.body;
         let userInfo = await user.findOne({
@@ -41,8 +41,9 @@ module.exports = {
             const token = generateAccessToken(userData);
             sendAccessToken(res, token, userData);
         }
-    },
-    guest: async (req:any,  res:any) => {
+    };
+
+    export const guest = async (req:any,  res:any) => {
         const userData = {
             userId: 5,
             nickname: '게스트',
@@ -51,8 +52,9 @@ module.exports = {
         }
         const token = generateAccessToken(userData);
         sendAccessToken(res, token, userData);
-    },
-    logout: async (req:any,  res:any) => {
+    };
+
+    export const logout = async (req:any,  res:any) => {
         try {
             res.clearCookie('jwt',{
                 sameSite: 'none',
@@ -69,8 +71,9 @@ module.exports = {
             //console.log(err);
             return res.status(401).json({ "message": "Unauthorized"});
         }
-    },
-    signup: async (req:any,  res:any) => {
+    };
+
+    export const signup = async (req:any,  res:any) => {
         //password 암호화 적용!!
         //암호확인은 입력된 걸 암호화 해서 DB와 동일한가 확인
         const { email, password } = req.body;
@@ -79,8 +82,9 @@ module.exports = {
         });
         res.status(201).json({ "message": "signUp!"});
         return;
-    },
-    email: async (req:any,  res:any) => {
+    };
+
+    export const email = async (req:any,  res:any) => {
         const { email } = req.body;
 
         try {
@@ -142,9 +146,9 @@ module.exports = {
             //console.log(err);
             res.sendStatus(500);
         }
-    },
+    };
 
-    emailCheck: async (req:any,  res:any) => {
+    export const emailCheck = async (req:any,  res:any) => {
         const { email } = req.body;
         const emailCheck = await user.findOne({
             where: {
@@ -159,8 +163,9 @@ module.exports = {
         else {
             res.status(200).json({ "message": "ok!"})
         }
-    },
-    passwordCheck: async (req:any,  res:any) => {
+    };
+
+    export const passwordCheck = async (req:any,  res:any) => {
         const { email, password } = req.body;
         const checkPassword = await user.findOne({
             where: { email: email, password: password}
@@ -177,8 +182,9 @@ module.exports = {
         else {
             res.status(500).json({ "message": "Server Error"})
         }
-    },
-    tempp: async (req:any,  res:any) => {
+    };
+
+    export const tempp = async (req:any,  res:any) => {
         const { email } = req.body;
         const emailCheck = await user.findOne({
             where: {
@@ -260,8 +266,9 @@ module.exports = {
         else {
             res.status(401).json({ "message" : "email check" })
         }
-    },
-    google: async (req:any,  res:any) => {
+    };
+
+    export const google = async (req:any,  res:any) => {
         try {
             return res.redirect(
               `https://accounts.google.com/o/oauth2/v2/auth?scope=https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile&access_type=offline&response_type=code&state=hello&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&client_id=${process.env.GOOGLE_CLIENT_ID}`
@@ -269,8 +276,9 @@ module.exports = {
           } catch (err) {
             //console.log(err);
           }
-    },
-    googlecallback: async (req:any,  res:any) => {
+    }
+
+    export const googlecallback = async (req:any,  res:any) => {
         // authorization code
         const code = req.query.code;
         
@@ -324,13 +332,15 @@ module.exports = {
         } catch (error) {
             res.sendStatus(500);
         }
-    },
-    naver: (req:any,  res:any) => {
+    };
+
+    export const naver = (req:any,  res:any) => {
         return res.redirect(
             `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVERID}&state=STATE_STRING&redirect_uri=${NAVERRIDIRECT}`
         );
-    },
-    naverCallback: async (req:any,  res:any) => {
+    };
+
+    export const naverCallback = async (req:any,  res:any) => {
         const code = req.query.code;
         const state = req.query.state;
         try {
@@ -382,14 +392,14 @@ module.exports = {
         console.error(error);
         res.status(500).json({"message" : "Server Error"});
         }
-    },
+    };
 
-    kakao: async (req:any,  res:any) => {
+    export const kakao = async (req:any,  res:any) => {
             const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAOID}&redirect_uri=${KAKAOURL}&response_type=code`;
         return  res.redirect(kakaoAuthURL);
-    },
+    };
 
-    kakaoCallback: async (req:any,  res:any) => {
+    export const kakaoCallback = async (req:any,  res:any) => {
         const code = req.query.code;
         try {
         const result = await axios.post(
@@ -441,7 +451,4 @@ module.exports = {
         console.error(error);
         res.status(500).json({"message": "Server Error"});
         }
-    }
-}
-
-export = {}
+    };

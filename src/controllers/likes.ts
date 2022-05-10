@@ -1,8 +1,8 @@
 const { comment, likes, post, user } = require("../models");
 const { sequelize } = require("sequelize");
 const { isAuthorized } = require('../controllers/token.js');
-module.exports = {
-    likesUser: async (req:any,  res:any) => {
+
+export const likesUser = async (req:any,  res:any) => {
         const userId = req.userId || 1;
         //const { userId } = req.query;
         let userInfo = await user.findOne({
@@ -70,8 +70,9 @@ module.exports = {
             }
             
         }
-    },
-    likesCreate: async (req:any,  res:any) => {
+    };
+
+    export const likesCreate = async (req:any,  res:any) => {
         const userId = req.userId || 2;
         const { postId } = req.body;
         let userInfo = await user.findOne({
@@ -101,8 +102,9 @@ module.exports = {
                 res.status(200).json({ "message" : "이미 따봉을 한 상태입니다." });
             }
         }
-    },
-    likesDelete: async (req:any,  res:any) => {
+    };
+
+    export const likesDelete = async (req:any,  res:any) => {
         const userId = req.userId || 2;
         const { postId } = req.query;
         let userInfo = await user.findOne({
@@ -139,7 +141,4 @@ module.exports = {
                 }
             }
         }
-    },
-}
-
-export = {}
+    };

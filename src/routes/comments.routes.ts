@@ -1,6 +1,6 @@
-const express = require('express');
-const commentRouter = require('../controllers/comment');
-const auth = require('../middleware/verifyToken')
+import express from 'express';
+import * as commentRouter from '../controllers/comment';
+import auth from '../middleware/verifyToken';
 
 export const path = '/user';
 export const router = express.Router();
