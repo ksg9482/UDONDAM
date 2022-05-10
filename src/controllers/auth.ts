@@ -71,6 +71,8 @@ module.exports = {
         }
     },
     signup: async (req:any,  res:any) => {
+        //password 암호화 적용!!
+        //암호확인은 입력된 걸 암호화 해서 DB와 동일한가 확인
         const { email, password } = req.body;
         await user.create({
             email: email, password:password
