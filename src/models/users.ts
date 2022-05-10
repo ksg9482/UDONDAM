@@ -26,8 +26,8 @@ export interface IusersAttributes {
   manager: boolean,
   area: string,
   area2: string,
-  //createdAt: Date,
-  //updatedAt: Date
+  createdAt: Date,
+  updatedAt: Date
 }
 
 // export type usersPk = "id";
@@ -64,14 +64,8 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
-  public static associations: {
-  };
-  // public static associations: {
-  //   userHasManyPost: Association<Users, Posts>,
-  //   userHasManyComment:Association<Users, Comments>
-  //   userHasManyLike:Association<Users, Likes>
-  //   userHasManyRecentsearch:Association<Users, RecentSearchs>
-  // }
+  
+  public static associations: { };
 
   
 };
@@ -80,7 +74,7 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
   Users.init({
     id: {
       autoIncrement:true,
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
@@ -112,14 +106,14 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
       type: DataTypes.STRING,
       allowNull: false
     },
-    // createdAt:{
-    //   type: DataTypes.DATE,
-    //   allowNull: false
-    // },
-    // updatedAt:{
-    //   type: DataTypes.DATE,
-    //   allowNull: false
-    //}
+    createdAt:{
+      type: DataTypes.DATE,
+      allowNull: false
+    },
+    updatedAt:{
+      type: DataTypes.DATE,
+      allowNull: false
+    }
   }, {
     sequelize,
     modelName: 'users',
@@ -132,27 +126,4 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
 //   return Users;
 // }
 
-// Users.hasMany(Posts, {
-//   foreignKey: 'userId',
-//   sourceKey: 'id',
-//   onDelete: 'CASCADE',
-//   as: 'userHasManyPost'
-// });
-// Users.hasMany(Comments, {
-//   foreignKey: 'userId',
-//   sourceKey: 'id',
-//   onDelete: 'CASCADE',
-//   as: 'userHasManyComment'
-// });
-// Users.hasMany(Likes, {
-//   foreignKey: 'userId',
-//   sourceKey: 'id',
-//   onDelete: 'CASCADE',
-//   as: 'userHasManyLike'
-// });
-// Users.hasMany(RecentSearchs, {
-//   foreignKey: 'userId',
-//   sourceKey: 'id',
-//   onDelete: 'CASCADE',
-//   as: 'userHasManyRecentsearch'
-// });
+

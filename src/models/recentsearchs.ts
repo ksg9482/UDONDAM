@@ -18,8 +18,8 @@ export interface IrecentSearchsAttributes {
   userId: number,
   tag: string,
   notTag: string,
- // createdAt: Date,
- //updatedAt: Date
+ createdAt: Date,
+ updatedAt: Date
 }
 
 // export type recentSearchsPk = "id";
@@ -48,11 +48,11 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  
   public static associations: {
-  };
-  // public static associations: {
-  //   resentSearchBelongsToUsers: Association<RecentSearchs, Users>,
-  // }
+    userHasManyRecentsearch:Association<Users, RecentSearchs>
+    resentSearchBelongsToUsers: Association<RecentSearchs, Users>,
+  }
 
   
 };
@@ -61,7 +61,7 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
   RecentSearchs.init({
     id: {
       autoIncrement: true,
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
@@ -77,14 +77,14 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
       type: DataTypes.STRING,
       allowNull: false
     },
-    // createdAt: {
-    //   type: DataTypes.DATE,
-    //   allowNull: false
-    // },
-    // updatedAt: {
-    //   type: DataTypes.DATE,
-    //   allowNull: false
-    // }
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false
+    }
   }, {
     sequelize,
     modelName: 'recentsearch',
@@ -96,10 +96,16 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
 //   return RecentSearchs;
 // };
 
-// RecentSearchs.belongsTo(Users, {
-//   foreignKey: 'userId',
-//   targetKey: 'id',
-//   //sourceKey: 'id',
-//   onDelete: 'CASCADE',
-//   as: 'resentSearchBelongsToUsers',
-// });
+Users.hasMany(RecentSearchs, {
+  foreignKey: 'userId',
+  sourceKey: 'id',
+  onDelete: 'CASCADE',
+  as: 'userHasManyRecentsearch'
+});
+RecentSearchs.belongsTo(Users, {
+  foreignKey: 'userId',
+  targetKey: 'id',
+  //sourceKey: 'id',
+  onDelete: 'CASCADE',
+  as: 'resentSearchBelongsToUsers',
+});

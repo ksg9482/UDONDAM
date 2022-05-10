@@ -21,8 +21,8 @@ import { Users } from './users';
     content: string,
     userId: number,
     public: boolean,
-    //createdAt: Date,
-    //updatedAt: Date
+    createdAt: Date,
+    updatedAt: Date
   }
 
 // export type postsPk = "id";
@@ -49,14 +49,15 @@ import { Users } from './users';
    
      public readonly createdAt!: Date;
      public readonly updatedAt!: Date;
+     
      public static associations: {
-    };
-    //  public static associations: {
-    //   postsbelongsToUsers: Association<Posts, Users>,
-    //   postshasManyComment:Association<Posts, Comments>
-    //   postsHasManyLikes:Association<Posts, Likes>
-    //   postsbelongsToManyTags:Association<Posts, RecentSearchs>
-    // }
+      userHasManyPost: Association<Users, Posts>,
+      postsbelongsToUsers: Association<Posts, Users>,
+
+      
+      
+      
+    }
     
   };
   
@@ -64,7 +65,7 @@ import { Users } from './users';
     Posts.init({
       id: {
         autoIncrement:true,
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true
       },
@@ -80,14 +81,14 @@ import { Users } from './users';
         type: DataTypes.BOOLEAN,
         allowNull: false
       },
-      // createdAt:{
-      //   type: DataTypes.DATE,
-      //   allowNull: false
-      // },
-      // updatedAt:{
-      //   type: DataTypes.DATE,
-      //   allowNull: false
-      // }
+      createdAt:{
+        type: DataTypes.DATE,
+        allowNull: false
+      },
+      updatedAt:{
+        type: DataTypes.DATE,
+        allowNull: false
+      }
     }, {
       sequelize,
       modelName: 'posts',
@@ -100,29 +101,18 @@ import { Users } from './users';
   //   return Posts;
   // }
 
-  // Posts.belongsTo(Users, {
-  //   foreignKey: 'userId',
-  //   targetKey: 'id',
-  //   //sourceKey: 'id',
-  //   onDelete: 'CASCADE',
-  //   as: 'postsbelongsToUsers',
-  // });
-  // Posts.hasMany(Comments, {
-  //   foreignKey: 'postId',
-  //   sourceKey: 'id',
-  //   onDelete: 'CASCADE',
-  //   as: 'postshasManyComment'
-  // });
-  // Posts.hasMany(Likes, {
-  //   foreignKey: 'postId',
-  //   sourceKey: 'id',
-  //   onDelete: 'CASCADE',
-  //   as: 'postsHasManyLikes'
-  // });
-  // Posts.belongsToMany(Tags, {
-  //   foreignKey: 'postId',
-  //   sourceKey: 'id',
-  //   onDelete: 'CASCADE',
-  //   through: 'post_tag',
-  //   as: 'postsbelongsToManyTags'
-  // });
+  Users.hasMany(Posts, {
+  foreignKey: 'userId',
+  sourceKey: 'id',
+  onDelete: 'CASCADE',
+  as: 'userHasManyPost'
+});
+  Posts.belongsTo(Users, {
+    foreignKey: 'userId',
+    targetKey: 'id',
+    //sourceKey: 'id',
+    onDelete: 'CASCADE',
+    as: 'postsbelongsToUsers',
+  });
+
+

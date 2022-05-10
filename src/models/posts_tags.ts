@@ -10,13 +10,15 @@ import {
   Association, 
   Sequelize} from 'sequelize';
   import  sequelize  from './index';
+import { Posts } from './posts';
+import { Tags } from './tags';
 
   export interface Iposts_tagsAttributes {
     id: number,
     postId: number,
     tagId: number,
-   // createdAt: Date,
-   // updatedAt: Date
+   createdAt: Date,
+   updatedAt: Date
   }
 
 // export type posts_tagsPk = "id";
@@ -45,7 +47,10 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
      public readonly createdAt!: Date;
      public readonly updatedAt!: Date;
 
-     public static associations: {};
+     public static associations: {
+      postsbelongsToManyTags:Association<Posts, Tags>
+      tagsbelongsToManyPosts: Association<Tags, Posts>,
+     };
     
      
   };
@@ -53,7 +58,7 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
     Posts_Tags.init({
       id: {
         autoIncrement:true,
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true
       },
@@ -65,14 +70,14 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
         type: DataTypes.INTEGER,
         allowNull: false
       },
-      // createdAt:{
-      //   type: DataTypes.DATE,
-      //   allowNull: false
-      // },
-      // updatedAt:{
-      //   type: DataTypes.DATE,
-      //   allowNull: false
-      // }
+      createdAt:{
+        type: DataTypes.DATE,
+        allowNull: false
+      },
+      updatedAt:{
+        type: DataTypes.DATE,
+        allowNull: false
+      }
     }, {
       sequelize,
       modelName: 'post_tag',
@@ -82,3 +87,19 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
     });
   //   return Posts_Tags;
   //  };
+
+  Tags.belongsToMany(Posts, {
+    through: 'post_tag',
+    sourceKey: 'id',
+    foreignKey: 'tagId',
+    onDelete: 'CASCADE',
+    as: 'tagsbelongsToManyPosts'
+  });
+   Posts.belongsToMany(Tags, {
+      foreignKey: 'postId',
+      sourceKey: 'id',
+      onDelete: 'CASCADE',
+      through: 'post_tag',
+      as: 'postsbelongsToManyTags'
+    });
+
