@@ -9,7 +9,7 @@ import {
   HasManyCreateAssociationMixin,
   Association, 
   Sequelize} from 'sequelize';
-  import { sequelize } from './index';
+  import  sequelize  from './index';
 import { Posts } from './posts';
 import { Users } from './users';
 
@@ -19,25 +19,25 @@ import { Users } from './users';
     userId: number,
     postId: number,
     commentId: number,
-    createdAt: Date,
-    updatedAt: Date
+    //createdAt: Date,
+    //updatedAt: Date
   }
 
-export type commentsPk = "id";
-export type commentsId = Comments[commentsPk];
-export type commentsOptionalAttribues = 
-"id" 
-| "content" 
-| "userId"
-| "postId"
-| "commentId"
-| "createdAt"
-| "updatedAt"; 
-export type commentsCreationAttributes = Optional<IcommentsAttributes,commentsOptionalAttribues>
+// export type commentsPk = "id";
+// export type commentsId = Comments[commentsPk];
+// export type commentsOptionalAttribues = 
+// "id" 
+// | "content" 
+// | "userId"
+// | "postId"
+// | "commentId"
+// | "createdAt"
+// | "updatedAt"; 
+// export type commentsCreationAttributes = Optional<IcommentsAttributes,commentsOptionalAttribues>
 
 
 
-export class Comments extends Model<IcommentsAttributes, commentsCreationAttributes> implements IcommentsAttributes {
+export class Comments extends Model<IcommentsAttributes>{
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -52,68 +52,72 @@ export class Comments extends Model<IcommentsAttributes, commentsCreationAttribu
  
      public readonly createdAt!: Date;
      public readonly updatedAt!: Date;
-
      public static associations: {
-      commentsBelongsToUsers: Association<Comments, Users>,
-      commentsBelongsToPosts: Association<Comments, Posts>,
     };
+    //  public static associations: {
+    //   commentsBelongsToUsers: Association<Comments, Users>,
+    //   commentsBelongsToPosts: Association<Comments, Posts>,
+    // };
 
-    static initModel(sequelize: Sequelize): typeof Comments {
-      Comments.init({
-        id: {
-          autoIncrement:true,
-          type: DataTypes.BIGINT,
-          allowNull: false,
-          primaryKey: true
-        },
-        content: {
-          type: DataTypes.STRING,
-          allowNull: false
-        },
-        userId: {
-          type: DataTypes.INTEGER,
-          allowNull: false
-        },
-        postId: {
-          type: DataTypes.INTEGER,
-          allowNull: false
-        },
-        //commentId는 왜 필요?? 그냥 id랑 무슨 차이가??
-        commentId: {
-          type: DataTypes.INTEGER,
-          allowNull: false
-        },
-        createdAt:{
-          type: DataTypes.DATE,
-          allowNull: false
-        },
-        updatedAt:{
-          type: DataTypes.DATE,
-          allowNull: false
-        }
-      }, {
-        sequelize,
-        modelName: 'comment',
-        freezeTableName: true,
-        timestamps: true,
-        createdAt: "createAt",
-        updatedAt: false
-      });
-      return Comments;
-    };
+    
   };
-  Comments.belongsTo(Users, {
-    foreignKey: 'userId',
-    targetKey: 'id',
-    //sourceKey: 'id',
-    onDelete: 'CASCADE',
-    as: 'commentsBelongsToUsers',
-  });
-  Comments.belongsTo(Posts, {
-    foreignKey: 'postId',
-    targetKey: 'id',
-    //sourceKey: 'id',
-    onDelete: 'CASCADE',
-    as: 'commentsBelongsToPosts',
-  });
+
+  //static initModel(sequelize: Sequelize): typeof Comments {
+    Comments.init({
+      id: {
+        autoIncrement:true,
+        type: DataTypes.BIGINT,
+        allowNull: false,
+        primaryKey: true
+      },
+      content: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+      },
+      postId: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+      },
+      //commentId는 왜 필요?? 그냥 id랑 무슨 차이가??
+      commentId: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+      },
+      // createdAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // },
+      // updatedAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // }
+    }, {
+      sequelize,
+      modelName: 'comment',
+      freezeTableName: true,
+      timestamps: true,
+      createdAt: "createAt",
+      updatedAt: false
+    });
+  //   return Comments;
+  // };
+  
+  // Comments.belongsTo(Users, {
+  //   foreignKey: 'userId',
+  //   targetKey: 'id',
+  //   //sourceKey: 'id',
+  //   onDelete: 'CASCADE',
+  //   as: 'commentsBelongsToUsers',
+  // });
+  // Comments.belongsTo(Posts, {
+  //   foreignKey: 'postId',
+  //   targetKey: 'id',
+  //   //sourceKey: 'id',
+  //   onDelete: 'CASCADE',
+  //   as: 'commentsBelongsToPosts',
+  // });
   

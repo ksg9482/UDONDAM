@@ -9,27 +9,27 @@ import {
   HasManyCreateAssociationMixin,
   Association, 
   Sequelize} from 'sequelize';
-  import { sequelize } from './index';
+  import  sequelize  from './index';
 import { Posts } from './posts';
 
   export interface ItagsAttributes {
     id: number,
     content: string,
-    createdAt: Date,
-    updatedAt: Date
+    //createdAt: Date,
+    //updatedAt: Date
   }
 
-export type tagsPk = "id";
-export type tagsId = Tags[tagsPk];
-export type tagsOptionalAttribues = 
-"id" 
-| "content"
-| "createdAt"
-| "updatedAt"; 
-export type tagsCreationAttributes = Optional<ItagsAttributes,tagsOptionalAttribues>
+// export type tagsPk = "id";
+// export type tagsId = Tags[tagsPk];
+// export type tagsOptionalAttribues = 
+// "id" 
+// | "content"
+// | "createdAt"
+// | "updatedAt"; 
+// export type tagsCreationAttributes = Optional<ItagsAttributes,tagsOptionalAttribues>
 
 
-  export class Tags extends Model<ItagsAttributes, tagsCreationAttributes> implements ItagsAttributes {
+  export class Tags extends Model<ItagsAttributes> {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -40,44 +40,48 @@ export type tagsCreationAttributes = Optional<ItagsAttributes,tagsOptionalAttrib
  
      public readonly createdAt!: Date;
      public readonly updatedAt!: Date;
-
      public static associations: {
-      tagsbelongsToManyPosts: Association<Tags, Posts>,
-    }
-
-    static initModel(sequelize: Sequelize): typeof Tags {
-      Tags.init({
-        id: {
-          autoIncrement:true,
-          type: DataTypes.BIGINT,
-          allowNull: false,
-          primaryKey: true
-        },
-        content:{
-          type: DataTypes.STRING,
-          allowNull: false
-        },
-        createdAt:{
-          type: DataTypes.DATE,
-          allowNull: false
-        },
-        updatedAt:{
-          type: DataTypes.DATE,
-          allowNull: false
-        }
-      }, {
-        sequelize,
-        modelName: 'tag',
-        freezeTableName: true,
-        timestamps: false,
-      });
-      return Tags;
     };
+    //  public static associations: {
+    //   tagsbelongsToManyPosts: Association<Tags, Posts>,
+    // }
+
+    
   };
-Tags.belongsToMany(Posts, {
-  through: 'post_tag',
-  sourceKey: 'id',
-  foreignKey: 'tagId',
-  onDelete: 'CASCADE',
-  as: 'tagsbelongsToManyPosts'
-});
+
+  //static initModel(sequelize: Sequelize): typeof Tags {
+    Tags.init({
+      id: {
+        autoIncrement:true,
+        type: DataTypes.BIGINT,
+        allowNull: false,
+        primaryKey: true
+      },
+      content:{
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      // createdAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // },
+      // updatedAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // }
+    }, {
+      sequelize,
+      modelName: 'tag',
+      freezeTableName: true,
+      timestamps: false,
+    });
+  //   return Tags;
+  // };
+
+// Tags.belongsToMany(Posts, {
+//   through: 'post_tag',
+//   sourceKey: 'id',
+//   foreignKey: 'tagId',
+//   onDelete: 'CASCADE',
+//   as: 'tagsbelongsToManyPosts'
+// });
