@@ -11,11 +11,11 @@ import {
   Association,
   Sequelize
 } from 'sequelize';
-import { Comments } from './comments';
+import { Comments } from './comments.model';
 import  sequelize  from './index';
-import { Likes } from './likes';
-import { Posts } from './posts'
-import { RecentSearchs } from './recentsearchs';
+import { Likes } from './likes.model';
+import { Posts } from './posts.model'
+import { RecentSearchs } from './recentsearchs.model';
 
 export interface IusersAttributes {
   id: number,

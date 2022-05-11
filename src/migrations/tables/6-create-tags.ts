@@ -1,4 +1,4 @@
-import { Tags } from "../../models/tags"; 
+import { Tags } from "../../models/tags.model"; 
 
 console.log("======Create Tags Table======");
 

@@ -11,8 +11,8 @@ import {
   Sequelize
 } from 'sequelize';
 import sequelize from './index';
-import { Posts } from './posts';
-import { Users } from './users';
+import { Posts } from './posts.model';
+import { Users } from './users.model';
 
 export interface IcommentsAttributes {
   id: number,

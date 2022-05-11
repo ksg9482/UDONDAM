@@ -9,12 +9,12 @@ import {
   HasManyCreateAssociationMixin,
   Association, 
   Sequelize} from 'sequelize';
-import { Comments } from './comments';
+import { Comments } from './comments.model';
 import  sequelize  from './index';
-import { Likes } from './likes';
-import { RecentSearchs } from './recentsearchs';
-import { Tags } from './tags';
-import { Users } from './users';
+import { Likes } from './likes.model';
+import { RecentSearchs } from './recentsearchs.model';
+import { Tags } from './tags.model';
+import { Users } from './users.model';
 
   export interface IpostsAttributes {
     id: number,

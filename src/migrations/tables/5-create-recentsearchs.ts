@@ -1,4 +1,4 @@
-import { RecentSearchs } from "../../models/recentsearchs"; 
+import { RecentSearchs } from "../../models/recentsearchs.model"; 
 
 console.log("======Create RecentSearchs Table======");
 

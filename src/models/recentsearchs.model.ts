@@ -11,7 +11,7 @@ import {
   Sequelize
 } from 'sequelize';
 import  sequelize  from './index';
-import { Users } from './users';
+import { Users } from './users.model';
 
 export interface IrecentSearchsAttributes {
   id: number,

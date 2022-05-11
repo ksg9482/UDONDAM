@@ -1,4 +1,4 @@
-import { Posts_Tags } from "../../models/posts_tags"; 
+import { Posts_Tags } from "../../models/posts_tags.model"; 
 
 console.log("======Create Posts_Tags Table======");
 

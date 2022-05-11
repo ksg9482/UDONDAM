@@ -10,7 +10,7 @@ import {
   Association, 
   Sequelize} from 'sequelize';
   import  sequelize  from './index';
-import { Posts } from './posts';
+import { Posts } from './posts.model';
 
   export interface ItagsAttributes {
     id: number,

@@ -1,5 +1,5 @@
 import express from 'express';
-import * as postController from '../controllers/post';
+import * as postController from '../controllers/post.controller';
 import auth from '../middleware/verifyToken';
 
 export const path = '/user';
