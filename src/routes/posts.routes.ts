@@ -1,8 +1,8 @@
 import express from 'express';
-import * as postController from '../controllers/post.controller';
+import * as postController from '../controllers/posts.controller';
 import auth from '../middleware/verifyToken';
 
-export const path = '/user';
+export const path = '/post';
 export const router = express.Router();
 
 router.use(auth)
