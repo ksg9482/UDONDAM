@@ -1,11 +1,14 @@
-const { comment, likes, post, user } = require("../models");
-const { sequelize } = require("sequelize");
-const { isAuthorized } = require('../controllers/token.js');
+import { Comments } from "../models/comments.model";
+import { Likes } from "../models/likes.model";
+import { Posts } from "../models/posts.model";
+import { Users } from "../models/users.model";
+import  sequelize  from "sequelize";
+import { isAuthorized } from '../controllers/token.controller';
 
 export const likesUser = async (req:any,  res:any) => {
         const userId = req.userId || 1;
         //const { userId } = req.query;
-        let userInfo = await user.findOne({
+        let userInfo:any = await Users.findOne({
             where: {
                 //id: userId
                 id: userId
@@ -15,18 +18,18 @@ export const likesUser = async (req:any,  res:any) => {
             res.status(401).json({ "message" : "token doesn't exist" });
         }
         else {
-            const tempLikeCount = await post.findAll({
+            const tempLikeCount = await Posts.findAll({
                 attributes: ['id'],
                 include: [{
-                    model: likes,
+                    model: Likes,
                     required: true,
                     attributes: ['postId'],
                 }]
             });
 
-            const result = await post.findAll({
+            const result = await Posts.findAll({
                 include: [{
-                    model: likes,
+                    model: Likes,
                     required: true,
                     attributes: ['postId'],
                     where: {
@@ -34,7 +37,7 @@ export const likesUser = async (req:any,  res:any) => {
                     }
                 },
                 {
-                    model: comment,
+                    model: Comments,
                     attributes: ['id'],
                     required: true
                 }],
@@ -75,12 +78,12 @@ export const likesUser = async (req:any,  res:any) => {
     export const likesCreate = async (req:any,  res:any) => {
         const userId = req.userId || 2;
         const { postId } = req.body;
-        let userInfo = await user.findOne({
+        let userInfo = await Users.findOne({
             where: {
                 id: userId
             }
         });
-        let overlapCheck = await likes.findOne({
+        let overlapCheck = await Likes.findOne({
             where: {
                 userId: userId,
                 postId: postId
@@ -92,7 +95,7 @@ export const likesUser = async (req:any,  res:any) => {
         }
         else {
             if(!overlapCheck){
-                await likes.create({
+                await Likes.create({
                     userId: userId,
                     postId: postId
                 })
@@ -107,12 +110,12 @@ export const likesUser = async (req:any,  res:any) => {
     export const likesDelete = async (req:any,  res:any) => {
         const userId = req.userId || 2;
         const { postId } = req.query;
-        let userInfo = await user.findOne({
+        let userInfo = await Users.findOne({
             where: {
                 id: userId
             }
         });
-        let overlapCheck = await likes.findOne({
+        let overlapCheck = await Likes.findOne({
             where: {
                 userId: userId,
                 postId: postId
@@ -128,7 +131,7 @@ export const likesUser = async (req:any,  res:any) => {
             }
             else {
                 try{
-                    await likes.destroy({
+                    await Likes.destroy({
                         where: {
                             userId: userId,
                             postId : postId

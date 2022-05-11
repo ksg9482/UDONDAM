@@ -1,20 +1,22 @@
-const {comment, post, likes} = require('../models/index')
+import { Comments} from '../models/comments.model';
+import { Posts } from '../models/posts.model';
+import { Likes } from '../models/likes.model';
 
 
 export const commentUser = async (req:any,  res:any) => {
         req.userId = req.userId || 1;
         try{
-        let posts = await post.findAll({
+        let posts:any = await Posts.findAll({
                 include:[
                     {
-                        model:comment,
+                        model:Comments,
                         attributes:[],
                         where: {
                             userId:req.userId
                         }
                     },
                     {
-                        model:likes,
+                        model:Likes,
                         attributes:['id']
                     }
                 ],
@@ -26,7 +28,7 @@ export const commentUser = async (req:any,  res:any) => {
         let commentPost = [];
         for(let el of posts) {
             const {id, content, createAt, likes} = el.dataValues;
-            let commentCount = await comment.count({
+            let commentCount = await Comments.count({
                 where:{
                     postId: id
                 }
@@ -52,17 +54,17 @@ export const commentUser = async (req:any,  res:any) => {
         const {postId, content, commentId} = req.body;
         try{
             if(postId && content && commentId) {
-                await comment.create({
+                await Comments.create({
                     userId: req.userId, postId: postId, content:content, commentId: commentId
                 })
                 return res.status(201).json({"message": "created!"})
             }
-                await comment.create({
+                await Comments.create({
                     userId: req.userId, postId: postId, content: content
                 })
                 return res.status(201).json({"message": "created!"})
         } catch(err) {
-            //console.log(err);
+            console.log(err);
             return res.status(500).json({"message": "Server Error"})
         }
     };
@@ -71,7 +73,7 @@ export const commentUser = async (req:any,  res:any) => {
         req.userId = req.userId || 1;
         req.params.commentId = req.params.commentId || 5;
         try {
-            const commentDelete = await comment.update(
+            const commentDelete:any = await Comments.update(
                 {
                     content: '삭제 된 댓글 입니다'
                 },

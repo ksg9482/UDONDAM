@@ -1,14 +1,16 @@
-const {user} = require('../models/index');
+//const {user} = require('../models/index');
 import { Users } from "../models/users.model"; 
 
 
 export const userInfo = async (req:any,  res:any) => { 
+    //console.log('결과:',req.userId)
     req.userId = req.userId || 1
     try {
-        const userInfo = await user.findOne({
+        const userInfo:any = await Users.findOne({
         attributes: [['id','userId'],'email', 'nickname', 'area', 'area2', 'socialType', 'manager'],
         where: { id: req.userId }
         })
+        
         return res.status(200).json(userInfo);
     } catch(err) {
         //console.log(err);
@@ -21,7 +23,7 @@ export const userPatch = async (req:any,  res:any) => {
         const {nickname, password} = req.body;
         try{
             if(nickname && password) {
-                await user.update({
+                await Users.update({
                 nickname: nickname,
                 password: password
                 },
@@ -31,7 +33,7 @@ export const userPatch = async (req:any,  res:any) => {
                 return res.status(200).json({"message": "user patched!"})
             } 
             else if(nickname) {
-                await user.update({
+                await Users.update({
                     nickname: nickname
                 },
                 {
@@ -40,7 +42,7 @@ export const userPatch = async (req:any,  res:any) => {
                 return res.status(200).json({"message": "nickname patched!"})
             }
             else if(password) {
-                await user.update({
+                await Users.update({
                     password: password
                 },
                 {
@@ -59,7 +61,7 @@ export const userPatch = async (req:any,  res:any) => {
         const {area, area2} = req.body;
         try{
             if(area) {
-                const patchCheck = await user.update({
+                const patchCheck:any = await Users.update({
                     area : area
                 },
                 {
@@ -70,7 +72,7 @@ export const userPatch = async (req:any,  res:any) => {
             // if(!patchCheck) {
             //     return res.status(400).json({"message": "area checked!"})
             // }
-            const userInfo = await user.findOne({
+            const userInfo:any = await Users.findOne({
                 attributes:['area'],
                 where:{
                     id: req.userId
@@ -80,7 +82,7 @@ export const userPatch = async (req:any,  res:any) => {
             res.status(200).json(userInfo)
         }
         else if(area2) {
-            const patchCheck = await user.update({
+            const patchCheck:any = await Users.update({
                 area2 : area2
             },
             {
@@ -91,7 +93,7 @@ export const userPatch = async (req:any,  res:any) => {
             // if(!patchCheck) {
             //     return res.status(400).json({"message": "area2 checked!"})
             // }
-            const userInfo = await user.findOne({
+            const userInfo:any = await Users.findOne({
                 attributes:['area2'],
                 where:{
                     id: req.userId
@@ -109,7 +111,7 @@ export const userPatch = async (req:any,  res:any) => {
     export const userDelete = async (req:any,  res:any) => {
             req.userId = req.userId || 1        
         try{
-            await user.destroy({
+            await Users.destroy({
             where: {id: req.userId}
         })
             return res.status(200).clearCookie('jwt').json({"message" : 'delete!'})  

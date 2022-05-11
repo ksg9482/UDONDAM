@@ -4,8 +4,9 @@
   "description": "<img width=\"300\" alt=\"로고-우동담-Light-배경o\" src=\"https://user-images.githubusercontent.com/87490361/143793771-ab32461e-2a76-4f2b-b96f-55241c2a9d98.png\">",
   "main": "index.js",
   "scripts": {
-    "prestart": "rimraf dist & tsc",
-    "start": "nodemon dist/index.js"
+    "start": "npm run build:live",
+    "build": "tsc -p .",
+    "build:live": "nodemon --watch '*.ts' --exec 'ts-node' src/index.ts"
   },
   "author": "",
   "license": "ISC",
@@ -30,6 +31,8 @@
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.3",
+    "@types/jsonwebtoken": "^8.5.8",
+    "@types/nodemailer": "^6.4.4",
     "typescript": "^4.6.4"
   },
   "repository": {

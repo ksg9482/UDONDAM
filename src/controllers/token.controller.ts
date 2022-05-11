@@ -1,9 +1,9 @@
 require('dotenv').config()
-const { sign, verify } = require('jsonwebtoken');
+import { sign, verify } from 'jsonwebtoken';
 const DOMAIN = process.env.DOMAIN || 'localhost'
 
 export const generateAccessToken= (data:any) => {
-  return sign(data, process.env.ACCESS_SECRET, { expiresIn: "4h" });
+  return sign(data, process.env.ACCESS_SECRET + "", { expiresIn: "4h" });
 };
 
 export const sendAccessToken= (res:any, token:any, userData:any) => {
@@ -26,7 +26,7 @@ export const isAuthorized = (req:any) => {
   }
   const token = authorization.split(" ")[1];
   try {
-    return verify(token, process.env.ACCESS_SECRET);
+    return verify(token, process.env.ACCESS_SECRET + "");
   }
   catch (err) {
     // return null if invalid token
