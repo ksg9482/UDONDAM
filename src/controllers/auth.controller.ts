@@ -1,8 +1,8 @@
-const { user } = require("../models");
-const nodemailer = require('nodemailer');
-const { generateAccessToken, sendAccessToken, deleteRefreshToken, isAuthorized } = require('../controllers/token.js');
-const axios = require('axios');
-const { response } = require("express");
+import { Users } from "../models/users.model";
+import nodemailer from 'nodemailer';
+import { generateAccessToken, sendAccessToken, isAuthorized } from '../controllers/token.controller';
+import axios from 'axios';
+import { response } from "express";
 const DOMAIN = process.env.DOMAIN || 'localhost'
 const KAKAOID = process.env.EC2_KAKAO_ID || process.env.KAKAO_ID;
 const KAKAOSECRET = process.env.EC2_KAKAO_SECRET || process.env.KAKAO_SECRET ;
@@ -16,7 +16,7 @@ const NAVERRIDIRECT = process.env.EC2_NAVER_REDIRECT || process.env.NAVER_REDIRE
 export const login = async (req:any,  res:any) => {
         //console.log(NAVERID, NAVERSECRET, NAVERRIDIRECT)
         const { email, password } = req.body;
-        let userInfo = await user.findOne({
+        let userInfo:any = await Users.findOne({
             where: {
                 email: email,
                 password: password
@@ -77,8 +77,9 @@ export const login = async (req:any,  res:any) => {
         //password 암호화 적용!!
         //암호확인은 입력된 걸 암호화 해서 DB와 동일한가 확인
         const { email, password } = req.body;
-        await user.create({
-            email: email, password:password
+        await Users.create({
+            email, 
+            password,
         });
         res.status(201).json({ "message": "signUp!"});
         return;
@@ -150,7 +151,7 @@ export const login = async (req:any,  res:any) => {
 
     export const emailCheck = async (req:any,  res:any) => {
         const { email } = req.body;
-        const emailCheck = await user.findOne({
+        const emailCheck = await Users.findOne({
             where: {
                 email: email
             }
@@ -167,7 +168,7 @@ export const login = async (req:any,  res:any) => {
 
     export const passwordCheck = async (req:any,  res:any) => {
         const { email, password } = req.body;
-        const checkPassword = await user.findOne({
+        const checkPassword = await Users.findOne({
             where: { email: email, password: password}
         })
         
@@ -186,7 +187,7 @@ export const login = async (req:any,  res:any) => {
 
     export const tempp = async (req:any,  res:any) => {
         const { email } = req.body;
-        const emailCheck = await user.findOne({
+        const emailCheck = await Users.findOne({
             where: {
                 email: email
             }
@@ -243,7 +244,7 @@ export const login = async (req:any,  res:any) => {
                     // console.log(info);
                 });
 
-                await user.update({
+                await Users.update({
                     email: email,
                     password: verificationCode,
                 },
@@ -296,7 +297,7 @@ export const login = async (req:any,  res:any) => {
                   },
                 }
             );
-            const info = await user.findOrCreate({
+            const info:any = await Users.findOrCreate({
                 where: {
                     email: userInfo.data.email,
                     socialType: 'google',
@@ -308,6 +309,7 @@ export const login = async (req:any,  res:any) => {
                 },
             });
 
+            //여기 볼것!!!
             const { id, nickname, area, area2, manager, socialType } = info[0].dataValues;
             const userData = {
                 userId: id,
@@ -358,7 +360,7 @@ export const login = async (req:any,  res:any) => {
             }
         );
           //받아온 유저정보로 findOrCreate
-        const naverUser = await user.findOrCreate({
+        const naverUser = await Users.findOrCreate({
             where: {
             email: userInfo.data.response.email,
             socialType: 'naver',
@@ -371,12 +373,14 @@ export const login = async (req:any,  res:any) => {
             manager: false,
             }
         });
+
+        //여기 볼것!!
         const userData = generateAccessToken({
-            userId: naverUser[0].dataValues.id,
-            email: naverUser[0].dataValues.email,
-            nickname: naverUser[0].dataValues.nickname,
-            socialType: naverUser[0].dataValues.socialType,
-            manager: naverUser[0].dataValues.isAdmin,
+            userId: naverUser[0],//.dataValues.id,
+            email: naverUser[0],//.dataValues.email,
+            nickname: naverUser[0],//.dataValues.nickname,
+            socialType: naverUser[0],//.dataValues.socialType,
+            manager: naverUser[0]//.dataValues.isAdmin,
         });
     
         res.cookie('jwt', userData, {
@@ -417,7 +421,7 @@ export const login = async (req:any,  res:any) => {
         );
         const email = userInfo.data.kakao_account.email || `${userInfo.data.kakao_account.profile.nickname}@kakao.com`
         //console.log(email)
-        const kakaoUser = await user.findOrCreate({
+        const kakaoUser = await Users.findOrCreate({
             where: {
                 email: email, socialType: 'kakao'
             },
@@ -430,13 +434,14 @@ export const login = async (req:any,  res:any) => {
             },
         });
 
+        //여기 볼것!!
         const userData = generateAccessToken({
-            userId: kakaoUser[0].dataValues.id,
-            nickname: kakaoUser[0].dataValues.nickname,
-            area: kakaoUser[0].dataValues.area,
-            area2: kakaoUser[0].dataValues.area2,
-            socialType: kakaoUser[0].dataValues.socialType,
-            manager: kakaoUser[0].dataValues.manager
+            userId: kakaoUser[0],//.dataValues.id,
+            nickname: kakaoUser[0],//.dataValues.nickname,
+            area: kakaoUser[0],//.dataValues.area,
+            area2: kakaoUser[0],//.dataValues.area2,
+            socialType: kakaoUser[0],//.dataValues.socialType,
+            manager: kakaoUser[0],//.dataValues.manager,
         });
         res.cookie('jwt', userData, {
             sameSite: 'none',

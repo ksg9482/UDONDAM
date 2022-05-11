@@ -1,4 +1,9 @@
-const {post, tag, user, comment, likes, post_tag} = require('../models/index');
+import { Posts } from '../models/posts.model';
+import { Tags } from '../models/tags.model';
+import { Users } from '../models/users.model';
+import { Comments } from '../models/comments.model';
+import { Likes } from '../models/likes.model';
+import { Posts_Tags } from '../models/posts_tags.model';
 
 export const postTag = async (req:any,  res:any) => {
     req.query.page = req.query.page || '1';
@@ -19,11 +24,11 @@ export const postTag = async (req:any,  res:any) => {
         return el[el.length-1] !== '시' && el[el.length-1] !== '군' && el[el.length-1] !== '요'
     })
     try{
-    const areaPosts = await post.findAll({
+    const areaPosts = await Posts.findAll({
         attributes:['id'],
         include:[
             {
-                model: tag,
+                model: Tags,
                 attributes:[],
                 where:{
                     content: areaTag
@@ -38,13 +43,13 @@ export const postTag = async (req:any,  res:any) => {
         return el.dataValues.id
     })
     if(contentTag.length !== 0) {
-        const areaPostTags = await post.findAll({
+        const areaPostTags = await Posts.findAll({
         where:{
             id: areaPostId
         },
         include:[
             {
-                model: tag,
+                model: Tags,
                 attributes:['content'],
             }
         ]
@@ -82,13 +87,13 @@ export const postTag = async (req:any,  res:any) => {
         })
     }
     if(req.query.notTag && contentTag.length === 0) {
-        const areaNotTags = await post.findAll({
+        const areaNotTags = await Posts.findAll({
             where:{
                 id: areaPostId
             },
             include:[
                 {
-                    model: tag,
+                    model: Tags,
                     attributes:['content'],
                 }
             ]
@@ -109,27 +114,27 @@ export const postTag = async (req:any,  res:any) => {
             return el.id
         })
     }
-    const posts = await post.findAll({
+    const posts = await Posts.findAll({
         where:{
             id:areaPostId
         },
         include: [
             {
-                model: user,
+                model: Users,
                 attributes: ['nickname'],
                 required: true
             },
             {
-                model: tag,
+                model: Tags,
                 attributes:['content'],
                 required:true
             },
             {
-                model: likes,
+                model: Likes,
                 attributes: ['userId']
             },
             {
-                model: comment,
+                model: Comments,
                 attributes: ['id']
             }
         ],
@@ -152,7 +157,7 @@ export const postTag = async (req:any,  res:any) => {
         return {
             id: id,
             userId: userId,
-            nickname: user.nickname,
+            nickname: Users.nickname,
             content: content,
             tag: tag,
             commentCount: comments.length,
@@ -171,18 +176,18 @@ export const postTag = async (req:any,  res:any) => {
 
 export const postUser = async (req:any,  res:any) => {
     req.userId = req.userId || 1;
-    const posts = await post.findAll({
+    const posts = await Posts.findAll({
         attributes: ['id', 'content', 'createAt'],
         where: {
             userId: req.userId
         },
         include:[
             {
-                model: likes,
+                model: Likes,
                 attributes: ['id']
             },
             {
-                model: comment,
+                model: Comments,
                 attributes: ['id']
             }
         ],
@@ -208,39 +213,39 @@ export const postUser = async (req:any,  res:any) => {
 export const postPick = async (req:any,res:any) => {
     req.userId = req.userId || 1
     req.params.postId = req.params.postId || 1;
-    const postPick = await post.findOne({
+    const postPick:any = await Posts.findOne({
         where:{
             id: req.params.postId
         },
         include:[
             {
-                model: user,
+                model: Users,
                 attributes: ['nickname'],
                 required: true
             },
             {
-                model: tag,
+                model: Tags,
                 attributes: ['content'],
                 required: true
             },
             {
-                model: comment,
+                model: Comments,
                 include:[
                     {
-                        model: user,
+                        model: Users,
                         attributes:['nickname'],
                         required:true
                     }
                 ]
             },
             {
-                model: likes,
+                model: Likes,
                 attributes: ['userId']
             }
         ]
     });
     try{
-    const {id, userId, _public, content, createAt, user, tags, comments, likes} = postPick
+    const {id, userId, _public, content, createAt, user, tags, comments, likes} = postPick.dataValues
     let tag = [];
     for(let el of tags) {
         tag.push(el.content)
@@ -260,7 +265,7 @@ export const postPick = async (req:any,res:any) => {
             commentArr.push({
                 id: id,
                 content: content,
-                nickname: user.nickname,
+                nickname: Users.nickname,
                 userId: userId,
                 postId: postId,
                 commentId: commentId,
@@ -276,7 +281,7 @@ export const postPick = async (req:any,res:any) => {
                     comment.comment.push({
                         id: id,
                         content: content,
-                        nickname: user.nickname,
+                        nickname: Users.nickname,
                         userId: userId,
                         postId: postId,
                         commentId: commentId,
@@ -291,7 +296,7 @@ export const postPick = async (req:any,res:any) => {
                             el.comment.push({
                                 id: id,
                                 content: content,
-                                nickname: user.nickname,
+                                nickname: Users.nickname,
                                 userId: userId,
                                 postId: postId,
                                 commentId: commentId,
@@ -312,7 +317,7 @@ export const postPick = async (req:any,res:any) => {
                     comment: [{
                         id: id,
                         content: content,
-                        nickname: user.nickname,
+                        nickname: Users.nickname,
                         userId: userId,
                         postId: postId,
                         commentId: commentId,
@@ -340,7 +345,7 @@ export const postPick = async (req:any,res:any) => {
     const resPost = {
         id: id,
         userId: userId,
-        nickname: user.nickname,
+        nickname: Users.nickname,
         content: content,
         public: _public,
         likeCount: likes.length,
@@ -359,21 +364,22 @@ export const postPick = async (req:any,res:any) => {
 
 export const postCreate = async (req:any,  res:any) => {
     req.userId = req.userId || 1;
-    const {content, _public} = req.body;
-
+    const {content, public:_public, tag} = req.body;
+    
     try{
-        let Post = await post.create({
+        let Post:any = await Posts.create({
             content: content, public: _public, userId: req.userId
         })
-        const tagArr = await tag.findAll({
+        //db에 tag없으면 그냥 추가하는 걸로.
+        const tagArr:any = await Tags.findAll({
             attributes:['id','content'],
             raw: true,
             where: {
-                content: req.body.tag
+                content: 'test1'//tag
             }
         })
         for(let el of tagArr) {
-            await post_tag.create({
+            await Posts_Tags.create({
                 postId: Post.id, tagId: el.id
             })
         }
@@ -390,7 +396,7 @@ export const postDelete = async (req:any,  res:any) => {
     req.userId = req.userId || 1,
     req.params.postId = req.params.postId || 14;
     try{
-        const postDelete = await post.destroy({
+        const postDelete = await Posts.destroy({
         where: {
             id: req.params.postId, userId:req.userId
         }

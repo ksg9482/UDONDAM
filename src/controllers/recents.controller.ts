@@ -1,14 +1,15 @@
-const e = require("express");
-const { user, recentsearch } = require("../models");
+//import express from "express";
+import { Users } from "../models/users.model";
+import { RecentSearchs } from "../models/recentsearchs.model";
 //예약어 위험!! 바꾸기!!
 export const get = async(req:any,  res:any) => {
     const userId = req.userId || 2;
-    let userInfo = await user.findOne({
+    let userInfo:any = await Users.findOne({
         where: {
             id: userId
         }
     });
-    const recent = await recentsearch.findAll({
+    const recent = await RecentSearchs.findAll({
         attributes:['id','userId','tag','notTag'],
         where:{
             userId: userId
@@ -56,7 +57,7 @@ export const post = async(req:any,  res:any) => {
         stringNotTag = notTag.join();
     }
     const stringTag = tag.join();
-    let userInfo = await user.findOne({
+    let userInfo = await Users.findOne({
         where: {
             id: userId
         }
@@ -65,7 +66,7 @@ export const post = async(req:any,  res:any) => {
         res.status(401).json({ "message" : "token doesn't exist" });
     }
     else {
-        const recent = await recentsearch.findAll({
+        const recent:any = await RecentSearchs.findAll({
             attributes:['id','userId','tag','notTag'],
             where:{
                 userId: userId
@@ -74,14 +75,14 @@ export const post = async(req:any,  res:any) => {
         });
 
         if(recent.length > 3){
-            await recentsearch.destroy({
+            await RecentSearchs.destroy({
                 where: {
                     id: recent[0].id,
                 }
             });
         }
 
-        let overlapCheck = await recentsearch.findOne({
+        let overlapCheck:any = await RecentSearchs.findOne({
             attributes: ['id'],
             where: {
                 userId: userId,
@@ -92,12 +93,12 @@ export const post = async(req:any,  res:any) => {
 
         if(overlapCheck){
             try {
-                await recentsearch.destroy({
+                await RecentSearchs.destroy({
                     where: {
                         id: overlapCheck.id
                     }
                 });
-                await recentsearch.create({
+                await RecentSearchs.create({
                     userId: userId,
                     tag: stringTag,
                     notTag: stringNotTag
@@ -110,7 +111,7 @@ export const post = async(req:any,  res:any) => {
             }
         }
         else{
-            await recentsearch.create({
+            await RecentSearchs.create({
                 userId: userId,
                 tag: stringTag,
                 notTag: stringNotTag
