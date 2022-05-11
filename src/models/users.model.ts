@@ -61,18 +61,19 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
    * The `models/index` file will call this method automatically.
    */
   public readonly id?: number;
-  public email?: string;
-  public password?: string;
-  public nickname?: string;
-  public socialType?: string;
-  public manager?: boolean;
-  public area?: string;
-  public area2?: string;
+  public static email?: string;
+  public static password?: string;
+  public static nickname?: string;
+  public static socialType?: string;
+  public static manager?: boolean;
+  public static area?: string;
+  public static area2?: string;
 
   //public readonly createdAt?: Date;
   //public readonly updatedAt?: Date;
   
   public static associations: { };
+    //static nickname: any;
 
   
 };

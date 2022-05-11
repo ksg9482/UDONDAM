@@ -17,10 +17,10 @@ import { Tags } from './tags.model';
 import { Users } from './users.model';
 
   export interface IpostsAttributes {
-    id: number,
+    id?: number,
     content: string,
     userId: number,
-    public: boolean,
+    public?: boolean,
     //createdAt: Date,
     //updatedAt: Date
   }
@@ -43,9 +43,9 @@ import { Users } from './users.model';
      * The `models/index` file will call this method automatically.
      */
      public readonly id?: number;
-     public content?: string;
-     public userId?: number;
-     public public?: boolean;
+     public static content?: string;
+     public static userId?: number;
+     public static public?: boolean;
    
      //public readonly createdAt?: Date;
      //public readonly updatedAt?: Date;

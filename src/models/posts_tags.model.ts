@@ -14,7 +14,7 @@ import { Posts } from './posts.model';
 import { Tags } from './tags.model';
 
   export interface Iposts_tagsAttributes {
-    id: number,
+    id?: number,
     postId: number,
     tagId: number,
    //createdAt: Date,
@@ -40,9 +40,9 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
      * The `models/index` file will call this method automatically.
      */
 
-     public readonly id?: number;
-     public postId?: number;
-     public tagId?: number;
+     public static readonly id?: number;
+     public static postId?: number;
+     public static tagId?: number;
  
      //public readonly createdAt?: Date;
      //public readonly updatedAt?: Date;

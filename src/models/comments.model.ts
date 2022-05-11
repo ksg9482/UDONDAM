@@ -15,11 +15,11 @@ import { Posts } from './posts.model';
 import { Users } from './users.model';
 
 export interface IcommentsAttributes {
-  id: number,
+  id?: number,
   content: string,
   userId: number,
   postId: number,
-  commentId: number,
+  commentId?: number,
   //createdAt: Date,
   //updatedAt: Date
 }
@@ -45,11 +45,11 @@ export class Comments extends Model<IcommentsAttributes>{
    * The `models/index` file will call this method automatically.
    */
 
-  public readonly id?: number;
-  public content?: string;
-  public userId?: number;
-  public postId?: number;
-  public commentId?: number;
+  public static readonly id?: number;
+  public static content?: string;
+  public static userId?: number;
+  public static postId?: number;
+  public static commentId?: number;
 
   //public readonly createdAt?: Date;
   //public readonly updatedAt?: Date;

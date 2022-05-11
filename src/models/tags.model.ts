@@ -13,8 +13,8 @@ import {
 import { Posts } from './posts.model';
 
   export interface ItagsAttributes {
-    id: number,
-    content: string,
+    id?: number,
+    content?: string,
     //createdAt: Date,
     //updatedAt: Date
   }
@@ -35,8 +35,8 @@ import { Posts } from './posts.model';
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-     public readonly id?: number;
-     public content?: string;
+     public static readonly id?: number;
+     public static content?: string;
  
      //public readonly createdAt?: Date;
      //public readonly updatedAt?: Date;

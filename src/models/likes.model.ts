@@ -15,7 +15,7 @@ import { Posts } from './posts.model';
 import { Users } from './users.model';
 
 export interface IlikesAttributes {
-  id: number,
+  id?: number,
   userId: number,
   postId: number,
   //createdAt: Date,
@@ -39,9 +39,9 @@ export class Likes extends Model<IlikesAttributes> {
    * This method is not a part of Sequelize lifecycle.
    * The `models/index` file will call this method automatically.
    */
-  public readonly id?: number;
-  public userId?: number;
-  public postId?: number;
+  public static readonly id?: number;
+  public static userId?: number;
+  public static postId?: number;
 
   //public readonly createdAt?: Date;
   //public readonly updatedAt?: Date;
