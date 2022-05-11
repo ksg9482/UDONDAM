@@ -18,8 +18,8 @@ export interface IlikesAttributes {
   id: number,
   userId: number,
   postId: number,
-  createdAt: Date,
-  updatedAt: Date
+  //createdAt: Date,
+  //updatedAt: Date
 }
 
 // export type likesPk = "id";
@@ -39,12 +39,12 @@ export class Likes extends Model<IlikesAttributes> {
    * This method is not a part of Sequelize lifecycle.
    * The `models/index` file will call this method automatically.
    */
-  public readonly id!: number;
-  public userId!: number;
-  public postId!: number;
+  public readonly id?: number;
+  public userId?: number;
+  public postId?: number;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  //public readonly createdAt?: Date;
+  //public readonly updatedAt?: Date;
 
   public static associations: {
     userHasManyLike: Association<Users, Likes>
@@ -73,22 +73,22 @@ Likes.init({
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  createdAt:{
-    type: DataTypes.DATE,
-    allowNull: false
-  },
-  updatedAt:{
-    type: DataTypes.DATE,
-    allowNull: false
-  }
+  // createdAt:{
+  //   type: DataTypes.DATE,
+  //   allowNull: false
+  // },
+  // updatedAt:{
+  //   type: DataTypes.DATE,
+  //   allowNull: false
+  // }
 }, {
   sequelize,
   tableName: 'likes',
   modelName: 'likes',
   freezeTableName: true,
   timestamps: true,
-  createdAt: 'createAt',
-  updatedAt: false
+    //createdAt: true,
+    updatedAt: 'updatedAt'
 });
 // return Likes; 
 // };

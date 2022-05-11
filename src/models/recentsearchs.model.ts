@@ -18,8 +18,8 @@ export interface IrecentSearchsAttributes {
   userId: number,
   tag: string,
   notTag: string,
- createdAt: Date,
- updatedAt: Date
+ //createdAt: Date,
+ //updatedAt: Date
 }
 
 // export type recentSearchsPk = "id";
@@ -41,13 +41,13 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
    * The `models/index` file will call this method automatically.
    */
 
-  public readonly id!: number;
-  public userId!: number;
-  public tag!: string;
-  public notTag!: string;
+  public readonly id?: number;
+  public userId?: number;
+  public tag?: string;
+  public notTag?: string;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  //public readonly createdAt?: Date;
+  //public readonly updatedAt?: Date;
   
   public static associations: {
     userHasManyRecentsearch:Association<Users, RecentSearchs>
@@ -77,21 +77,21 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
       type: DataTypes.STRING,
       allowNull: false
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false
-    }
+    // createdAt: {
+    //   type: DataTypes.DATE,
+    //   allowNull: false
+    // },
+    // updatedAt: {
+    //   type: DataTypes.DATE,
+    //   allowNull: false
+    // }
   }, {
     sequelize,
     modelName: 'recentsearch',
     freezeTableName: true,
     timestamps: true,
-    createdAt: "createAt",
-    updatedAt: false
+    //createdAt: true,
+    updatedAt: 'updatedAt'
   });
 //   return RecentSearchs;
 // };

@@ -15,8 +15,8 @@ import { Posts } from './posts.model';
   export interface ItagsAttributes {
     id: number,
     content: string,
-    createdAt: Date,
-    updatedAt: Date
+    //createdAt: Date,
+    //updatedAt: Date
   }
 
 // export type tagsPk = "id";
@@ -35,11 +35,11 @@ import { Posts } from './posts.model';
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-     public readonly id!: number;
-     public content!: string;
+     public readonly id?: number;
+     public content?: string;
  
-     public readonly createdAt!: Date;
-     public readonly updatedAt!: Date;
+     //public readonly createdAt?: Date;
+     //public readonly updatedAt?: Date;
      
      public static associations: {
       
@@ -60,19 +60,21 @@ import { Posts } from './posts.model';
         type: DataTypes.STRING,
         allowNull: false
       },
-      createdAt:{
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      updatedAt:{
-        type: DataTypes.DATE,
-        allowNull: false
-      }
+      // createdAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // },
+      // updatedAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // }
     }, {
       sequelize,
       modelName: 'tag',
       freezeTableName: true,
-      timestamps: false,
+      timestamps: true,
+    //createdAt: true,
+    updatedAt: 'updatedAt'
     });
   //   return Tags;
   // };

@@ -20,8 +20,8 @@ export interface IcommentsAttributes {
   userId: number,
   postId: number,
   commentId: number,
-  createdAt: Date,
-  updatedAt: Date
+  //createdAt: Date,
+  //updatedAt: Date
 }
 
 // export type commentsPk = "id";
@@ -45,14 +45,14 @@ export class Comments extends Model<IcommentsAttributes>{
    * The `models/index` file will call this method automatically.
    */
 
-  public readonly id!: number;
-  public content!: string;
-  public userId!: number;
-  public postId!: number;
-  public commentId!: number;
+  public readonly id?: number;
+  public content?: string;
+  public userId?: number;
+  public postId?: number;
+  public commentId?: number;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  //public readonly createdAt?: Date;
+  //public readonly updatedAt?: Date;
 
   public static associations: {
     userHasManyComment:Association<Users, Comments>
@@ -90,21 +90,21 @@ Comments.init({
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  createdAt:{
-    type: DataTypes.DATE,
-    allowNull: false
-  },
-  updatedAt:{
-    type: DataTypes.DATE,
-    allowNull: false
-  }
+  // createdAt:{
+  //   type: DataTypes.DATE,
+  //   allowNull: false
+  // },
+  // updatedAt:{
+  //   type: DataTypes.DATE,
+  //   allowNull: false
+  // }
 }, {
   sequelize,
   modelName: 'comment',
   freezeTableName: true,
   timestamps: true,
-  createdAt: "createAt",
-  updatedAt: false
+    //createdAt: true,
+    updatedAt: 'updatedAt'
 });
 //   return Comments;
 // };

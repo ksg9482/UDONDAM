@@ -21,8 +21,8 @@ import { Users } from './users.model';
     content: string,
     userId: number,
     public: boolean,
-    createdAt: Date,
-    updatedAt: Date
+    //createdAt: Date,
+    //updatedAt: Date
   }
 
 // export type postsPk = "id";
@@ -42,13 +42,13 @@ import { Users } from './users.model';
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-     public readonly id!: number;
-     public content!: string;
-     public userId!: number;
-     public public!: boolean;
+     public readonly id?: number;
+     public content?: string;
+     public userId?: number;
+     public public?: boolean;
    
-     public readonly createdAt!: Date;
-     public readonly updatedAt!: Date;
+     //public readonly createdAt?: Date;
+     //public readonly updatedAt?: Date;
      
      public static associations: {
       userHasManyPost: Association<Users, Posts>,
@@ -81,22 +81,22 @@ import { Users } from './users.model';
         type: DataTypes.BOOLEAN,
         allowNull: false
       },
-      createdAt:{
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      updatedAt:{
-        type: DataTypes.DATE,
-        allowNull: false
-      }
+      // createdAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // },
+      // updatedAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // }
     }, {
       sequelize,
       modelName: 'posts',
       tableName: 'posts',
       freezeTableName: true,
-      timestamps: false,
-      createdAt: 'createAt',
-      updatedAt: false
+      timestamps: true,
+      //createdAt: true,
+      updatedAt: 'updatedAt'
     });
   //   return Posts;
   // }
