@@ -10,8 +10,8 @@ import {
   Association, 
   Sequelize} from 'sequelize';
   import  sequelize  from './index';
-import { Posts } from './posts';
-import { Tags } from './tags';
+import { Posts } from './posts.model';
+import { Tags } from './tags.model';
 
   export interface Iposts_tagsAttributes {
     id: number,

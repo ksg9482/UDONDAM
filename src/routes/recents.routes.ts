@@ -1,5 +1,5 @@
 import express from 'express';
-import * as recentController from '../controllers/recent';
+import * as recentController from '../controllers/recent.controller';
 import auth from '../middleware/verifyToken';
 
 

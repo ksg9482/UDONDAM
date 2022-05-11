@@ -1,5 +1,5 @@
 
-import {Users} from "../../models/users";
+import {Users} from "../../models/users.model";
 
 console.log("======Create Users Table======");
 

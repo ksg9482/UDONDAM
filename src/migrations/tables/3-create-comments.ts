@@ -1,4 +1,4 @@
-import {Comments} from '../../models/comments'
+import {Comments} from '../../models/comments.model'
 
 console.log("======Create Comments Table======");
 

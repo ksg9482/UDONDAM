@@ -1,5 +1,5 @@
 import express from 'express';
-import * as commentRouter from '../controllers/comment';
+import * as commentRouter from '../controllers/comment.controller';
 import auth from '../middleware/verifyToken';
 
 export const path = '/user';
