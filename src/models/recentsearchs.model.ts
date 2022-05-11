@@ -87,7 +87,8 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
     // }
   }, {
     sequelize,
-    modelName: 'recentsearch',
+    modelName: 'recentsearchs',
+    tableName:'recentsearchs',
     freezeTableName: true,
     timestamps: true,
     //createdAt: true,

@@ -19,7 +19,7 @@ export interface IcommentsAttributes {
   content: string,
   userId: number,
   postId: number,
-  commentId?: number,
+  commentId?: number | null,
   //createdAt: Date,
   //updatedAt: Date
 }
@@ -49,7 +49,7 @@ export class Comments extends Model<IcommentsAttributes>{
   public static content?: string;
   public static userId?: number;
   public static postId?: number;
-  public static commentId?: number;
+  public static commentId?: number | null;
 
   //public readonly createdAt?: Date;
   //public readonly updatedAt?: Date;
@@ -88,7 +88,8 @@ Comments.init({
   //commentId는 왜 필요?? 그냥 id랑 무슨 차이가??
   commentId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: true,
+    defaultValue:null
   },
   // createdAt:{
   //   type: DataTypes.DATE,
@@ -100,7 +101,8 @@ Comments.init({
   // }
 }, {
   sequelize,
-  modelName: 'comment',
+  modelName: 'comments',
+  tableName: 'comments',
   freezeTableName: true,
   timestamps: true,
     //createdAt: true,
