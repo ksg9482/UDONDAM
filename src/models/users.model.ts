@@ -60,7 +60,7 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
    * This method is not a part of Sequelize lifecycle.
    * The `models/index` file will call this method automatically.
    */
-  public readonly id?: number;
+  public static readonly id?: number;
   public static email?: string;
   public static password?: string;
   public static nickname?: string;
