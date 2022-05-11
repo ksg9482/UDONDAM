@@ -70,7 +70,8 @@ import { Posts } from './posts.model';
       // }
     }, {
       sequelize,
-      modelName: 'tag',
+      modelName: 'tags',
+      tableName: 'tags',
       freezeTableName: true,
       timestamps: true,
     //createdAt: true,

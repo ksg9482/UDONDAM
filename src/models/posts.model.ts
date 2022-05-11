@@ -42,7 +42,7 @@ import { Users } from './users.model';
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-     public readonly id?: number;
+     public static readonly id?: number;
      public static content?: string;
      public static userId?: number;
      public static public?: boolean;
