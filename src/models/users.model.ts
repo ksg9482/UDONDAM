@@ -18,16 +18,16 @@ import { Posts } from './posts.model'
 import { RecentSearchs } from './recentsearchs.model';
 
 export interface IusersAttributes {
-  id: number,
+  id?: number,
   email: string,
   password: string,
-  nickname: string,
-  socialType: string,
-  manager: boolean,
-  area: string,
-  area2: string,
-  createdAt: Date,
-  updatedAt: Date
+  nickname?: string,
+  socialType?: string,
+  manager?: boolean,
+  area?: string,
+  area2?: string,
+  //createdAt?: Date,
+  //updatedAt?: Date
 }
 
 // export type usersPk = "id";
@@ -47,25 +47,33 @@ export interface IusersAttributes {
 
 //type UsersCreateInterface = Pick<IusersAttributes,'type'>
 
+//enum으로 소셜타입 추가.
+export enum UserSocialType {
+  basic = 'basic',
+  google = 'google',
+  naver = 'naver'
+};
+
 export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> {
   /**
    * Helper method for defining associations.
    * This method is not a part of Sequelize lifecycle.
    * The `models/index` file will call this method automatically.
    */
-  public readonly id!: number;
-  public email!: string;
-  public password!: string;
-  public nickname!: string;
-  public socialType!: string;
-  public manager!: boolean;
-  public area!: string;
-  public area2!: string;
+  public static readonly id?: number;
+  public static email?: string;
+  public static password?: string;
+  public static nickname?: string;
+  public static socialType?: string;
+  public static manager?: boolean;
+  public static area?: string;
+  public static area2?: string;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  //public readonly createdAt?: Date;
+  //public readonly updatedAt?: Date;
   
   public static associations: { };
+    //static nickname: any;
 
   
 };
@@ -88,40 +96,47 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
     },
     nickname: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      defaultValue:'익명'
     },
     socialType: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      defaultValue: UserSocialType.basic
     },
     manager: {
       type: DataTypes.BOOLEAN,
-      allowNull: false
+      allowNull: false,
+      defaultValue:false
     },
     area: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      defaultValue:'인증해주세요'
     },
     area2: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      defaultValue:'인증해주세요'
     },
-    createdAt:{
-      type: DataTypes.DATE,
-      allowNull: false
-    },
-    updatedAt:{
-      type: DataTypes.DATE,
-      allowNull: false
-    }
+    // createdAt:{
+    //   type: DataTypes.DATE,
+    //   allowNull: false,
+    //   defaultValue: Date.now()
+    // },
+    // updatedAt:{
+    //   type: DataTypes.DATE,
+    //   allowNull: false,
+    //   defaultValue: Date.now()
+    //}
   }, {
     sequelize,
     modelName: 'users',
     tableName: 'users',
     freezeTableName: true,
-    timestamps: false,
-    createdAt: "createAt",
-    updatedAt: "updateAt"
+    timestamps: true,
+    //createdAt: true,
+    updatedAt: 'updatedAt'
   });
 //   return Users;
 // }

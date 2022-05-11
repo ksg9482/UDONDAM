@@ -14,11 +14,11 @@ import { Posts } from './posts.model';
 import { Tags } from './tags.model';
 
   export interface Iposts_tagsAttributes {
-    id: number,
+    id?: number,
     postId: number,
     tagId: number,
-   createdAt: Date,
-   updatedAt: Date
+   //createdAt: Date,
+   //updatedAt: Date
   }
 
 // export type posts_tagsPk = "id";
@@ -40,12 +40,12 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
      * The `models/index` file will call this method automatically.
      */
 
-     public readonly id!: number;
-     public postId!: number;
-     public tagId!: number;
+     public static readonly id?: number;
+     public static postId?: number;
+     public static tagId?: number;
  
-     public readonly createdAt!: Date;
-     public readonly updatedAt!: Date;
+     //public readonly createdAt?: Date;
+     //public readonly updatedAt?: Date;
 
      public static associations: {
       postsbelongsToManyTags:Association<Posts, Tags>
@@ -70,20 +70,22 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
         type: DataTypes.INTEGER,
         allowNull: false
       },
-      createdAt:{
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      updatedAt:{
-        type: DataTypes.DATE,
-        allowNull: false
-      }
+      // createdAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // },
+      // updatedAt:{
+      //   type: DataTypes.DATE,
+      //   allowNull: false
+      // }
     }, {
       sequelize,
       modelName: 'post_tag',
       tableName: 'post_tag',
       freezeTableName: true,
-      timestamps:false
+      timestamps: true,
+    //createdAt: true,
+    updatedAt: 'updatedAt'
     });
   //   return Posts_Tags;
   //  };

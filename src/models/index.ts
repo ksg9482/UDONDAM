@@ -31,8 +31,9 @@ const sequelize = new Sequelize.Sequelize(
   config.development.password,
   {
       host: config.development.host,
-      dialect: 'mysql'
-  }
+      dialect: 'mysql',
+      timezone: '+09:00'
+  },
   //timezone 추가?
 )
 
