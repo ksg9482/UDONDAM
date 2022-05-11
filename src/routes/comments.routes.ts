@@ -1,8 +1,8 @@
 import express from 'express';
-import * as commentRouter from '../controllers/comment.controller';
+import * as commentRouter from '../controllers/comments.controller';
 import auth from '../middleware/verifyToken';
 
-export const path = '/user';
+export const path = '/comment';
 export const router = express.Router();
 
 router.use(auth)

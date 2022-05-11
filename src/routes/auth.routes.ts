@@ -1,7 +1,8 @@
 import express from 'express';
 import * as authRouter from '../controllers/auth.controller';
+import auth from '../middleware/verifyToken';
 
-export const path = '/user';
+export const path = '/';
 export const router = express.Router();
 
 router.post('/login', authRouter.login);

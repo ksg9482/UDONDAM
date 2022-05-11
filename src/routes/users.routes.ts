@@ -1,5 +1,5 @@
 import express from 'express';
-import * as userController from '../controllers/user.controller';
+import * as userController from '../controllers/users.controller';
 import auth from '../middleware/verifyToken';
 import { Users } from "../models/users.model";
 
