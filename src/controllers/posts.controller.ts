@@ -176,6 +176,7 @@ export const postTag = async (req:any,  res:any) => {
 
 export const postUser = async (req:any,  res:any) => {
     req.userId = req.userId || 1;
+    
     const posts = await Posts.findAll({
         attributes: ['id', 'content', 'createAt'],
         where: {
@@ -184,11 +185,14 @@ export const postUser = async (req:any,  res:any) => {
         include:[
             {
                 model: Likes,
-                attributes: ['id']
+                attributes: ['id'],
+                as:'postHasManyLikes'
             },
             {
                 model: Comments,
-                attributes: ['id']
+                attributes: ['id'],
+                as:'posthasManyComments',
+            
             }
         ],
         order: [['createAt','DESC']]
@@ -198,12 +202,12 @@ export const postUser = async (req:any,  res:any) => {
     }
     let resPosts:any = [];
     posts.map((post:any)=> {
-        const {id, content, createAt, likes, comments} = post;
+        const {id, content, createAt, postHasManyLikes:likes, posthasManyComments:comments} = post;
         resPosts.push({
             id:id,
             content: content,
             createAt: createAt,
-            likeCount: likes.length,
+            likeCount: !likes? 0 : likes.length,
             commentCount: comments.length
         })
     })
@@ -221,12 +225,20 @@ export const postPick = async (req:any,res:any) => {
             {
                 model: Users,
                 attributes: ['nickname'],
-                required: true
+                required: true,
+                as:'postsbelongsToUser'
             },
             {
-                model: Tags,
-                attributes: ['content'],
-                required: true
+               model: Posts_Tags,
+                include: [
+                    {
+                        model: Tags,
+                        attributes: ['content'],
+                        required: true,
+                        as: 'post_TagsBelongToTag'
+                    }
+                ],
+               as:'postHasManyPosts_Tags'
             },
             {
                 model: Comments,
@@ -234,18 +246,62 @@ export const postPick = async (req:any,res:any) => {
                     {
                         model: Users,
                         attributes:['nickname'],
-                        required:true
+                        required:true,
+                        as:'commentsBelongsToUser'
                     }
-                ]
+                ],
+                as:'posthasManyComments'
+                
             },
             {
                 model: Likes,
-                attributes: ['userId']
+                attributes: ['userId'],
+                as:'postHasManyLikes'
             }
         ]
     });
     try{
-    const {id, userId, _public, content, createAt, user, tags, comments, likes} = postPick.dataValues
+        
+        if(postPick !== null){
+            const {} = postPick;
+        }
+    const {
+        id, 
+        userId, 
+        public:_public, 
+        content, 
+        createAt, 
+        postsbelongsToUser:{
+            dataValues:user
+        }, 
+        postHasManyPosts_Tags, 
+        posthasManyComments, 
+        postHasManyLikes:likes,
+    } = postPick.dataValues;
+
+    const tags = postHasManyPosts_Tags.map((tag:any) => {
+        return tag.dataValues.post_TagsBelongToTag.dataValues
+    });
+    let comments = posthasManyComments.map((comment:any) => {
+        const {
+             id,
+             content,
+             userId,
+             postId,
+             commentId,
+             createAt,
+             commentsBelongsToUser:{
+                dataValues:user
+             }
+        } = comment.dataValues;
+        return {id, content, userId, postId, commentId, createAt, user};
+    });
+
+    function sortById(arr:any) {
+        arr.sort((a:any, b:any) => a.id - b.id);
+    }
+    sortById(comments);
+    
     let tag = [];
     for(let el of tags) {
         tag.push(el.content)
@@ -260,12 +316,12 @@ export const postPick = async (req:any,res:any) => {
     let deleteArr:any = [];
     if(comments.length !== 0) {
         comments.map((el:any)=>{
-            const {id, content, userId, postId, commentId, createAt, user} = el.dataValues
+            const {id, content, userId, postId, commentId, createAt, user} = el;
         if(commentId === null) {
             commentArr.push({
                 id: id,
                 content: content,
-                nickname: Users.nickname,
+                nickname: user.nickname,
                 userId: userId,
                 postId: postId,
                 commentId: commentId,
@@ -281,7 +337,7 @@ export const postPick = async (req:any,res:any) => {
                     comment.comment.push({
                         id: id,
                         content: content,
-                        nickname: Users.nickname,
+                        nickname: user.nickname,
                         userId: userId,
                         postId: postId,
                         commentId: commentId,
@@ -296,7 +352,7 @@ export const postPick = async (req:any,res:any) => {
                             el.comment.push({
                                 id: id,
                                 content: content,
-                                nickname: Users.nickname,
+                                nickname: user.nickname,
                                 userId: userId,
                                 postId: postId,
                                 commentId: commentId,
@@ -317,7 +373,7 @@ export const postPick = async (req:any,res:any) => {
                     comment: [{
                         id: id,
                         content: content,
-                        nickname: Users.nickname,
+                        nickname: user.nickname,
                         userId: userId,
                         postId: postId,
                         commentId: commentId,
@@ -345,7 +401,7 @@ export const postPick = async (req:any,res:any) => {
     const resPost = {
         id: id,
         userId: userId,
-        nickname: Users.nickname,
+        nickname: user.nickname,
         content: content,
         public: _public,
         likeCount: likes.length,

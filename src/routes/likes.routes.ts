@@ -9,6 +9,6 @@ router.use(auth)
 
 router.get('/', likesController.likesUser);
 router.post('/', likesController.likesCreate);
-router.delete('/', likesController.likesDelete);
+router.delete('/:postId', likesController.likesDelete);
 
 

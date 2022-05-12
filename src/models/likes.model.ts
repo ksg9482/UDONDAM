@@ -47,11 +47,11 @@ export class Likes extends Model<IlikesAttributes> {
   //public readonly updatedAt?: Date;
 
   public static associations: {
-    userHasManyLike: Association<Users, Likes>
-    likesBelongsToUsers: Association<Likes, Users>,
+    userHasManyLikes: Association<Users, Likes>
+    likesBelongsToUser: Association<Likes, Users>,
 
-    postsHasManyLikes:Association<Posts, Likes>
-    likesBelongsToPosts: Association<Likes, Posts>,
+    postHasManyLikes:Association<Posts, Likes>
+    likesBelongsToPost: Association<Likes, Posts>,
   };
 
 
@@ -87,7 +87,7 @@ Likes.init({
   modelName: 'likes',
   freezeTableName: true,
   timestamps: true,
-    //createdAt: true,
+    createdAt: 'createAt',
     updatedAt: 'updatedAt'
 });
 // return Likes; 
@@ -97,14 +97,14 @@ Users.hasMany(Likes, {
   foreignKey: 'userId',
   sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'userHasManyLike'
+  as: 'userHasManyLikes'
 });
 Likes.belongsTo(Users, {
   foreignKey: 'userId',
   targetKey: 'id',
   //sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'likesBelongsToUsers',
+  as: 'likesBelongsToUser',
 });
 
 
@@ -113,12 +113,12 @@ Posts.hasMany(Likes, {
   foreignKey: 'postId',
   sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'postsHasManyLikes'
+  as: 'postHasManyLikes'
 });
 Likes.belongsTo(Posts, {
   foreignKey: 'postId',
   targetKey: 'id',
   //sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'likesBelongsToPosts',
+  as: 'likesBelongsToPost',
 });

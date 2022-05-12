@@ -51,12 +51,8 @@ import { Users } from './users.model';
      //public readonly updatedAt?: Date;
      
      public static associations: {
-      userHasManyPost: Association<Users, Posts>,
-      postsbelongsToUsers: Association<Posts, Users>,
-
-      
-      
-      
+      userHasManyPosts: Association<Users, Posts>,
+      postsbelongsToUser: Association<Posts, Users>
     }
     
   };
@@ -95,7 +91,7 @@ import { Users } from './users.model';
       tableName: 'posts',
       freezeTableName: true,
       timestamps: true,
-      //createdAt: true,
+      createdAt: 'createAt',
       updatedAt: 'updatedAt'
     });
   //   return Posts;
@@ -105,14 +101,14 @@ import { Users } from './users.model';
   foreignKey: 'userId',
   sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'userHasManyPost'
+  as: 'userHasManyPosts'
 });
   Posts.belongsTo(Users, {
     foreignKey: 'userId',
     targetKey: 'id',
     //sourceKey: 'id',
     onDelete: 'CASCADE',
-    as: 'postsbelongsToUsers',
+    as: 'postsbelongsToUser',
   });
 
 

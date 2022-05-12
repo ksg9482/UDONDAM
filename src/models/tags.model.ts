@@ -74,7 +74,7 @@ import { Posts } from './posts.model';
       tableName: 'tags',
       freezeTableName: true,
       timestamps: true,
-    //createdAt: true,
+    createdAt: 'createAt',
     updatedAt: 'updatedAt'
     });
   //   return Tags;

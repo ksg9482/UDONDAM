@@ -12,7 +12,7 @@ res.status(200).cookie("jwt", token,{
   sameSite: 'none',
   domain: DOMAIN,
   path: '/',
-  secure: true,
+  secure: true, //이거 있어서 postman은 바로 못씀. 옵션을..?
   httpOnly: true,
   expires: new Date(Date.now() + 1000 * 60 * 60 * 48),
 }).json({ data: userData });

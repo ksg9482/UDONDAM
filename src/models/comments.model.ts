@@ -55,11 +55,11 @@ export class Comments extends Model<IcommentsAttributes>{
   //public readonly updatedAt?: Date;
 
   public static associations: {
-    userHasManyComment:Association<Users, Comments>
-    commentsBelongsToUsers: Association<Comments, Users>,
+    userHasManyComments:Association<Users, Comments>
+    commentsBelongsToUser: Association<Comments, Users>,
 
-    postshasManyComment:Association<Posts, Comments>
-    commentsBelongsToPosts: Association<Comments, Posts>,
+    posthasManyComments:Association<Posts, Comments>
+    commentsBelongsToPost: Association<Comments, Posts>,
   };
 
 
@@ -105,7 +105,7 @@ Comments.init({
   tableName: 'comments',
   freezeTableName: true,
   timestamps: true,
-    //createdAt: true,
+    createdAt: 'createAt',
     updatedAt: 'updatedAt'
 });
 //   return Comments;
@@ -115,14 +115,14 @@ Users.hasMany(Comments, {
   foreignKey: 'userId',
   sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'userHasManyComment'
+  as: 'userHasManyComments'
 });
 Comments.belongsTo(Users, {
   foreignKey: 'userId',
   targetKey: 'id',
   //sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'commentsBelongsToUsers',
+  as: 'commentsBelongsToUser',
 });
 
 
@@ -130,12 +130,12 @@ Posts.hasMany(Comments, {
   foreignKey: 'postId',
   sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'postshasManyComment'
+  as: 'posthasManyComments'
 });
 Comments.belongsTo(Posts, {
   foreignKey: 'postId',
   targetKey: 'id',
   //sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'commentsBelongsToPosts',
+  as: 'commentsBelongsToPost',
 });
