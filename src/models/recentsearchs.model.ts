@@ -50,8 +50,8 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
   //public readonly updatedAt?: Date;
   
   public static associations: {
-    userHasManyRecentsearch:Association<Users, RecentSearchs>
-    resentSearchBelongsToUsers: Association<RecentSearchs, Users>,
+    userHasManyRecentsearchs:Association<Users, RecentSearchs>
+    resentSearchsBelongsToUser: Association<RecentSearchs, Users>,
   }
 
   
@@ -71,11 +71,11 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
     },
     tag: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     notTag: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     // createdAt: {
     //   type: DataTypes.DATE,
@@ -91,7 +91,7 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
     tableName:'recentsearchs',
     freezeTableName: true,
     timestamps: true,
-    //createdAt: true,
+    createdAt: 'createAt',
     updatedAt: 'updatedAt'
   });
 //   return RecentSearchs;
@@ -101,12 +101,12 @@ Users.hasMany(RecentSearchs, {
   foreignKey: 'userId',
   sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'userHasManyRecentsearch'
+  as: 'userHasManyRecentsearchs'
 });
 RecentSearchs.belongsTo(Users, {
   foreignKey: 'userId',
   targetKey: 'id',
   //sourceKey: 'id',
   onDelete: 'CASCADE',
-  as: 'resentSearchBelongsToUsers',
+  as: 'resentSearchsBelongsToUser',
 });

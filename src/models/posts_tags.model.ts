@@ -48,10 +48,10 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
      //public readonly updatedAt?: Date;
 
      public static associations: {
-       postsHasManyPosts_Tags:Association<Posts, Posts_Tags>;
-       post_TagsBelongToPosts:Association<Posts_Tags, Posts>;
-       tagsHasManyPosts_Tags:Association<Tags, Posts_Tags>;
-       post_TagsBelongToTags:Association<Posts_Tags, Tags>;
+       postHasManyPosts_Tags:Association<Posts, Posts_Tags>;
+       posts_TagsBelongToPost:Association<Posts_Tags, Posts>;
+       tagHasManyPosts_Tags:Association<Tags, Posts_Tags>;
+       post_TagsBelongToTag:Association<Posts_Tags, Tags>;
      };
     
      
@@ -86,7 +86,7 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
       tableName: 'posts_tags',
       freezeTableName: true,
       timestamps: true,
-    //createdAt: true,
+    createdAt: 'createAt',
     updatedAt: 'updatedAt'
     });
   //   return Posts_Tags;
@@ -95,26 +95,26 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
     sourceKey: 'id',
     foreignKey: 'postId',
     onDelete: 'CASCADE',
-    as: 'postsHasManyPosts_Tags'
+    as: 'postHasManyPosts_Tags'
   });
   Posts_Tags.belongsTo(Posts,{
     targetKey:'id',
     foreignKey: 'postId',
     onDelete: 'CASCADE',
-    as: 'post_TagsBelongToPosts'
+    as: 'posts_TagsBelongToPost'
   });
 
   Tags.hasMany(Posts_Tags, {
     sourceKey: 'id',
     foreignKey: 'tagId',
     onDelete: 'CASCADE',
-    as: 'tagsHasManyPosts_Tags'
+    as: 'tagHasManyPosts_Tags'
   });
   Posts_Tags.belongsTo(Tags,{
     targetKey:'id',
     foreignKey: 'tagId',
     onDelete: 'CASCADE',
-    as: 'post_TagsBelongToTags'
+    as: 'post_TagsBelongToTag'
   });
 
 

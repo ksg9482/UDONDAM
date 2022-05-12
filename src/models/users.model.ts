@@ -135,7 +135,7 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
     tableName: 'users',
     freezeTableName: true,
     timestamps: true,
-    //createdAt: true,
+    createdAt: 'createAt',
     updatedAt: 'updatedAt'
   });
 //   return Users;
