@@ -13,11 +13,13 @@ export const commentUser = async (req:any,  res:any) => {
                         attributes:[],
                         where: {
                             userId:req.userId
-                        }
+                        },
+                        as:'posthasManyComments'
                     },
                     {
                         model:Likes,
-                        attributes:['id']
+                        attributes:['id'],
+                        as:'postHasManyLikes'
                     }
                 ],
                 order:[['createAt', 'DESC']]
@@ -27,7 +29,7 @@ export const commentUser = async (req:any,  res:any) => {
         }
         let commentPost = [];
         for(let el of posts) {
-            const {id, content, createAt, likes} = el.dataValues;
+            const {id, content, createAt, postHasManyLikes:likes} = el.dataValues;
             let commentCount = await Comments.count({
                 where:{
                     postId: id
@@ -44,7 +46,7 @@ export const commentUser = async (req:any,  res:any) => {
         }
             return res.send(commentPost)
         } catch(err) {
-            //console.log(err);
+            console.log(err);
             return res.status(500).json({"message": "Server Error"})
         }        
     };

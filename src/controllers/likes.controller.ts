@@ -18,46 +18,59 @@ export const likesUser = async (req:any,  res:any) => {
             res.status(401).json({ "message" : "token doesn't exist" });
         }
         else {
-            const tempLikeCount = await Posts.findAll({
+            const originTempLikeCount:any = await Posts.findAll({
                 attributes: ['id'],
                 include: [{
                     model: Likes,
                     required: true,
                     attributes: ['postId'],
+                    as:'postHasManyLikes'
                 }]
             });
-
+            //console.log(originTempLikeCount)
+            let tempLikeCount:any = originTempLikeCount.map((item:any) => {
+                //console.log(item)
+                const {postHasManyLikes:likes} = item.dataValues;
+                return {likes:likes};
+            })
+            
             const result = await Posts.findAll({
+            
                 include: [{
                     model: Likes,
-                    required: true,
+                    //required: true,
                     attributes: ['postId'],
                     where: {
                         userId: userInfo.id
-                    }
+                    },
+                    as:'postHasManyLikes'
                 },
                 {
                     model: Comments,
                     attributes: ['id'],
-                    required: true
+                    //required: true,
+                    as:'posthasManyComments'
                 }],
+                where: {userId:userInfo.id},
                 order: [['createAt','DESC']],
                 // limit: 10
             });
             // let likeCount = await likes.count({ where: {postId: id} });
-            
+            //console.log(tempLikeCount[0].dataValues.postHasManyLikes[0])
             if(result.length === 0){
                 return res.status(200).json(result);
             }
             else{
-                let likesCount:any = [];
+                let likesCount:any = []; //{likes:[{1},{2}]}
+                
                 tempLikeCount.map((count:any) => {
+                   // console.log(count)
                     let { likes } = count;
                     likesCount.push(likes.length);
                 })
 
                 const response = result.map((post:any, idx:any) => {
-                    let { id, content, createAt, comments } = post;
+                    let { id, content, createAt, posthasManyComments:comments } = post.dataValues;
                     
                     return {
                         id: id,
@@ -108,17 +121,19 @@ export const likesUser = async (req:any,  res:any) => {
     };
 
     export const likesDelete = async (req:any,  res:any) => {
-        const userId = req.userId || 2;
-        const { postId } = req.query;
+        //const userId = req.userId || 2;
+        req.userId = req.userId || 1;
+        req.params.postId = req.params.postId || 1;
+        //const { postId } = req.query;
         let userInfo = await Users.findOne({
             where: {
-                id: userId
+                id: req.userId
             }
         });
         let overlapCheck = await Likes.findOne({
             where: {
-                userId: userId,
-                postId: postId
+                userId: req.userId,
+                postId: req.params.postId
             }
         });
 
@@ -133,8 +148,8 @@ export const likesUser = async (req:any,  res:any) => {
                 try{
                     await Likes.destroy({
                         where: {
-                            userId: userId,
-                            postId : postId
+                            userId: req.userId,
+                            postId : req.params.postId
                         }
                     });
                     return res.status(200).json({ "message" : "delete!" });  

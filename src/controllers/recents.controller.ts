@@ -75,6 +75,7 @@ export const post = async(req:any,  res:any) => {
         });
 
         if(recent.length > 3){
+            
             await RecentSearchs.destroy({
                 where: {
                     id: recent[0].id,
