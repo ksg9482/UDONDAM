@@ -4,6 +4,8 @@ import { Users } from '../models/users.model';
 import { Comments } from '../models/comments.model';
 import { Likes } from '../models/likes.model';
 import { Posts_Tags } from '../models/posts_tags.model';
+import sequelize from '../models';
+import { Model, Sequelize } from 'sequelize/types';
 
 export const postTag = async (req:any,  res:any) => {
     req.query.page = req.query.page || '1';
@@ -177,41 +179,70 @@ export const postTag = async (req:any,  res:any) => {
 export const postUser = async (req:any,  res:any) => {
     req.userId = req.userId || 1;
     
-    const posts = await Posts.findAll({
-        attributes: ['id', 'content', 'createAt'],
-        where: {
-            userId: req.userId
-        },
-        include:[
-            {
-                model: Likes,
-                attributes: ['id'],
-                as:'postHasManyLikes'
-            },
-            {
-                model: Comments,
-                attributes: ['id'],
-                as:'posthasManyComments',
+    // const posts = await Posts.findAll({
+    //     attributes: ['id', 'content', 'createAt'],
+    //     where: {
+    //         userId: req.userId
+    //     },
+    //     include:[
+    //         {
+    //             model: Likes,
+    //             attributes: ['id'],
+    //             as:'postHasManyLikes'
+    //         },
+    //         {
+    //             model: Comments,
+    //             attributes: ['id'],
+    //             as:'posthasManyComments',
             
-            }
-        ],
-        order: [['createAt','DESC']]
-    });
-    if(posts.length === 0) {
-        return res.status(200).json(posts);
+    //         }
+    //     ],
+    //     order: [['createAt','DESC']]
+    // });
+
+    const [postUserResults, _] = await sequelize.query(
+        // 'SELECT `posts`.`id`, `posts`.`content`, `posts`.`createAt`,' 
+        // +'COUNT(`likes`.`id`) AS `likeCount`,'
+        // +'COUNT(`comments`.`id`) AS `commentCount`'
+        // +'FROM `posts` '
+        // +'LEFT OUTER JOIN `likes` '
+        // +'ON `posts`.`id` = `likes`.`postId`'
+        // +'LEFT OUTER JOIN `comments`'
+        // +'ON `posts`.`id` = `comments`.`postId`'
+        // +'WHERE `posts`.`userId` = ' + `${req.userId} ` 
+        // +'GROUP BY `posts`.`id`'
+        // +'ORDER BY `posts`.`createAt` DESC;'
+        `SELECT posts.id, posts.content, posts.createAt,
+        COUNT(likes.id) AS likeCount,
+        COUNT(comments.id) AS commentCount
+        FROM posts 
+        LEFT OUTER JOIN likes 
+        ON posts.id = likes.postId
+        LEFT OUTER JOIN comments
+        ON posts.id = comments.postId
+        WHERE posts.userId = ${req.userId}
+        GROUP BY posts.id
+        ORDER BY posts.createAt DESC;`
+        )
+    
+    // if(posts.length === 0) {
+    //     return res.status(200).json(posts);
+    // }
+    if(postUserResults.length === 0) {
+        return res.status(200).json(postUserResults);
     }
-    let resPosts:any = [];
-    posts.map((post:any)=> {
-        const {id, content, createAt, postHasManyLikes:likes, posthasManyComments:comments} = post;
-        resPosts.push({
-            id:id,
-            content: content,
-            createAt: createAt,
-            likeCount: !likes? 0 : likes.length,
-            commentCount: comments.length
-        })
-    })
-    res.status(200).send(resPosts);
+    // let resPosts:any = [];
+    // posts.map((post:any)=> {
+    //     const {id, content, createAt, postHasManyLikes:likes, posthasManyComments:comments} = post;
+    //     resPosts.push({
+    //         id:id,
+    //         content: content,
+    //         createAt: createAt,
+    //         likeCount: !likes? 0 : likes.length,
+    //         commentCount: comments.length
+    //     })
+    // })
+    res.status(200).send(postUserResults);
 };
 
 export const postPick = async (req:any,res:any) => {
