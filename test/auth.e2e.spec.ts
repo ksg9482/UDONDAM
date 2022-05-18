@@ -14,7 +14,7 @@ describe('AuthController(e2e)', () => {
 
   afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
-    //test로 적용이 안됨. node env 제대로 적용하려면?
+    
     //await sequelize.dropAllSchemas({logging:false}) 스키마를 다 지워서 테이블 자체가 사라짐. 테이블만 없애려면?
   });
 
@@ -34,11 +34,11 @@ describe('AuthController(e2e)', () => {
       expect(res.text).toEqual('get 응답');
     });
 
-    it('회원가입', async () => {
-      const res:any = await request(app).post('/signup').send(testUser);
-      console.log(res);
-      expect(res.status).toEqual(201);
-      expect(res.body).toEqual({ message: 'signUp!' });
-    })
+    // it('회원가입', async () => {
+    //   const res:any = await request(app).post('/signup').send(testUser);
+    //   console.log(res);
+    //   expect(res.status).toEqual(201);
+    //   expect(res.body).toEqual({ message: 'signUp!' });
+    // })
   })
 })
