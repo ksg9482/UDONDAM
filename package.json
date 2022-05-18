@@ -6,7 +6,9 @@
   "scripts": {
     "start": "npm run build:live",
     "build": "tsc -p .",
-    "build:live": "nodemon --watch '*.ts' --exec 'ts-node' src/index.ts"
+    "build:live": "nodemon --watch '*.ts' --exec 'ts-node' src/index.ts",
+    "test": "jest --setupFiles dotenv/config --forceExit --detectOpenHandles",
+    "test:e2e": "jest --config ./test/jest.e2e.json --setupFiles dotenv/config --forceExit"
   },
   "author": "",
   "license": "ISC",
@@ -31,8 +33,14 @@
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.3",
+    "@types/dotenv": "^8.2.0",
+    "@types/jest": "^27.5.1",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/nodemailer": "^6.4.4",
+    "@types/supertest": "^2.0.12",
+    "jest": "^28.1.0",
+    "supertest": "^6.2.3",
+    "ts-jest": "^28.0.2",
     "typescript": "^4.6.4"
   },
   "repository": {
@@ -43,5 +51,30 @@
   "bugs": {
     "url": "https://github.com/ksg9482/UDONDAM/issues"
   },
-  "homepage": "https://github.com/ksg9482/UDONDAM#readme"
+  "homepage": "https://github.com/ksg9482/UDONDAM#readme",
+  "jest": {
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.controllers.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "node_modules",
+      ".entity.ts",
+      ".constants.ts"
+    ]
+  }
 }
