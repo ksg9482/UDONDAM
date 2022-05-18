@@ -10,8 +10,8 @@ import sequelize  from './models';
 
 dotenv.config();
 
-const HOST:string = 'localhost';
-const PORT:number = 8080;
+export const HOST:string = 'localhost';
+export const PORT:number = 8080;
 
 const app = express();
 const whiteList = [
@@ -40,6 +40,7 @@ app.use(Api.path, Api.router);
 
 
 let server ;
+
 if (fs.existsSync("./key.pem") && fs.existsSync("./cert.pem")) {
     server = https
     .createServer(
@@ -74,4 +75,4 @@ server = app.listen(PORT, HOST, async ()=> {
 })
 }
 
-export {}
+export default app

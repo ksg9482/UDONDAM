@@ -20,23 +20,45 @@
 // import fs from 'fs';
 // import path from 'path';
 // const basename = path.basename(__filename);
- const env = process.env.NODE_ENV || 'development';
+
+ const env = process.env.NODE_ENV;
 // const config = require(__dirname + '/../config/config.js')[env];
 
 // const db:any = {};
 
-const sequelize = new Sequelize.Sequelize(
+const sequelize = env === 'test'
+ ? (new Sequelize.Sequelize(
+  config.test.database,
+  config.test.username,
+  config.test.password,
+  {
+    host: config.test.host,
+    dialect: 'mysql',
+    timezone: '+09:00'
+  }
+))
+: (new Sequelize.Sequelize(
   config.development.database,
   config.development.username,
   config.development.password,
   {
-      host: config.development.host,
-      dialect: 'mysql',
-      timezone: '+09:00'
-  },
-  //timezone 추가?
-)
-
+    host: config.development.host,
+    dialect: 'mysql',
+    timezone: '+09:00'
+  }
+));
+  
+// const sequelize = new Sequelize.Sequelize(
+//   config.development.database,
+//   config.development.username,
+//   config.development.password,
+//   {
+//       host: config.development.host,
+//       dialect: 'mysql',
+//       timezone: '+09:00'
+//   },
+//   //timezone 추가?
+// )
 export default sequelize;
 
 
