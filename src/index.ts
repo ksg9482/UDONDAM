@@ -30,6 +30,7 @@ app.use(express.urlencoded({extended:true}));
 
 
 app.get('/', (req:any, res:any)=> {
+    //응답코드 통일. 200, 201 섞여있음
     res.status(200).send("get 응답")
 })
 
