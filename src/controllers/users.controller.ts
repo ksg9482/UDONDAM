@@ -3,7 +3,6 @@ import { Users } from "../models/users.model";
 
 
 export const userInfo = async (req:any,  res:any) => { 
-    //console.log('결과:',req.userId)
     req.userId = req.userId || 1
     try {
         const userInfo:any = await Users.findOne({
