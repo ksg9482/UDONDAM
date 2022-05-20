@@ -8,7 +8,7 @@
     "build": "tsc -p .",
     "build:live": "nodemon --watch '*.ts' --exec 'ts-node' src/index.ts",
     "test": "jest --setupFiles dotenv/config --forceExit --detectOpenHandles",
-    "test:e2e": "jest --config ./test/jest.e2e.json --setupFiles dotenv/config --forceExit"
+    "test:e2e": "clear & jest --config ./test/jest.e2e.json --setupFiles dotenv/config --forceExit"
   },
   "author": "",
   "license": "ISC",

@@ -18,9 +18,13 @@ export const userInfo = async (req:any,  res:any) => {
 };
 
 export const userPatch = async (req:any,  res:any) => {
+    
         req.userId = req.userId || 1;
         const {nickname, password} = req.body;
         try{
+            if(!nickname && !password) {
+                return res.status(400).json({"message": "no data has been sent!"})
+            }
             if(nickname && password) {
                 await Users.update({
                 nickname: nickname,
@@ -59,6 +63,9 @@ export const userPatch = async (req:any,  res:any) => {
         req.userId = req.userId || 1
         const {area, area2} = req.body;
         try{
+            if(!area && !area2) {
+                return res.status(400).json({"message": "no data has been sent!"})
+            }
             if(area) {
                 const patchCheck:any = await Users.update({
                     area : area

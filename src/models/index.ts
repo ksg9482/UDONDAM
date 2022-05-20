@@ -34,7 +34,8 @@ const sequelize = env === 'test'
   {
     host: config.test.host,
     dialect: 'mysql',
-    timezone: '+09:00'
+    timezone: '+09:00',
+    logging:false
   }
 ))
 : (new Sequelize.Sequelize(

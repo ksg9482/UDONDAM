@@ -58,7 +58,8 @@ import { Posts } from './posts.model';
       },
       content:{
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        unique:true
       },
       // createdAt:{
       //   type: DataTypes.DATE,

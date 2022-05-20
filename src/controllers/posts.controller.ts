@@ -8,10 +8,10 @@ import sequelize from '../models';
 import { Model, Sequelize } from 'sequelize/types';
 
 export const postTag = async (req:any,  res:any) => {
-    req.query.page = req.query.page || '1';
+    //req.query.page = req.query.page || '1';
     //req.query.size = req.query.size || '2';
-    req.userId = req.userId || 1;
-    req.query.tag = req.query.tag || ["부산광역시", "대구광역시"];
+    //req.userId = req.userId || 1;
+    //req.query.tag = req.query.tag || ["부산광역시", "대구광역시"];
     req.query.notTag = req.query.notTag || null;
     let page = Number(req.query.page);
     //let size = Number(req.query.size);
@@ -25,8 +25,42 @@ export const postTag = async (req:any,  res:any) => {
     const contentTag = req.query.tag.filter((el:any) => {
         return el[el.length-1] !== '시' && el[el.length-1] !== '군' && el[el.length-1] !== '요'
     })
+    //const areaTagContent:string = areaTag[0]
     try{
-    const areaPosts = await Posts.findAll({
+        const areaTagIdArr:any = await Posts_Tags.findAll({
+            attributes:['id'],
+            //raw:true,
+            include: [
+                {
+                    model:Tags,
+                    attributes:['id'],
+                    where:{content:areaTag},
+                    as:'post_TagsBelongToTag'
+                },
+                
+            ]
+        })
+
+        let areaTagId:any[] = [];
+        areaTagIdArr.map((el:any) => {
+            areaTagId.push(el.dataValues.post_TagsBelongToTag.dataValues.id)
+        })
+
+    // const areaPosts:any = await Posts_Tags.findAll({
+    //     attributes:['id'],
+    //     //raw:true,
+    //     include: [
+    //         {
+    //             model:Posts,
+    //             attributes:['id','content'],
+    //             where:{content:areaTag},
+    //             as:'post_TagsBelongToTag'
+    //         },
+            
+    //     ]
+    // })
+
+    const areaPosts = await Posts.findAll({ //areaTag에 해당하는 모든 게시물 조회
         attributes:['id'],
         include:[
             {
@@ -38,10 +72,11 @@ export const postTag = async (req:any,  res:any) => {
             }
         ],
     })
+    
     if(areaPosts.length === 0) {
         return res.status(200).json(areaPosts);
     }
-    let areaPostId = areaPosts.map((el:any)=>{
+    let areaPostId = areaPosts.map((el:any)=>{ //areaPosts의 postId만 뽑는다
         return el.dataValues.id
     })
     if(contentTag.length !== 0) {
@@ -51,12 +86,21 @@ export const postTag = async (req:any,  res:any) => {
         },
         include:[
             {
-                model: Tags,
-                attributes:['content'],
-            }
+                model: Posts_Tags,
+                 include: [
+                     {
+                         model: Tags,
+                         attributes: ['content'],
+                         as: 'post_TagsBelongToTag'
+                     }
+                 ],
+                as:'postHasManyPosts_Tags'
+             },
         ]
         })
+        
         const postTags = areaPostTags.filter((el:any)=> {
+            //console.log(el.dataValues)
         const {tags} = el.dataValues;
         let tagCheck = false;
         const tagArr = [];
@@ -70,6 +114,7 @@ export const postTag = async (req:any,  res:any) => {
                     }
             }
         }
+        
         if(req.query.notTag) {
             let notTagCheck = true;
             for(let el of tagArr) {
@@ -88,6 +133,7 @@ export const postTag = async (req:any,  res:any) => {
             return el.id
         })
     }
+    
     if(req.query.notTag && contentTag.length === 0) {
         const areaNotTags = await Posts.findAll({
             where:{
@@ -144,6 +190,7 @@ export const postTag = async (req:any,  res:any) => {
         offset: offset,
         limit: 10
     })
+    
     const resPosts =  posts.map((post:any)=> {
         const {id, content, createAt, _public, userId, user, likes, tags, comments} = post;
         let tag = [];
@@ -171,7 +218,7 @@ export const postTag = async (req:any,  res:any) => {
     });
     return res.status(200).json(resPosts)
     } catch(err) {
-        //console.log(err)
+        console.log(err)
         return res.status(500).json({"message" : "Server Error"})
     }
 };
@@ -454,22 +501,33 @@ export const postCreate = async (req:any,  res:any) => {
     const {content, public:_public, tag} = req.body;
     
     try{
+        if(!content || !_public || !tag) {
+            return res.status(400).json({"message" : "no data has been sent!"});
+        }
         let Post:any = await Posts.create({
             content: content, public: _public, userId: req.userId
         })
         //db에 tag없으면 그냥 추가하는 걸로.
-        const tagArr:any = await Tags.findAll({
-            attributes:['id','content'],
-            raw: true,
-            where: {
-                content: 'test1'//tag
-            }
-        })
-        for(let el of tagArr) {
-            await Posts_Tags.create({
-                postId: Post.id, tagId: el.id
-            })
-        }
+
+        //let tagArrChange:any = [];
+        
+        await tag.map(async (el:any) => {
+            
+           const data:any = await Tags.findOrCreate({
+                attributes:['id','content'],
+                where: {
+                    content: el
+                }
+           });
+
+           const tagId = data[0].dataValues.id;
+           
+           const posts_Tags =  await Posts_Tags.create({
+            postId: Post.id, tagId: tagId
+        });
+
+        });
+        
         return res.status(200).json({"message" : "create!"});
         
     } catch(err) {
