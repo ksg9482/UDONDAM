@@ -5,109 +5,131 @@ import { Comments } from '../models/comments.model';
 import { Likes } from '../models/likes.model';
 import { Posts_Tags } from '../models/posts_tags.model';
 import sequelize from '../models';
-import { Model, Sequelize } from 'sequelize/types';
+import { Model, Sequelize, Op } from 'sequelize/types';
 
-export const postTag = async (req:any,  res:any) => {
+export const postTag = async (req:any,  res:any) => { //태그로 게시물 찾기
+    
     //req.query.page = req.query.page || '1';
     //req.query.size = req.query.size || '2';
     //req.userId = req.userId || 1;
     //req.query.tag = req.query.tag || ["부산광역시", "대구광역시"];
     req.query.notTag = req.query.notTag || null;
+
+    if(typeof req.query.notTag === 'string') { //1개면 string, 2개이상이면 array로 들어오기 때문에 array로 통일
+        req.query.notTag = [req.query.notTag];
+    };
+
     let page = Number(req.query.page);
     //let size = Number(req.query.size);
     let offset= 0;
     if(page !== 0) {
         offset = page * 10;
     }
-    const areaTag = req.query.tag.filter((el:any) => {
+    const areaTag = req.query.tag.filter((el:any) => { //areaTag만 따로 배열로
         return el[el.length-1] === '시' || el[el.length-1] === '군'
     })
-    const contentTag = req.query.tag.filter((el:any) => {
+    const contentTag = req.query.tag.filter((el:any) => { //contentTag만 따로 배열로
         return el[el.length-1] !== '시' && el[el.length-1] !== '군' && el[el.length-1] !== '요'
     })
     //const areaTagContent:string = areaTag[0]
     try{
-        const areaTagIdArr:any = await Posts_Tags.findAll({
+        const areaPosts:any = await Posts.findAll({
             attributes:['id'],
             //raw:true,
             include: [
                 {
-                    model:Tags,
-                    attributes:['id'],
-                    where:{content:areaTag},
-                    as:'post_TagsBelongToTag'
-                },
-                
-            ]
-        })
-
-        let areaTagId:any[] = [];
-        areaTagIdArr.map((el:any) => {
-            areaTagId.push(el.dataValues.post_TagsBelongToTag.dataValues.id)
-        })
-
-    // const areaPosts:any = await Posts_Tags.findAll({
-    //     attributes:['id'],
-    //     //raw:true,
-    //     include: [
-    //         {
-    //             model:Posts,
-    //             attributes:['id','content'],
-    //             where:{content:areaTag},
-    //             as:'post_TagsBelongToTag'
-    //         },
-            
-    //     ]
-    // })
-
-    const areaPosts = await Posts.findAll({ //areaTag에 해당하는 모든 게시물 조회
-        attributes:['id'],
-        include:[
-            {
-                model: Tags,
-                attributes:[],
-                where:{
-                    content: areaTag
+                    model:Posts_Tags,
+                    as:'postHasManyPosts_Tags',
+                    //attributes:['tagId'],
+                    include:[
+                        {
+                            model:Tags,
+                            as:'post_TagsBelongToTag',
+                            where:{content:areaTag},
+                            attributes:['content'],
+                        }
+                    ],
                 }
-            }
-        ],
-    })
-    
-    if(areaPosts.length === 0) {
+            ]
+        });
+        console.log(areaPosts)
+    if(areaPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
         return res.status(200).json(areaPosts);
-    }
-    let areaPostId = areaPosts.map((el:any)=>{ //areaPosts의 postId만 뽑는다
-        return el.dataValues.id
-    })
-    if(contentTag.length !== 0) {
-        const areaPostTags = await Posts.findAll({
-        where:{
-            id: areaPostId
-        },
-        include:[
-            {
-                model: Posts_Tags,
-                 include: [
-                     {
-                         model: Tags,
-                         attributes: ['content'],
-                         as: 'post_TagsBelongToTag'
-                     }
-                 ],
-                as:'postHasManyPosts_Tags'
-             },
-        ]
-        })
+    };
+
+    let areaPostId = areaPosts.map((el:any)=>{ //areaPosts의 postId만 뽑는다 
+        return el.dataValues.postHasManyPosts_Tags.length !== 0 ? el.dataValues.id : null
+    }).filter((el:any) => {return el !== null});
+    
+    if(contentTag.length !== 0) { //contentTag에 내용이 있으면 
+        const areaPostTags:any = await Posts.findAll({
+            where:{
+                id: areaPostId //areaTag에 해당하는 post만 뽑는다
+            },
+            include:[
+                {model:Posts_Tags,
+                    as:'postHasManyPosts_Tags',
+                    include:[
+                        {
+                            model: Tags,
+                            as:'post_TagsBelongToTag',
+                            attributes:['content'], //tag도 뽑는다
+                        }
+                    ]
+                }
+            ]
+            });
+            const originTagArr = areaPostTags.map((el:any) => {
+                const data = el.dataValues.postHasManyPosts_Tags.map((el:any) => {
+                    return el.dataValues.post_TagsBelongToTag.dataValues
+                })
+                return data
+            })
+            
+        // const areaPostTags = await Posts_Tags.findAll({ //
+        //     attributes:['id','postId'],
+        //     //raw:true,
+        //     include: [
+        //         {
+        //             model:Tags,
+        //             attributes:['id','content'],
+        //             where:{content:areaTag},
+        //             as:'post_TagsBelongToTag'
+        //         },
+                
+        //     ]
+        // });
+        // const areaPostTags = await Posts.findAll({ //areaTag에 해당하는 post를 전부 뽑는다
+        // where:{
+        //     id: areaPostId
+        // },
+        // include:[
+        //     {
+        //         model: Posts_Tags,
+        //          include: [
+        //              {
+        //                  model: Tags,
+        //                  attributes: ['content'],
+        //                  as: 'post_TagsBelongToTag'
+        //              }
+        //          ],
+        //         as:'postHasManyPosts_Tags'
+        //      },
+        // ]
+        // });
         
         const postTags = areaPostTags.filter((el:any)=> {
-            //console.log(el.dataValues)
-        const {tags} = el.dataValues;
+            
+        const tags = el.dataValues.postHasManyPosts_Tags.map((el:any) => {
+            return el.dataValues.post_TagsBelongToTag.dataValues;
+        });
+        
         let tagCheck = false;
         const tagArr = [];
         for(let tag of tags) {
-            tagArr.push(tag.content)
-            if(tag.content[tag.content.length-1] !== '시' && tag[tag.content.length-1] !== '군') {
-                    for(let el of contentTag) {
+            tagArr.push(tag.content) //tagArr에 tag내용을 넣는다
+            if(tag.content[tag.content.length-1] !== '시' && tag[tag.content.length-1] !== '군') { //만약 tag내용이 areaTag가 아니라면
+                    for(let el of contentTag) { 
                         if(el === tag.content) {
                         tagCheck = true;
                         }
@@ -118,7 +140,7 @@ export const postTag = async (req:any,  res:any) => {
         if(req.query.notTag) {
             let notTagCheck = true;
             for(let el of tagArr) {
-                for(let not of req.query.notTag) {
+                for(let not of req.query.notTag) { //notTag가 존재한다면
                     if(not === el) {
                         notTagCheck = false;
                     }
@@ -127,10 +149,11 @@ export const postTag = async (req:any,  res:any) => {
             return tagCheck === true && 
                     notTagCheck === true
         }
-        return tagCheck === true
-        })
+        return tagCheck === true; //
+        });
+        
         areaPostId = postTags.map((el:any)=> {
-            return el.id
+            return el.dataValues.id
         })
     }
     
@@ -161,7 +184,8 @@ export const postTag = async (req:any,  res:any) => {
         areaPostId = areaNotTagFilter.map((el:any) => {
             return el.id
         })
-    }
+    }; //notTag 관련
+
     const posts = await Posts.findAll({
         where:{
             id:areaPostId
@@ -170,32 +194,47 @@ export const postTag = async (req:any,  res:any) => {
             {
                 model: Users,
                 attributes: ['nickname'],
-                required: true
-            },
-            {
-                model: Tags,
-                attributes:['content'],
-                required:true
+                required: true,
+                as:'postsbelongsToUser'
             },
             {
                 model: Likes,
-                attributes: ['userId']
+                attributes: ['userId'],
+                as:'postHasManyLikes'
             },
             {
                 model: Comments,
-                attributes: ['id']
+                attributes: ['id'],
+                as:'posthasManyComments'
+            },
+            {model:Posts_Tags,
+                as:'postHasManyPosts_Tags',
+                include:[
+                    {
+                        model: Tags,
+                        as:'post_TagsBelongToTag',
+                        attributes:['content'], //tag도 뽑는다
+                        required:true
+                    }
+                ]
             }
         ],
         order: [['createAt','DESC']],
         offset: offset,
         limit: 10
     })
-    
     const resPosts =  posts.map((post:any)=> {
-        const {id, content, createAt, _public, userId, user, likes, tags, comments} = post;
+        
+        const {
+            dataValues:{id, content, createAt, public:_public, userId, postsbelongsToUser:{dataValues:{nickname}}},
+            postHasManyLikes:likes, 
+            posthasManyComments:comments,
+            postHasManyPosts_Tags:tags, 
+        } = post;
+        
         let tag = [];
         for(let el of tags) {
-            tag.push(el.content)
+            tag.push(el.dataValues.post_TagsBelongToTag.dataValues.content)
         }
         let likeCheck = false;
         for(let like of likes) {
@@ -206,7 +245,7 @@ export const postTag = async (req:any,  res:any) => {
         return {
             id: id,
             userId: userId,
-            nickname: Users.nickname,
+            nickname: nickname,
             content: content,
             tag: tag,
             commentCount: comments.length,
@@ -216,6 +255,7 @@ export const postTag = async (req:any,  res:any) => {
             public: _public
         };
     });
+    
     return res.status(200).json(resPosts)
     } catch(err) {
         console.log(err)

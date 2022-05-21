@@ -44,7 +44,7 @@ export const commentUser = async (req:any,  res:any) => {
                 commentCount: commentCount
                 })
         }
-            return res.send(commentPost)
+            return res.status(200).send(commentPost)
         } catch(err) {
             console.log(err);
             return res.status(500).json({"message": "Server Error"})

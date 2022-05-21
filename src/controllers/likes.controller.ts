@@ -6,7 +6,7 @@ import  sequelize  from "sequelize";
 import { isAuthorized } from '../controllers/token.controller';
 
 export const likesUser = async (req:any,  res:any) => {
-        const userId = req.userId || 1;
+        const userId = req.userId //|| 1;
         //const { userId } = req.query;
         let userInfo:any = await Users.findOne({
             where: {
@@ -89,7 +89,7 @@ export const likesUser = async (req:any,  res:any) => {
     };
 
     export const likesCreate = async (req:any,  res:any) => {
-        const userId = req.userId || 2;
+        const userId = req.userId //|| 2;
         const { postId } = req.body;
         let userInfo = await Users.findOne({
             where: {
@@ -122,8 +122,8 @@ export const likesUser = async (req:any,  res:any) => {
 
     export const likesDelete = async (req:any,  res:any) => {
         //const userId = req.userId || 2;
-        req.userId = req.userId || 1;
-        req.params.postId = req.params.postId || 1;
+        req.userId = req.userId; //|| 1;
+        req.params.postId = req.params.postId; //|| 1;
         //const { postId } = req.query;
         let userInfo = await Users.findOne({
             where: {
