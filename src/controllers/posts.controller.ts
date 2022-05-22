@@ -8,11 +8,7 @@ import sequelize from '../models';
 import { Model, Sequelize, Op } from 'sequelize/types';
 
 export const postTag = async (req:any,  res:any) => { //태그로 게시물 찾기
-    
-    //req.query.page = req.query.page || '1';
-    //req.query.size = req.query.size || '2';
-    //req.userId = req.userId || 1;
-    //req.query.tag = req.query.tag || ["부산광역시", "대구광역시"];
+    req.query.tag =  req.query.tag || null;
     req.query.notTag = req.query.notTag || null;
 
     if(typeof req.query.notTag === 'string') { //1개면 string, 2개이상이면 array로 들어오기 때문에 array로 통일
@@ -31,10 +27,10 @@ export const postTag = async (req:any,  res:any) => { //태그로 게시물 찾�
     const contentTag = req.query.tag.filter((el:any) => { //contentTag만 따로 배열로
         return el[el.length-1] !== '시' && el[el.length-1] !== '군' && el[el.length-1] !== '요'
     })
-    //const areaTagContent:string = areaTag[0]
+    
     try{
         const areaPosts:any = await Posts.findAll({
-            attributes:['id'],
+            //attributes:['id'],
             //raw:true,
             include: [
                 {
@@ -52,7 +48,7 @@ export const postTag = async (req:any,  res:any) => { //태그로 게시물 찾�
                 }
             ]
         });
-        console.log(areaPosts)
+        
     if(areaPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
         return res.status(200).json(areaPosts);
     };
@@ -79,45 +75,7 @@ export const postTag = async (req:any,  res:any) => { //태그로 게시물 찾�
                 }
             ]
             });
-            const originTagArr = areaPostTags.map((el:any) => {
-                const data = el.dataValues.postHasManyPosts_Tags.map((el:any) => {
-                    return el.dataValues.post_TagsBelongToTag.dataValues
-                })
-                return data
-            })
-            
-        // const areaPostTags = await Posts_Tags.findAll({ //
-        //     attributes:['id','postId'],
-        //     //raw:true,
-        //     include: [
-        //         {
-        //             model:Tags,
-        //             attributes:['id','content'],
-        //             where:{content:areaTag},
-        //             as:'post_TagsBelongToTag'
-        //         },
-                
-        //     ]
-        // });
-        // const areaPostTags = await Posts.findAll({ //areaTag에 해당하는 post를 전부 뽑는다
-        // where:{
-        //     id: areaPostId
-        // },
-        // include:[
-        //     {
-        //         model: Posts_Tags,
-        //          include: [
-        //              {
-        //                  model: Tags,
-        //                  attributes: ['content'],
-        //                  as: 'post_TagsBelongToTag'
-        //              }
-        //          ],
-        //         as:'postHasManyPosts_Tags'
-        //      },
-        // ]
-        // });
-        
+           //console.log(areaPosts, areaPostTags)
         const postTags = areaPostTags.filter((el:any)=> {
             
         const tags = el.dataValues.postHasManyPosts_Tags.map((el:any) => {
@@ -264,41 +222,8 @@ export const postTag = async (req:any,  res:any) => { //태그로 게시물 찾�
 };
 
 export const postUser = async (req:any,  res:any) => {
-    req.userId = req.userId || 1;
-    
-    // const posts = await Posts.findAll({
-    //     attributes: ['id', 'content', 'createAt'],
-    //     where: {
-    //         userId: req.userId
-    //     },
-    //     include:[
-    //         {
-    //             model: Likes,
-    //             attributes: ['id'],
-    //             as:'postHasManyLikes'
-    //         },
-    //         {
-    //             model: Comments,
-    //             attributes: ['id'],
-    //             as:'posthasManyComments',
-            
-    //         }
-    //     ],
-    //     order: [['createAt','DESC']]
-    // });
 
     const [postUserResults, _] = await sequelize.query(
-        // 'SELECT `posts`.`id`, `posts`.`content`, `posts`.`createAt`,' 
-        // +'COUNT(`likes`.`id`) AS `likeCount`,'
-        // +'COUNT(`comments`.`id`) AS `commentCount`'
-        // +'FROM `posts` '
-        // +'LEFT OUTER JOIN `likes` '
-        // +'ON `posts`.`id` = `likes`.`postId`'
-        // +'LEFT OUTER JOIN `comments`'
-        // +'ON `posts`.`id` = `comments`.`postId`'
-        // +'WHERE `posts`.`userId` = ' + `${req.userId} ` 
-        // +'GROUP BY `posts`.`id`'
-        // +'ORDER BY `posts`.`createAt` DESC;'
         `SELECT posts.id, posts.content, posts.createAt,
         COUNT(likes.id) AS likeCount,
         COUNT(comments.id) AS commentCount
@@ -312,29 +237,15 @@ export const postUser = async (req:any,  res:any) => {
         ORDER BY posts.createAt DESC;`
         )
     
-    // if(posts.length === 0) {
-    //     return res.status(200).json(posts);
-    // }
     if(postUserResults.length === 0) {
         return res.status(200).json(postUserResults);
     }
-    // let resPosts:any = [];
-    // posts.map((post:any)=> {
-    //     const {id, content, createAt, postHasManyLikes:likes, posthasManyComments:comments} = post;
-    //     resPosts.push({
-    //         id:id,
-    //         content: content,
-    //         createAt: createAt,
-    //         likeCount: !likes? 0 : likes.length,
-    //         commentCount: comments.length
-    //     })
-    // })
+    
     res.status(200).send(postUserResults);
 };
 
 export const postPick = async (req:any,res:any) => {
-    req.userId = req.userId || 1
-    req.params.postId = req.params.postId || 1;
+    
     const postPick:any = await Posts.findOne({
         where:{
             id: req.params.postId
@@ -537,7 +448,7 @@ export const postPick = async (req:any,res:any) => {
 };
 
 export const postCreate = async (req:any,  res:any) => {
-    req.userId = req.userId || 1;
+
     const {content, public:_public, tag} = req.body;
     
     try{
@@ -568,7 +479,7 @@ export const postCreate = async (req:any,  res:any) => {
 
         });
         
-        return res.status(200).json({"message" : "create!"});
+        return res.status(201).json({"message" : "create!"});
         
     } catch(err) {
         //console.log(err);
@@ -578,8 +489,7 @@ export const postCreate = async (req:any,  res:any) => {
 };
 
 export const postDelete = async (req:any,  res:any) => {
-    req.userId = req.userId || 1,
-    req.params.postId = req.params.postId || 14;
+    
     try{
         const postDelete = await Posts.destroy({
         where: {

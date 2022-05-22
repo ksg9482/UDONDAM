@@ -2,86 +2,51 @@ import { Comments } from "../models/comments.model";
 import { Likes } from "../models/likes.model";
 import { Posts } from "../models/posts.model";
 import { Users } from "../models/users.model";
-import  sequelize  from "sequelize";
+import sequelize from '../models';
+//import  sequelize, { Sequelize }  from "sequelize";
 import { isAuthorized } from '../controllers/token.controller';
 
 export const likesUser = async (req:any,  res:any) => {
-        const userId = req.userId //|| 1;
-        //const { userId } = req.query;
+      
         let userInfo:any = await Users.findOne({
             where: {
                 //id: userId
-                id: userId
+                id: req.userId
             }
         })
         if(!userInfo){
             res.status(401).json({ "message" : "token doesn't exist" });
         }
         else {
-            const originTempLikeCount:any = await Posts.findAll({
-                attributes: ['id'],
-                include: [{
-                    model: Likes,
-                    required: true,
-                    attributes: ['postId'],
-                    as:'postHasManyLikes'
-                }]
-            });
-            //console.log(originTempLikeCount)
-            let tempLikeCount:any = originTempLikeCount.map((item:any) => {
-                //console.log(item)
-                const {postHasManyLikes:likes} = item.dataValues;
-                return {likes:likes};
-            })
-            
-            const result = await Posts.findAll({
-            
-                include: [{
-                    model: Likes,
-                    //required: true,
-                    attributes: ['postId'],
-                    where: {
-                        userId: userInfo.id
-                    },
-                    as:'postHasManyLikes'
-                },
-                {
-                    model: Comments,
-                    attributes: ['id'],
-                    //required: true,
-                    as:'posthasManyComments'
-                }],
-                where: {userId:userInfo.id},
-                order: [['createAt','DESC']],
-                // limit: 10
-            });
-            // let likeCount = await likes.count({ where: {postId: id} });
-            //console.log(tempLikeCount[0].dataValues.postHasManyLikes[0])
-            if(result.length === 0){
-                return res.status(200).json(result);
+            const [likeUserResult, _] = await sequelize.query(`
+            SELECT posts.id, posts.content, posts.userId, posts.public, posts.createAt, posts.updatedAt, 
+            COUNT(likes.id) AS 'likeCount', 
+            COUNT(comments.id) AS 'CommentCount' 
+            FROM posts AS posts 
+            LEFT OUTER JOIN likes
+            ON posts.id = likes.postId AND likes.userId = ${userInfo.id} 
+            LEFT OUTER JOIN comments
+            ON posts.id = comments.postId AND comments.userId = ${userInfo.id}
+            WHERE posts.userId = ${userInfo.id} 
+            GROUP BY posts.id
+            ORDER BY posts.createAt DESC;
+            `);
+
+            if(likeUserResult.length === 0){
+                return res.status(200).json(likeUserResult);
             }
             else{
-                let likesCount:any = []; //{likes:[{1},{2}]}
-                
-                tempLikeCount.map((count:any) => {
-                   // console.log(count)
-                    let { likes } = count;
-                    likesCount.push(likes.length);
-                })
-
-                const response = result.map((post:any, idx:any) => {
-                    let { id, content, createAt, posthasManyComments:comments } = post.dataValues;
-                    
+                const response = likeUserResult.map((post:any) => {
+                    let { id, content, createAt, likeCount, CommentCount } = post;
                     return {
                         id: id,
                         content: content,
                         createAt: createAt,
-                        likeCount: likesCount[idx],
-                        commentCount: comments.length
+                        likeCount: likeCount,
+                        commentCount: CommentCount
                     };
                 });
-                
-                // return res.status(200).json({likesCount: temp});
+
                 return res.status(200).json(response);
             }
             
@@ -89,16 +54,16 @@ export const likesUser = async (req:any,  res:any) => {
     };
 
     export const likesCreate = async (req:any,  res:any) => {
-        const userId = req.userId //|| 2;
+       
         const { postId } = req.body;
         let userInfo = await Users.findOne({
             where: {
-                id: userId
+                id: req.userId
             }
         });
         let overlapCheck = await Likes.findOne({
             where: {
-                userId: userId,
+                userId: req.userId,
                 postId: postId
             }
         });
@@ -109,10 +74,10 @@ export const likesUser = async (req:any,  res:any) => {
         else {
             if(!overlapCheck){
                 await Likes.create({
-                    userId: userId,
+                    userId: req.userId,
                     postId: postId
                 })
-                res.status(200).json({ "message" : "created" });
+                res.status(201).json({ "message" : "created" });
             }
             else{
                 res.status(200).json({ "message" : "이미 따봉을 한 상태입니다." });
@@ -121,10 +86,7 @@ export const likesUser = async (req:any,  res:any) => {
     };
 
     export const likesDelete = async (req:any,  res:any) => {
-        //const userId = req.userId || 2;
-        req.userId = req.userId; //|| 1;
-        req.params.postId = req.params.postId; //|| 1;
-        //const { postId } = req.query;
+        
         let userInfo = await Users.findOne({
             where: {
                 id: req.userId

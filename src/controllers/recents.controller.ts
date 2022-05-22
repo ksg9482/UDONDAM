@@ -3,16 +3,16 @@ import { Users } from "../models/users.model";
 import { RecentSearchs } from "../models/recentsearchs.model";
 //예약어 위험!! 바꾸기!!
 export const get = async(req:any,  res:any) => {
-    const userId = req.userId || 2;
+    
     let userInfo:any = await Users.findOne({
         where: {
-            id: userId
+            id: req.userId
         }
     });
     const recent = await RecentSearchs.findAll({
         attributes:['id','userId','tag','notTag'],
         where:{
-            userId: userId
+            userId: req.userId
         },
         order: [['createAt','DESC']],
         limit: 3
@@ -50,7 +50,7 @@ export const get = async(req:any,  res:any) => {
 };
 
 export const post = async(req:any,  res:any) => {
-    const userId = req.userId || 2;
+    
     const { tag, notTag } = req.body;
     let stringNotTag = null;
     if(notTag !== null){
@@ -59,7 +59,7 @@ export const post = async(req:any,  res:any) => {
     const stringTag = tag.join();
     let userInfo = await Users.findOne({
         where: {
-            id: userId
+            id: req.userId
         }
     });
     if(!userInfo){
@@ -69,7 +69,7 @@ export const post = async(req:any,  res:any) => {
         const recent:any = await RecentSearchs.findAll({
             attributes:['id','userId','tag','notTag'],
             where:{
-                userId: userId
+                userId: req.userId
             },
             order: ['createAt']
         });
@@ -86,7 +86,7 @@ export const post = async(req:any,  res:any) => {
         let overlapCheck:any = await RecentSearchs.findOne({
             attributes: ['id'],
             where: {
-                userId: userId,
+                userId: req.userId,
                 tag: stringTag,
                 notTag: stringNotTag
             }
@@ -100,11 +100,11 @@ export const post = async(req:any,  res:any) => {
                     }
                 });
                 await RecentSearchs.create({
-                    userId: userId,
+                    userId: req.userId,
                     tag: stringTag,
                     notTag: stringNotTag
                 });
-                res.status(200).json({ "message" : "recentsearch created" });
+                res.status(201).json({ "message" : "recentsearch created" });
             }
             catch(err) {
                 //console.log(err);
@@ -113,11 +113,11 @@ export const post = async(req:any,  res:any) => {
         }
         else{
             await RecentSearchs.create({
-                userId: userId,
+                userId: req.userId,
                 tag: stringTag,
                 notTag: stringNotTag
             });
-            res.status(200).json({ "message" : "recentsearch created" });
+            res.status(201).json({ "message" : "recentsearch created" });
         }
     };
     

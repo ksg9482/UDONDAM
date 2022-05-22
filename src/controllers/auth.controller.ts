@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { generateAccessToken, sendAccessToken, isAuthorized } from '../controllers/token.controller';
 import axios from 'axios';
 import { response } from "express";
+import * as bcrypt from "bcrypt"
 const DOMAIN = process.env.DOMAIN || 'localhost'
 const KAKAOID = process.env.EC2_KAKAO_ID || process.env.KAKAO_ID;
 const KAKAOSECRET = process.env.EC2_KAKAO_SECRET || process.env.KAKAO_SECRET ;
@@ -14,20 +15,28 @@ const NAVERRIDIRECT = process.env.EC2_NAVER_REDIRECT || process.env.NAVER_REDIRE
 
 
 export const login = async (req:any,  res:any) => {
-        //console.log(NAVERID, NAVERSECRET, NAVERRIDIRECT)
         const { email, password } = req.body;
+        
         let userInfo:any = await Users.findOne({
             where: {
                 email: email,
-                password: password
+                //password:hashedPassword
             }
         });
 
         if(!userInfo) {
-            res.status(401).json({"message": "Invalid email or password"})
+            res.status(401).json({"message": "Invalid email"})
             return ;
         }
-        else {
+        
+        const validPassword = await bcrypt.compare(password, userInfo.dataValues.password);
+        
+
+        if(!validPassword) {
+            res.status(401).json({"message": "Invalid password"})
+            return ;
+        }
+        
             const { id, nickname, area, area2, manager, socialType } = userInfo;
             const userData = {
                 userId: id,
@@ -40,7 +49,7 @@ export const login = async (req:any,  res:any) => {
 
             const token = generateAccessToken(userData);
             sendAccessToken(res, token, userData);
-        }
+        
     };
 
     export const guest = async (req:any,  res:any) => {
@@ -74,8 +83,6 @@ export const login = async (req:any,  res:any) => {
     };
 
     export const signup = async (req:any,  res:any) => {
-        //password 암호화 적용!!
-        //암호확인은 입력된 걸 암호화 해서 DB와 동일한가 확인
         const { email, password } = req.body;
         await Users.create({
             email, 
@@ -156,7 +163,7 @@ export const login = async (req:any,  res:any) => {
                 email: email
             }
         });
-        //console.log('emailCheck:',emailCheck)
+        
         if (emailCheck) {
             res.status(409).json({ "message": "Email already exists"});
             return;
@@ -168,15 +175,15 @@ export const login = async (req:any,  res:any) => {
 
     export const passwordCheck = async (req:any,  res:any) => {
         const { email, password } = req.body;
-        const checkPassword = await Users.findOne({
-            where: { email: email, password: password}
-        })
-        
-        if(!checkPassword) {
+        const checkPassword:any = await Users.findOne({
+            where: { email: email }
+        });
+        const validPassword = await bcrypt.compare(password, checkPassword.dataValues.password);
+        if(!validPassword) {
             res.status(401).json({ "message": "Invalid password"});
             return ;
         }
-        else if(checkPassword) {
+        else if(validPassword) {
             res.status(200).json({ "message": "ok!"});
             return ;
         }

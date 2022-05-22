@@ -4,7 +4,7 @@ import { Likes } from '../models/likes.model';
 
 
 export const commentUser = async (req:any,  res:any) => {
-        req.userId = req.userId || 1;
+       
         try{
         let posts:any = await Posts.findAll({
                 include:[
@@ -52,7 +52,7 @@ export const commentUser = async (req:any,  res:any) => {
     };
 
     export const commentCreate = async (req:any,  res:any) => {
-        req.userId = req.userId || 1;
+      
         const {postId, content, commentId} = req.body;
         try{
             if(postId && content && commentId) {
@@ -72,8 +72,7 @@ export const commentUser = async (req:any,  res:any) => {
     };
 
     export const commentDelete = async (req:any,  res:any) => {
-        req.userId = req.userId || 1;
-        req.params.commentId = req.params.commentId || 5;
+        
         try {
             const commentDelete:any = await Comments.update(
                 {

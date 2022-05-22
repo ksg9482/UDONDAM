@@ -11,6 +11,7 @@ import {
   Association,
   Sequelize
 } from 'sequelize';
+import * as bcrypt from "bcrypt"
 import { Comments } from './comments.model';
 import  sequelize  from './index';
 import { Likes } from './likes.model';
@@ -74,8 +75,11 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
   
   public static associations: { };
     //static nickname: any;
-
   
+  static hashPassword = async (password:any) => {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
+  };
 };
 
 //static initModel(sequelize: Sequelize): typeof Users {
@@ -92,7 +96,7 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     nickname: {
       type: DataTypes.STRING,
@@ -136,8 +140,34 @@ export class Users extends Model<IusersAttributes/* ,usersCreationAttributes*/> 
     freezeTableName: true,
     timestamps: true,
     createdAt: 'createAt',
-    updatedAt: 'updatedAt'
-  });
+    updatedAt: 'updatedAt',
+    // hooks: {
+    //   beforeCreate: async (user:any) => {
+    //     if(user.password) {
+    //       user.password = await bcrypt.hash(user.password, 10);
+    //     }
+    //   },
+    //   beforeUpdate: async (user:any) => {
+    //     if(user.password) {
+    //       user.password = await bcrypt.hash(user.password, 10);
+    //     }
+    //   },
+    // },
+    hooks: {
+      beforeCreate: async (user:any) => {
+       if (user.password) {
+        user.password = await Users.hashPassword(user.password);
+       }
+      },
+      beforeUpdate:async (user:any) => {
+       if (user.password) {
+        user.password = await Users.hashPassword(user.password);
+       }
+      },
+
+     },
+      
+    });
 //   return Users;
 // }
 
