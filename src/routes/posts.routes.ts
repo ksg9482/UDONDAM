@@ -5,7 +5,7 @@ import auth from '../middleware/verifyToken';
 export const path = '/post';
 export const router = express.Router();
 
-router.use(auth)
+router.use(auth);
 
 router.get('/', postController.postTag);
 router.get('/user', postController.postUser);

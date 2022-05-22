@@ -1,19 +1,14 @@
-import { Comments } from "../models/comments.model";
 import { Likes } from "../models/likes.model";
-import { Posts } from "../models/posts.model";
 import { Users } from "../models/users.model";
 import sequelize from '../models';
-//import  sequelize, { Sequelize }  from "sequelize";
-import { isAuthorized } from '../controllers/token.controller';
 
 export const likesUser = async (req:any,  res:any) => {
       
         let userInfo:any = await Users.findOne({
             where: {
-                //id: userId
                 id: req.userId
             }
-        })
+        });
         if(!userInfo){
             res.status(401).json({ "message" : "token doesn't exist" });
         }
@@ -46,11 +41,9 @@ export const likesUser = async (req:any,  res:any) => {
                         commentCount: CommentCount
                     };
                 });
-
                 return res.status(200).json(response);
-            }
-            
-        }
+            };
+        };
     };
 
     export const likesCreate = async (req:any,  res:any) => {
@@ -76,13 +69,13 @@ export const likesUser = async (req:any,  res:any) => {
                 await Likes.create({
                     userId: req.userId,
                     postId: postId
-                })
+                });
                 res.status(201).json({ "message" : "created" });
             }
             else{
                 res.status(200).json({ "message" : "이미 따봉을 한 상태입니다." });
-            }
-        }
+            };
+        };
     };
 
     export const likesDelete = async (req:any,  res:any) => {
@@ -118,7 +111,7 @@ export const likesUser = async (req:any,  res:any) => {
                 } catch(err) {
                     //console.log(err);
                     return res.status(500).json({ "message" : "Server Error" });
-                }
-            }
-        }
+                };
+            };
+        };
     };

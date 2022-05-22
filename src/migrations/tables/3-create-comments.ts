@@ -9,7 +9,7 @@ const create_tables_comments = async () => {
   })
   .catch((err)=>{
     console.log('comments error:', err);
-  })
-}
+  });
+};
 
 create_tables_comments();

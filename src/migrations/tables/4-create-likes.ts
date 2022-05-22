@@ -9,7 +9,7 @@ const create_tables_likes = async () => {
   })
   .catch((err)=>{
     console.log('likes error:', err);
-  })
-}
+  });
+};
 
 create_tables_likes();

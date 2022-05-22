@@ -1,14 +1,7 @@
 import {
   DataTypes,
   Model,
-  Optional,
-  HasManyGetAssociationsMixin,
-  HasManyAddAssociationMixin,
-  HasManyHasAssociationMixin,
-  HasManyCountAssociationsMixin,
-  HasManyCreateAssociationMixin,
-  Association,
-  Sequelize
+  Association
 } from 'sequelize';
 import sequelize from './index';
 import { Posts } from './posts.model';
@@ -17,47 +10,24 @@ import { Users } from './users.model';
 export interface IlikesAttributes {
   id?: number,
   userId: number,
-  postId: number,
-  //createdAt: Date,
-  //updatedAt: Date
-}
-
-// export type likesPk = "id";
-// export type likesId = Likes[likesPk];
-// export type likesOptionalAttribues = 
-// "id" 
-// | "userId" 
-// | "postId"
-// | "createdAt"
-// | "updatedAt"; 
-// export type likesCreationAttributes = Optional<IlikesAttributes,likesOptionalAttribues>
-
+  postId: number
+};
 
 export class Likes extends Model<IlikesAttributes> {
-  /**
-   * Helper method for defining associations.
-   * This method is not a part of Sequelize lifecycle.
-   * The `models/index` file will call this method automatically.
-   */
+
   public static readonly id?: number;
   public static userId?: number;
   public static postId?: number;
-
-  //public readonly createdAt?: Date;
-  //public readonly updatedAt?: Date;
 
   public static associations: {
     userHasManyLikes: Association<Users, Likes>
     likesBelongsToUser: Association<Likes, Users>,
 
-    postHasManyLikes:Association<Posts, Likes>
+    postHasManyLikes: Association<Posts, Likes>
     likesBelongsToPost: Association<Likes, Posts>,
   };
-
-
 };
 
-//static initModel(sequelize: Sequelize): typeof Likes {
 Likes.init({
   id: {
     autoIncrement: true,
@@ -72,26 +42,16 @@ Likes.init({
   postId: {
     type: DataTypes.INTEGER,
     allowNull: false
-  },
-  // createdAt:{
-  //   type: DataTypes.DATE,
-  //   allowNull: false
-  // },
-  // updatedAt:{
-  //   type: DataTypes.DATE,
-  //   allowNull: false
-  // }
+  }
 }, {
   sequelize,
   tableName: 'likes',
   modelName: 'likes',
   freezeTableName: true,
   timestamps: true,
-    createdAt: 'createAt',
-    updatedAt: 'updatedAt'
+  createdAt: 'createAt',
+  updatedAt: 'updatedAt'
 });
-// return Likes; 
-// };
 
 Users.hasMany(Likes, {
   foreignKey: 'userId',
@@ -102,7 +62,6 @@ Users.hasMany(Likes, {
 Likes.belongsTo(Users, {
   foreignKey: 'userId',
   targetKey: 'id',
-  //sourceKey: 'id',
   onDelete: 'CASCADE',
   as: 'likesBelongsToUser',
 });
@@ -118,7 +77,6 @@ Posts.hasMany(Likes, {
 Likes.belongsTo(Posts, {
   foreignKey: 'postId',
   targetKey: 'id',
-  //sourceKey: 'id',
   onDelete: 'CASCADE',
   as: 'likesBelongsToPost',
 });

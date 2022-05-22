@@ -1,14 +1,8 @@
 import {
   DataTypes, 
   Model, 
-  Optional, 
-  HasManyGetAssociationsMixin,
-  HasManyAddAssociationMixin,
-  HasManyHasAssociationMixin,
-  HasManyCountAssociationsMixin,
-  HasManyCreateAssociationMixin,
-  Association, 
-  Sequelize} from 'sequelize';
+  Association 
+  } from 'sequelize';
   import  sequelize  from './index';
 import { Posts } from './posts.model';
 import { Tags } from './tags.model';
@@ -16,36 +10,14 @@ import { Tags } from './tags.model';
   export interface Iposts_tagsAttributes {
     id?: number,
     postId: number,
-    tagId: number,
-   //createdAt: Date,
-   //updatedAt: Date
-  }
-
-// export type posts_tagsPk = "id";
-// export type posts_tagsId = Posts_Tags[posts_tagsPk];
-// export type posts_tagsOptionalAttribues = 
-// "id" 
-// | "postId" 
-// | "tagId"
-// | "createdAt"
-// | "updatedAt"; 
-// export type posts_tagsCreationAttributes = Optional<Iposts_tagsAttributes,posts_tagsOptionalAttribues>
-
-
+    tagId: number
+  };
 
 export class Posts_Tags extends Model<Iposts_tagsAttributes> {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-
+  
      public static readonly id?: number;
      public static postId?: number;
      public static tagId?: number;
- 
-     //public readonly createdAt?: Date;
-     //public readonly updatedAt?: Date;
 
      public static associations: {
        postHasManyPosts_Tags:Association<Posts, Posts_Tags>;
@@ -53,10 +25,8 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
        tagHasManyPosts_Tags:Association<Tags, Posts_Tags>;
        post_TagsBelongToTag:Association<Posts_Tags, Tags>;
      };
-    
-     
   };
-  //static initModel(sequelize: Sequelize): typeof Posts_Tags {
+
     Posts_Tags.init({
       id: {
         autoIncrement:true,
@@ -71,15 +41,7 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
       tagId: {
         type: DataTypes.INTEGER,
         allowNull: false
-      },
-      // createdAt:{
-      //   type: DataTypes.DATE,
-      //   allowNull: false
-      // },
-      // updatedAt:{
-      //   type: DataTypes.DATE,
-      //   allowNull: false
-      // }
+      }
     }, {
       sequelize,
       modelName: 'posts_tags',
@@ -89,8 +51,7 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
     createdAt: 'createAt',
     updatedAt: 'updatedAt'
     });
-  //   return Posts_Tags;
-  //  };
+    
   Posts.hasMany(Posts_Tags, {
     sourceKey: 'id',
     foreignKey: 'postId',

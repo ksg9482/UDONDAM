@@ -7,8 +7,6 @@ import * as likesRouter from './likes.routes';
 import * as postsRouter from './posts.routes';
 import * as recentsRouter from './recents.routes';
 
-
-
 export const router = Router();
 export const path = '';
 

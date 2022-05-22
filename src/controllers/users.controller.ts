@@ -1,6 +1,4 @@
-//const {user} = require('../models/index');
 import { Users } from "../models/users.model"; 
-
 
 export const userInfo = async (req:any,  res:any) => { 
     

@@ -6,74 +6,68 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import * as Api from './routes/routes';
 
-import sequelize  from './models';
+import sequelize from './models';
 
 dotenv.config();
 
-export const HOST:string = 'localhost';
-export const PORT:number = 8080;
+export const HOST: string = 'localhost';
+export const PORT: number = 8080;
 
 const app = express();
 const whiteList = [
     'http://localhost:3000',
-    'https://udondam.com', 
+    'https://udondam.com',
     'https://udondam-ref.link/'
 ];
 app.use(cors({
-    origin:whiteList,
+    origin: whiteList,
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE' ,'OPTIONS']
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']
 }));
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 
 
-app.get('/', (req:any, res:any)=> {
-    //응답코드 통일. 200, 201 섞여있음
+app.get('/', (req: any, res: any) => {
     res.status(200).send("get 응답")
-})
+});
 
 
 app.use(Api.path, Api.router);
 
-
-
-
-let server ;
+let server;
 
 if (fs.existsSync("./key.pem") && fs.existsSync("./cert.pem")) {
     server = https
-    .createServer(
-        {
-        key: fs.readFileSync(__dirname + `/` + 'key.pem', 'utf-8'),
-        cert: fs.readFileSync(__dirname + `/` + 'cert.pem', 'utf-8'),
-        },
-        app
-    )
-    .listen(PORT, HOST, async ()=> {
+        .createServer(
+            {
+                key: fs.readFileSync(__dirname + `/` + 'key.pem', 'utf-8'),
+                cert: fs.readFileSync(__dirname + `/` + 'cert.pem', 'utf-8'),
+            },
+            app
+        )
+        .listen(PORT, HOST, async () => {
+            console.log(`http://${HOST}:${PORT} 로 실행`)
+            await sequelize.authenticate()
+                .then(async () => {
+                    console.log("Connection Success")
+                })
+                .catch((e: any) => {
+                    console.log('TT : ', e);
+                });
+        });
+} else {
+    server = app.listen(PORT, HOST, async () => {
         console.log(`http://${HOST}:${PORT} 로 실행`)
-        //중복. 함수로 빼기
-    await sequelize.authenticate()
-    .then(async () => {
-        console.log("Connection Success")
-    })
-    .catch((e:any) => {
-        console.log('TT : ', e);
-    })
+        await sequelize.authenticate()
+            .then(async () => {
+                console.log("Connection Success")
+            })
+            .catch((e: any) => {
+                console.log('TT : ', e);
+            });
     });
-    }
-else {
-server = app.listen(PORT, HOST, async ()=> {
-    console.log(`http://${HOST}:${PORT} 로 실행`)
-    await sequelize.authenticate()
-    .then(async () => {
-        console.log("Connection Success")
-    })
-    .catch((e:any) => {
-        console.log('TT : ', e);
-    })
-})
 }
 
-export default app
+export default app;
