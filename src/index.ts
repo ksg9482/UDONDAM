@@ -1,12 +1,13 @@
 import https from 'https';
 import * as dotenv from "dotenv";
 import fs from 'fs';
-import express from 'express';
+import express, { Errback, Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import * as Api from './routes/routes';
 
 import sequelize from './models';
+import { ErrorCallback } from 'typescript';
 
 dotenv.config();
 
@@ -29,7 +30,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.get('/', (req: any, res: any) => {
+app.get('/', (req, res) => {
     res.status(200).send("get 응답")
 });
 
@@ -53,7 +54,7 @@ if (fs.existsSync("./key.pem") && fs.existsSync("./cert.pem")) {
                 .then(async () => {
                     console.log("Connection Success")
                 })
-                .catch((e: any) => {
+                .catch((e) => {
                     console.log('TT : ', e);
                 });
         });
@@ -64,7 +65,7 @@ if (fs.existsSync("./key.pem") && fs.existsSync("./cert.pem")) {
             .then(async () => {
                 console.log("Connection Success")
             })
-            .catch((e: any) => {
+            .catch((e) => {
                 console.log('TT : ', e);
             });
     });

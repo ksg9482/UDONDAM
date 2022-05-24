@@ -2,13 +2,20 @@ import { Likes } from "../models/likes.model";
 import { Users } from "../models/users.model";
 import sequelize from '../models';
 
-export const likesUser = async (req:any,  res:any) => {
+import { Request, Response } from 'express';
+import { Posts } from "../models/posts.model";
+interface userIdInRequest extends Request {
+    userId?:number
+}
+
+export const likesUser = async (req:userIdInRequest,  res: Response) => {
       
-        let userInfo:any = await Users.findOne({
+        let userInfo = await Users.findOne({
             where: {
                 id: req.userId
             }
         });
+        
         if(!userInfo){
             res.status(401).json({ "message" : "token doesn't exist" });
         }
@@ -19,10 +26,10 @@ export const likesUser = async (req:any,  res:any) => {
             COUNT(comments.id) AS 'CommentCount' 
             FROM posts AS posts 
             LEFT OUTER JOIN likes
-            ON posts.id = likes.postId AND likes.userId = ${userInfo.id} 
+            ON posts.id = likes.postId AND likes.userId = ${req.userId} 
             LEFT OUTER JOIN comments
-            ON posts.id = comments.postId AND comments.userId = ${userInfo.id}
-            WHERE posts.userId = ${userInfo.id} 
+            ON posts.id = comments.postId AND comments.userId = ${req.userId}
+            WHERE posts.userId = ${req.userId} 
             GROUP BY posts.id
             ORDER BY posts.createAt DESC;
             `);
@@ -46,8 +53,9 @@ export const likesUser = async (req:any,  res:any) => {
         };
     };
 
-    export const likesCreate = async (req:any,  res:any) => {
+    export const likesCreate = async (req:userIdInRequest,  res: Response) => {
        
+        const userId = Number(req.userId);
         const { postId } = req.body;
         let userInfo = await Users.findOne({
             where: {
@@ -67,7 +75,7 @@ export const likesUser = async (req:any,  res:any) => {
         else {
             if(!overlapCheck){
                 await Likes.create({
-                    userId: req.userId,
+                    userId: userId,
                     postId: postId
                 });
                 res.status(201).json({ "message" : "created" });
@@ -78,7 +86,7 @@ export const likesUser = async (req:any,  res:any) => {
         };
     };
 
-    export const likesDelete = async (req:any,  res:any) => {
+    export const likesDelete = async (req:userIdInRequest,  res: Response) => {
         
         let userInfo = await Users.findOne({
             where: {

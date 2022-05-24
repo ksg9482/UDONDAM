@@ -1,9 +1,13 @@
 import { Users } from "../models/users.model"; 
-
-export const userInfo = async (req:any,  res:any) => { 
+import { Request, Response } from 'express';
+import { SequelizeMethod } from "sequelize/types/utils";
+interface userIdInRequest extends Request {
+    userId?:number
+}
+export const userInfo = async (req: userIdInRequest,  res: Response) => { 
     
     try {
-        const userInfo:any = await Users.findOne({
+        const userInfo = await Users.findOne({
         attributes: [['id','userId'],'email', 'nickname', 'area', 'area2', 'socialType', 'manager'],
         where: { id: req.userId }
         })
@@ -15,7 +19,7 @@ export const userInfo = async (req:any,  res:any) => {
     }
 };
 
-export const userPatch = async (req:any,  res:any) => {
+export const userPatch = async (req: userIdInRequest,  res: Response) => {
     
         const {nickname, password} = req.body;
         try{
@@ -56,15 +60,18 @@ export const userPatch = async (req:any,  res:any) => {
         }
     };
 
-    export const areaPatch = async (req:any,  res:any) => {
-        
-        const {area, area2} = req.body;
+    export const areaPatch = async (req: userIdInRequest,  res: Response) => {
+        interface Iarea {
+            area: string;
+            area2: string;
+        }
+        const {area, area2}:Iarea = req.body;
         try{
             if(!area && !area2) {
                 return res.status(400).json({"message": "no data has been sent!"})
             }
             if(area) {
-                const patchCheck:any = await Users.update({
+                const patchCheck = await Users.update({
                     area : area
                 },
                 {
@@ -73,7 +80,7 @@ export const userPatch = async (req:any,  res:any) => {
                 }
                 })
                 
-            const userInfo:any = await Users.findOne({
+            const userInfo = await Users.findOne({
                 attributes:['area'],
                 where:{
                     id: req.userId
@@ -83,7 +90,7 @@ export const userPatch = async (req:any,  res:any) => {
             res.status(200).json(userInfo)
         }
         else if(area2) {
-            const patchCheck:any = await Users.update({
+            const patchCheck = await Users.update({
                 area2 : area2
             },
             {
@@ -92,7 +99,7 @@ export const userPatch = async (req:any,  res:any) => {
                 }
             })
             
-            const userInfo:any = await Users.findOne({
+            const userInfo = await Users.findOne({
                 attributes:['area2'],
                 where:{
                     id: req.userId
@@ -107,7 +114,7 @@ export const userPatch = async (req:any,  res:any) => {
         }
     };
     
-    export const userDelete = async (req:any,  res:any) => {
+    export const userDelete = async (req: userIdInRequest,  res: Response) => {
               
         try{
             await Users.destroy({

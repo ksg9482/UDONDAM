@@ -1,8 +1,11 @@
 import { Users } from '../models/users.model';
 import jwt from 'jsonwebtoken';
+import { NextFunction, Request, Response } from 'express';
 require('dotenv').config();
-
-const isAuth = (req:any, res:any, next:any) => {
+interface userIdInRequest extends Request {
+    userId?:number
+}
+const isAuth = (req:userIdInRequest, res:Response, next:NextFunction) => {
     
     const token = req.cookies['jwt'];
     if (!token) {

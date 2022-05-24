@@ -6,7 +6,13 @@ import { Likes } from '../models/likes.model';
 import { Posts_Tags } from '../models/posts_tags.model';
 import sequelize from '../models';
 
-export const postTag = async (req: any, res: any) => {
+import { Request, Response } from 'express';
+interface userIdInRequest extends Request {
+    userId?:number;
+    query:any;
+}
+
+export const postTag = async (req: userIdInRequest, res: Response) => {
     req.query.tag = req.query.tag || null;
     req.query.notTag = req.query.notTag || null;
 
@@ -217,7 +223,7 @@ export const postTag = async (req: any, res: any) => {
     };
 };
 
-export const postUser = async (req: any, res: any) => {
+export const postUser = async (req: userIdInRequest, res: Response) => {
 
     const [postUserResults, _] = await sequelize.query(
         `SELECT posts.id, posts.content, posts.createAt,
@@ -240,7 +246,7 @@ export const postUser = async (req: any, res: any) => {
     res.status(200).send(postUserResults);
 };
 
-export const postPick = async (req: any, res: any) => {
+export const postPick = async (req: userIdInRequest, res: Response) => {
 
     const postPick: any = await Posts.findOne({
         where: {
@@ -439,7 +445,9 @@ export const postPick = async (req: any, res: any) => {
     };
 };
 
-export const postCreate = async (req: any, res: any) => {
+export const postCreate = async (req: userIdInRequest, res: Response) => {
+
+    const userId = Number(req.userId);
 
     const { content, public: _public, tag } = req.body;
 
@@ -449,7 +457,7 @@ export const postCreate = async (req: any, res: any) => {
         };
 
         let Post: any = await Posts.create({
-            content: content, public: _public, userId: req.userId
+            content: content, public: _public, userId: userId
         });
 
         await tag.map(async (el: any) => {
@@ -477,7 +485,7 @@ export const postCreate = async (req: any, res: any) => {
 
 };
 
-export const postDelete = async (req: any, res: any) => {
+export const postDelete = async (req: userIdInRequest, res: Response) => {
 
     try {
         const postDelete = await Posts.destroy({

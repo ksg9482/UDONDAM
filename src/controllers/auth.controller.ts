@@ -1,7 +1,8 @@
-import { Users } from "../models/users.model";
+import { Users, UserSocialType } from "../models/users.model";
 import nodemailer from 'nodemailer';
 import { generateAccessToken, sendAccessToken } from '../controllers/token.controller';
 import axios from 'axios';
+import { Request, Response } from 'express';
 const DOMAIN = process.env.DOMAIN || 'localhost'
 const KAKAOID = process.env.EC2_KAKAO_ID || process.env.KAKAO_ID;
 const KAKAOSECRET = process.env.EC2_KAKAO_SECRET || process.env.KAKAO_SECRET;
@@ -12,7 +13,11 @@ const NAVERSECRET = process.env.EC2_NAVER_SECRET || process.env.NAVER_SECRET;
 const NAVERRIDIRECT = process.env.EC2_NAVER_REDIRECT || process.env.NAVER_REDIRECT
 
 
-export const login = async (req: any, res: any) => {
+interface userIdInRequest extends Request {
+    userId?:number
+}
+
+export const login = async (req: userIdInRequest, res: Response) => {
     const { email, password } = req.body;
 
     let userInfo: any = await Users.findOne({
@@ -48,18 +53,20 @@ export const login = async (req: any, res: any) => {
     sendAccessToken(res, token, userData);
 };
 
-export const guest = async (req: any, res: any) => {
+export const guest = async (req: userIdInRequest, res: Response) => {
     const userData = {
         userId: 5,
         nickname: '게스트',
         manager: false,
-        socialType: 'basic'
+        socialType: UserSocialType.basic,
+        area: '인증해주세요', 
+        area2: '인증해주세요'
     };
     const token = generateAccessToken(userData);
     sendAccessToken(res, token, userData);
 };
 
-export const logout = async (req: any, res: any) => {
+export const logout = async (req: userIdInRequest, res: Response) => {
     try {
         res.clearCookie('jwt', {
             sameSite: 'none',
@@ -78,7 +85,7 @@ export const logout = async (req: any, res: any) => {
     };
 };
 
-export const signup = async (req: any, res: any) => {
+export const signup = async (req: userIdInRequest, res: Response) => {
     const { email, password } = req.body;
     await Users.create({
         email,
@@ -88,7 +95,7 @@ export const signup = async (req: any, res: any) => {
     return;
 };
 
-export const email = async (req: any, res: any) => {
+export const email = async (req: userIdInRequest, res: Response) => {
     const { email } = req.body;
 
     try {
@@ -150,7 +157,7 @@ export const email = async (req: any, res: any) => {
     };
 };
 
-export const emailCheck = async (req: any, res: any) => {
+export const emailCheck = async (req: userIdInRequest, res: Response) => {
     const { email } = req.body;
     const emailCheck = await Users.findOne({
         where: {
@@ -167,7 +174,7 @@ export const emailCheck = async (req: any, res: any) => {
     };
 };
 
-export const passwordCheck = async (req: any, res: any) => {
+export const passwordCheck = async (req: userIdInRequest, res: Response) => {
     const { email, password } = req.body;
     const checkPassword: any = await Users.findOne({
         where: { email: email }
@@ -188,7 +195,7 @@ export const passwordCheck = async (req: any, res: any) => {
     };
 };
 
-export const tempp = async (req: any, res: any) => {
+export const tempp = async (req: userIdInRequest, res: Response) => {
     const { email } = req.body;
     const emailCheck = await Users.findOne({
         where: {
@@ -272,7 +279,7 @@ export const tempp = async (req: any, res: any) => {
     };
 };
 
-export const google = async (req: any, res: any) => {
+export const google = async (req: userIdInRequest, res: Response) => {
     try {
         return res.redirect(
             `https://accounts.google.com/o/oauth2/v2/auth?scope=https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile&access_type=offline&response_type=code&state=hello&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&client_id=${process.env.GOOGLE_CLIENT_ID}`
@@ -282,7 +289,7 @@ export const google = async (req: any, res: any) => {
     };
 }
 
-export const googlecallback = async (req: any, res: any) => {
+export const googlecallback = async (req: userIdInRequest, res: Response) => {
     // authorization code
     const code = req.query.code;
 
@@ -339,13 +346,13 @@ export const googlecallback = async (req: any, res: any) => {
     };
 };
 
-export const naver = (req: any, res: any) => {
+export const naver = (req: userIdInRequest, res: Response) => {
     return res.redirect(
         `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVERID}&state=STATE_STRING&redirect_uri=${NAVERRIDIRECT}`
     );
 };
 
-export const naverCallback = async (req: any, res: any) => {
+export const naverCallback = async (req: userIdInRequest, res: Response) => {
     const code = req.query.code;
     const state = req.query.state;
     try {
@@ -401,12 +408,12 @@ export const naverCallback = async (req: any, res: any) => {
     };
 };
 
-export const kakao = async (req: any, res: any) => {
+export const kakao = async (req: userIdInRequest, res: Response) => {
     const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAOID}&redirect_uri=${KAKAOURL}&response_type=code`;
     return res.redirect(kakaoAuthURL);
 };
 
-export const kakaoCallback = async (req: any, res: any) => {
+export const kakaoCallback = async (req: userIdInRequest, res: Response) => {
     const code = req.query.code;
     try {
         const result = await axios.post(

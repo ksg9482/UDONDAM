@@ -36,12 +36,12 @@ export class Users extends Model<IusersAttributes> {
 
   public static associations: {};
 
-  static hashPassword = async (password: any) => {
+  static hashPassword = async (password: string) => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
   };
 
-  static validPassword = async (password: any, hashedPassword: any) => {
+  static validPassword = async (password: string, hashedPassword: string) => {
     return await bcrypt.compare(password, hashedPassword);
   };
 };
@@ -95,12 +95,12 @@ Users.init({
   updatedAt: 'updatedAt',
 
   hooks: {
-    beforeCreate: async (user: any) => {
+    beforeCreate: async (user: any):Promise<void> => {
       if (user.password) {
         user.password = await Users.hashPassword(user.password);
       }
     },
-    beforeUpdate: async (user: any) => {
+    beforeUpdate: async (user: any):Promise<void> => {
       if (user.password) {
         user.password = await Users.hashPassword(user.password);
       }

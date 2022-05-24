@@ -2,8 +2,13 @@ import { Comments } from '../models/comments.model';
 import { Posts } from '../models/posts.model';
 import { Likes } from '../models/likes.model';
 
+import { Request, Response } from 'express';
+interface userIdInRequest extends Request {
+    userId?:number
+}
 
-export const commentUser = async (req: any, res: any) => {
+
+export const commentUser = async (req: userIdInRequest, res: Response) => {
     try {
         let posts: any = await Posts.findAll({
             include: [
@@ -50,18 +55,20 @@ export const commentUser = async (req: any, res: any) => {
     };
 };
 
-export const commentCreate = async (req: any, res: any) => {
+export const commentCreate = async (req: userIdInRequest, res: Response) => {
+
+    const userId = Number(req.userId);
 
     const { postId, content, commentId } = req.body;
     try {
         if (postId && content && commentId) {
             await Comments.create({
-                userId: req.userId, postId: postId, content: content, commentId: commentId
+                userId: userId, postId: postId, content: content, commentId: commentId
             });
             return res.status(201).json({ "message": "created!" });
         };
         await Comments.create({
-            userId: req.userId, postId: postId, content: content
+            userId: userId, postId: postId, content: content
         });
         return res.status(201).json({ "message": "created!" });
     } catch (err) {
@@ -70,20 +77,20 @@ export const commentCreate = async (req: any, res: any) => {
     };
 };
 
-export const commentDelete = async (req: any, res: any) => {
-
+export const commentDelete = async (req: userIdInRequest, res: Response) => {
+const userId = Number(req.userId);
     try {
-        const commentDelete: any = await Comments.update(
+        const commentDelete = await Comments.update(
             {
                 content: '삭제 된 댓글 입니다'
             },
             {
                 where: {
-                    id: req.params.commentId, userId: req.userId
+                    id: req.params.commentId, userId: userId
                 }
             }
         );
-        if (commentDelete === 0) {
+        if (commentDelete[0] === 0) {
             return res.status(400).json({ "message": "comment doesn't exist" });
         };
         return res.status(200).json({ "message": "delete!" });

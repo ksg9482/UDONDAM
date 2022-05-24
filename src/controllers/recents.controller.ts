@@ -1,8 +1,13 @@
 import { Users } from "../models/users.model";
 import { RecentSearchs } from "../models/recentsearchs.model";
-export const get = async (req: any, res: any) => {
+import { Request, Response } from 'express';
+interface userIdInRequest extends Request {
+    userId?:number
+}
 
-    let userInfo: any = await Users.findOne({
+export const get = async (req: userIdInRequest, res: Response) => {
+
+    let userInfo = await Users.findOne({
         where: {
             id: req.userId
         }
@@ -47,7 +52,7 @@ export const get = async (req: any, res: any) => {
     };
 };
 
-export const post = async (req: any, res: any) => {
+export const post = async (req: userIdInRequest, res: Response) => {
 
     const { tag, notTag } = req.body;
     let stringNotTag = null;

@@ -80,7 +80,7 @@ describe('e2e-test', () => {
         const token = tokenData(resp);
 
         expect(resp.status).toEqual(200);
-        expect(resp.body.data).toEqual({ "manager": false, "nickname": "게스트", "socialType": "basic", "userId": 5 });
+        expect(resp.body.data).toEqual({ "manager": false, "nickname": "게스트", "socialType": "basic", "userId": 5, "area": "인증해주세요", "area2": "인증해주세요" });
         expect(token).toEqual(expect.any(String));
       })
     });
