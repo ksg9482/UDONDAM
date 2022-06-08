@@ -50,7 +50,7 @@ export const commentUser = async (req: userIdInRequest, res: Response) => {
         };
         return res.status(200).send(commentPost);
     } catch (err) {
-        console.log(err);
+        //console.log(err);
         return res.status(500).json({ "message": "Server Error" });
     };
 };

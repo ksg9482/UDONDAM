@@ -1,7 +1,7 @@
 require('dotenv').config()
 import { sign, verify } from 'jsonwebtoken';
 import { Request, Response } from 'express';
-import { UserSocialType } from '../models/users.model';
+import { IUserData, UserSocialType } from '../models/users.model';
 
 interface userIdInRequest extends Request {
     userId?:number
@@ -9,14 +9,7 @@ interface userIdInRequest extends Request {
 
 const DOMAIN = process.env.DOMAIN || 'localhost';
 
-interface IUserData {
-  userId: number,
-  nickname: string,
-  area: string,
-  area2: string,
-  manager: boolean,
-  socialType: UserSocialType
-}
+
 
 export const generateAccessToken= (data:any) => {
   return sign(data, process.env.ACCESS_SECRET + "", { expiresIn: "4h" });
@@ -24,7 +17,8 @@ export const generateAccessToken= (data:any) => {
 
 export const sendAccessToken= (res: Response, token:string, userData:IUserData) => {
 userData = userData || {data: null};
-res.status(200).cookie("jwt", token,{
+
+return res.status(200).cookie("jwt", token,{
   sameSite: 'none',
   domain: DOMAIN,
   path: '/',
@@ -32,7 +26,6 @@ res.status(200).cookie("jwt", token,{
   httpOnly: true,
   expires: new Date(Date.now() + 1000 * 60 * 60 * 48),
 }).json({ data: userData });
-return ;
 };
 
 export const isAuthorized = (req:userIdInRequest) => {

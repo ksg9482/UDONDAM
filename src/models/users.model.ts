@@ -17,6 +17,15 @@ export interface IusersAttributes {
   area2?: string,
 };
 
+export interface IUserData {
+  userId: number,
+  nickname: string,
+  area: string,
+  area2: string,
+  manager: boolean,
+  socialType: UserSocialType
+}
+
 export enum UserSocialType {
   basic = 'basic',
   google = 'google',
@@ -25,16 +34,16 @@ export enum UserSocialType {
 
 export class Users extends Model<IusersAttributes> {
 
-  public static readonly id?: number;
-  public static email?: string;
-  public static password?: string;
-  public static nickname?: string;
-  public static socialType?: string;
-  public static manager?: boolean;
-  public static area?: string;
-  public static area2?: string;
+  readonly id?: number;
+  email?: string;
+  password?: string;
+  nickname?: string;
+  socialType?: UserSocialType;
+  manager?: boolean;
+  area?: string;
+  area2?: string;
 
-  public static associations: {};
+  static associations: {};
 
   static hashPassword = async (password: string) => {
     const salt = await bcrypt.genSalt(10);
@@ -43,6 +52,15 @@ export class Users extends Model<IusersAttributes> {
 
   static validPassword = async (password: string, hashedPassword: string) => {
     return await bcrypt.compare(password, hashedPassword);
+  };
+
+  static findByEmail = async (email: string) => {
+    return await this.findOne({
+      where: {
+        email: email
+      },
+      raw:true
+    })
   };
 };
 Users.init({
@@ -95,12 +113,12 @@ Users.init({
   updatedAt: 'updatedAt',
 
   hooks: {
-    beforeCreate: async (user: any):Promise<void> => {
+    beforeCreate: async (user: any): Promise<void> => {
       if (user.password) {
         user.password = await Users.hashPassword(user.password);
       }
     },
-    beforeUpdate: async (user: any):Promise<void> => {
+    beforeUpdate: async (user: any): Promise<void> => {
       if (user.password) {
         user.password = await Users.hashPassword(user.password);
       }

@@ -1,8 +1,11 @@
-import { Users, UserSocialType } from "../models/users.model";
+import { IUserData, IusersAttributes, Users, UserSocialType } from "../models/users.model";
 import nodemailer from 'nodemailer';
 import { generateAccessToken, sendAccessToken } from '../controllers/token.controller';
 import axios from 'axios';
 import { Request, Response } from 'express';
+import { ErrorMessage } from "./common/errorMessage";
+import { AuthEmail, EmailTemplate } from "./mail/mailOptions";
+
 const DOMAIN = process.env.DOMAIN || 'localhost'
 const KAKAOID = process.env.EC2_KAKAO_ID || process.env.KAKAO_ID;
 const KAKAOSECRET = process.env.EC2_KAKAO_SECRET || process.env.KAKAO_SECRET;
@@ -14,52 +17,60 @@ const NAVERRIDIRECT = process.env.EC2_NAVER_REDIRECT || process.env.NAVER_REDIRE
 
 
 interface userIdInRequest extends Request {
-    userId?:number
+    userId?: number
 }
 
 export const login = async (req: userIdInRequest, res: Response) => {
-    const { email, password } = req.body;
+    
+    try {
+        const { email, password } = req.body;
 
-    let userInfo: any = await Users.findOne({
-        where: {
-            email: email
+        const userInfo = await Users.findByEmail(email);
+        if (!userInfo) {
+            return res.status(401).json({ "message": "Invalid email" });
+        };
+
+        const hashedPassword = userInfo.password + ''
+        const validPassword = await Users.validPassword(
+            password,
+            hashedPassword
+        );
+        if (!validPassword) {
+            return res.status(401).json({ "message": "Invalid password" });
+        };
+        
+        const { id, nickname, area, area2, manager, socialType } = userInfo;
+    
+        if(socialType){ 
+            //socialType이 UserSocialType | undefined로 나오는 문제
+            //socialType은 default로 'basic'이 들어가 있기에 정상적이면 undefined가 나오지 않는다
+            const userData:IUserData = {
+                userId: Number(id),
+                nickname: nickname + '',
+                area: area + '',
+                area2: area2 + '',
+                manager: Boolean(manager) ,
+                socialType: socialType
+            };
+            const token = generateAccessToken(userData);
+            // 이 함수에서 토큰과 로그인한 유저의 데이터를 클라이언트로 보낸다
+            sendAccessToken(res, token, userData);
         }
-    });
-
-    if (!userInfo) {
-        res.status(401).json({ "message": "Invalid email" })
-        return;
-    };
-
-    const validPassword = await Users.validPassword(password, userInfo.dataValues.password);
+    } catch (error) {
+        return res.status(401).json({ "message": "Can't Login" });
+    }
 
 
-    if (!validPassword) {
-        res.status(401).json({ "message": "Invalid password" })
-        return;
-    };
-
-    const { id, nickname, area, area2, manager, socialType } = userInfo;
-    const userData = {
-        userId: id,
-        nickname: nickname,
-        area: area,
-        area2: area2,
-        manager: manager,
-        socialType: socialType
-    };
-
-    const token = generateAccessToken(userData);
-    sendAccessToken(res, token, userData);
 };
 
+//여기가 문제. 게스트가 고정된 userId를 발급받는다.
 export const guest = async (req: userIdInRequest, res: Response) => {
     const userData = {
         userId: 5,
         nickname: '게스트',
         manager: false,
         socialType: UserSocialType.basic,
-        area: '인증해주세요', 
+        area: '인증해주세요',
         area2: '인증해주세요'
     };
     const token = generateAccessToken(userData);
@@ -76,23 +87,26 @@ export const logout = async (req: userIdInRequest, res: Response) => {
             httpOnly: true
         }
         );
-        res.status(200).json({ "message": "logout!" });
-        return;
+        return res.status(200).json({ "message": "logout!" });
     }
     catch (err) {
-        //console.log(err);
         return res.status(401).json({ "message": "Unauthorized" });
     };
 };
 
 export const signup = async (req: userIdInRequest, res: Response) => {
-    const { email, password } = req.body;
-    await Users.create({
-        email,
-        password,
-    });
-    res.status(201).json({ "message": "signUp!" });
-    return;
+    try {
+        const { email, password } = req.body;
+
+        await Users.create({
+            email,
+            password,
+        });
+        return res.status(201).json({ "message": "Sign Up!" });
+    } catch (error) {
+        return res.status(401).json({ "message": "Couldn't create account" });
+    }
+
 };
 
 export const email = async (req: userIdInRequest, res: Response) => {
@@ -121,32 +135,33 @@ export const email = async (req: userIdInRequest, res: Response) => {
 
         const verificationCode = generateRandomCode(6);
 
-        const mailOptions = {
-            from: `[UDONDAM] <${process.env.NODEMAILER_USER}>`,
-            to: email,
-            subject: `[UDONDAM] 이메일 인증번호를 확인해주세요`,
-            html: `<div style="background-color: white;
-                display: flex; align-items: center; text-align: center;
-                flex-direction:column; font-size: 20px;">
-                <div style="background-size: 58px;
-                background-color: black;
-                width: 50rem; min-height: 45rem;
-                border-radius: 15px 15px 15px 15px;
-                padding: 2rem;">
-                <img width="300" alt="로고-우동담-dark-배경o" src="https://user-images.githubusercontent.com/87490361/143793727-047f5764-454d-4b9f-94cd-d82d0f959623.png">
-                <div style="text-align: left; padding:10px 10px 0;">
-                <h3 style="text-align: left; color:white;">이메일 인증을 완료하시려면 <b>인증번호</b>를 입력해주세요.</h3>
-                <h3 style="color:white;">인증번호를 입력하셔야만 이메일 인증이 완료됩니다.</h3>
-                <h3 style="color:white;">UDONDAM 인증번호 : <u>${verificationCode}</u></h3>
-                </div></div></div>`,
-        };
+        // const mailOptions = {
+        //     from: `[UDONDAM] <${process.env.NODEMAILER_USER}>`,
+        //     to: email,
+        //     subject: `[UDONDAM] 이메일 인증번호를 확인해주세요`,
+        //     html: `<div style="background-color: white;
+        //         display: flex; align-items: center; text-align: center;
+        //         flex-direction:column; font-size: 20px;">
+        //         <div style="background-size: 58px;
+        //         background-color: black;
+        //         width: 50rem; min-height: 45rem;
+        //         border-radius: 15px 15px 15px 15px;
+        //         padding: 2rem;">
+        //         <img width="300" alt="로고-우동담-dark-배경o" src="https://user-images.githubusercontent.com/87490361/143793727-047f5764-454d-4b9f-94cd-d82d0f959623.png">
+        //         <div style="text-align: left; padding:10px 10px 0;">
+        //         <h3 style="text-align: left; color:white;">이메일 인증을 완료하시려면 <b>인증번호</b>를 입력해주세요.</h3>
+        //         <h3 style="color:white;">인증번호를 입력하셔야만 이메일 인증이 완료됩니다.</h3>
+        //         <h3 style="color:white;">UDONDAM 인증번호 : <u>${verificationCode}</u></h3>
+        //         </div></div></div>`,
+        // };
+        const authEmail = new AuthEmail(email, verificationCode)
 
-        transporter.sendMail(mailOptions, (err: any, info: any) => {
+        transporter.sendMail(authEmail, (err: any, info: any) => {
             if (err) {
                 //console.log(err);
             }
         });
-
+        //이거도 문제. 인증번호를 클라이언트에 전송해서 가지고 있게 하는 자체가 위험하다
         return res.status(200).json({
             "verificationCode": verificationCode
         });
@@ -158,125 +173,105 @@ export const email = async (req: userIdInRequest, res: Response) => {
 };
 
 export const emailCheck = async (req: userIdInRequest, res: Response) => {
-    const { email } = req.body;
-    const emailCheck = await Users.findOne({
-        where: {
-            email: email
-        }
-    });
+    try {
+        const { email } = req.body;
 
-    if (emailCheck) {
-        res.status(409).json({ "message": "Email already exists" });
-        return;
+        const userInfo = await Users.findByEmail(email);
+        if (userInfo) {
+            return res.status(409).json({ "message": "Email already exists" });
+        }
+
+        return res.status(200).json({ "message": "ok!" });
+    } catch (error) {
+        return res.status(401).json({ "message": "Couldn't Email Check" });
     }
-    else {
-        res.status(200).json({ "message": "ok!" });
-    };
+
 };
 
 export const passwordCheck = async (req: userIdInRequest, res: Response) => {
-    const { email, password } = req.body;
-    const checkPassword: any = await Users.findOne({
-        where: { email: email }
-    });
+    try {
+        const { email, password } = req.body;
 
-    const validPassword = await Users.validPassword(password, checkPassword.dataValues.password);
+        const userInfo = await Users.findByEmail(email);
 
-    if (!validPassword) {
-        res.status(401).json({ "message": "Invalid password" });
-        return;
+        if (!userInfo) {
+            return res.status(401).json({ "message": "Invalid email" });
+        };
+        const hashedPassword = userInfo.password + ''
+        const validPassword = await Users.validPassword(password, hashedPassword);
+        if (!validPassword) {
+            return res.status(401).json({ "message": "Invalid password" });
+        }
+
+            return res.status(200).json({ "message": "ok!" });
+    } catch (error) {
+        return res.status(401).json({ "message": "Couldn't Password Check" });
     }
-    else if (validPassword) {
-        res.status(200).json({ "message": "ok!" });
-        return;
-    }
-    else {
-        res.status(500).json({ "message": "Server Error" });
-    };
 };
 
+//nodemailer를 통해 사용자 email로 임시 비밀번호 전송
 export const tempp = async (req: userIdInRequest, res: Response) => {
-    const { email } = req.body;
-    const emailCheck = await Users.findOne({
-        where: {
-            email: email
-        }
-    });
-    if (emailCheck) { // 이메일이 잘 있다면
-        try {
-            // 인증코드 생성 함수
-            const generateRandomCode = (n: any) => {
-                let str = "";
-                for (let i = 0; i < n; i++) {
-                    str += Math.floor(Math.random() * 10);
-                }
-                return str;
-            };
-
-            let transporter = nodemailer.createTransport({
-                service: "gmail",
-                host: "smtp.gmail.com",
-                port: 587,
-                secure: false,
-                auth: {
-                    user: process.env.NODEMAILER_USER,
-                    pass: process.env.NODEMAILER_PASS
-                },
-            });
-
-            const verificationCode = generateRandomCode(8);
-
-            const mailOptions = {
-                from: `[UDONDAM] <${process.env.NODEMAILER_USER}>`,
-                to: email,
-                subject: `[UDONDAM] 임시 비밀번호를 확인해주세요`,
-                html: `<div style="background-color: white;
-                    display: flex; align-items: center; text-align: center;
-                    flex-direction:column; font-size: 20px;">
-                    <div style="background-size: 58px;
-                    background-color: black;
-                    width: 50rem; min-height: 45rem;
-                    border-radius: 15px 15px 15px 15px;
-                    padding: 2rem;">
-                    <img width="300" alt="로고-우동담-dark-배경o" src="https://user-images.githubusercontent.com/87490361/143793727-047f5764-454d-4b9f-94cd-d82d0f959623.png">
-                    <div style="text-align: left; padding:10px 10px 0;">
-                    <h3 style="text-align: left; color:white;">로그인을 하시려면 비밀번호 란에 <b>임시 비밀번호</b>를 입력해주세요.</h3>
-                    <h3 style="color:white;">기존 비밀번호가 아닌 발급드린 임시 비밀번호를 입력하셔야만 로그인이 됩니다.</h3>
-                    <h3 style="color:white;">UDONDAM 임시 비밀번호 : <u>${verificationCode}</u></h3>
-                    </div></div></div>`,
-            };
-
-            transporter.sendMail(mailOptions, (err: any, info: any) => {
-                if (err) {
-                    //console.log(err);
-                }
-                // res.send({ data: info });
-                // console.log(info);
-            });
-
-            await Users.update({
-                email: email,
-                password: verificationCode,
-            },
-                {
-                    where: {
-                        email: email,
+    try {
+        const { email } = req.body;
+        const userInfo = await Users.findByEmail(email);
+        
+        if (userInfo) { 
+            try {
+                const generateRandomCode = (n: any) => {
+                    let str = "";
+                    for (let i = 0; i < n; i++) {
+                        str += Math.floor(Math.random() * 10);
+                    }
+                    return str;
+                };
+                //nodemailer 연결 모델 생성
+                let transporter = nodemailer.createTransport({
+                    service: "gmail",
+                    host: "smtp.gmail.com",
+                    port: 587,
+                    secure: false,
+                    auth: {
+                        user: process.env.NODEMAILER_USER,
+                        pass: process.env.NODEMAILER_PASS
                     },
-                })
-                .then(() => {
-                    return res.status(200).json({
-                        "message": "resend password!"
-                    });
                 });
+
+                const verificationCode = generateRandomCode(8);
+                
+                const mail = new EmailTemplate(email, verificationCode)
+                transporter.sendMail(mail, (err: any, info: any) => {
+                    if (err) {
+                    }
+                    
+                });
+
+                await Users.update({
+                    email: email,
+                    password: verificationCode,
+                },
+                    {
+                        where: {
+                            email: email,
+                        },
+                    })
+                    .then(() => {
+                        return res.status(200).json({
+                            "message": "resend password!"
+                        });
+                    });
+            }
+            catch (err) {
+                //console.log(err);
+                res.sendStatus(500);
+            };
         }
-        catch (err) {
-            //console.log(err);
-            res.sendStatus(500);
+        else {
+            res.status(401).json({ "message": "email check" })
         };
+    } catch (error) {
+
     }
-    else {
-        res.status(401).json({ "message": "email check" })
-    };
+
 };
 
 export const google = async (req: userIdInRequest, res: Response) => {
