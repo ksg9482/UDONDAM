@@ -41,7 +41,8 @@ export class AuthEmail extends EmailTemplate {
         <h3 style="color:white;">UDONDAM 임시 비밀번호 : <u>${verificationCode}</u></h3>
         </div></div></div>`
     }
-}
+};
+
 export class TempPasswordEmail extends EmailTemplate {
     constructor(email:string, verificationCode: string){
         super(email, verificationCode);
@@ -61,5 +62,4 @@ export class TempPasswordEmail extends EmailTemplate {
         <h3 style="color:white;">UDONDAM 인증번호 : <u>${verificationCode}</u></h3>
         </div></div></div>`
     }
-}
-//추상화 하자.
+};

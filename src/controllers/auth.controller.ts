@@ -4,7 +4,7 @@ import { generateAccessToken, sendAccessToken } from '../controllers/token.contr
 import axios from 'axios';
 import { Request, Response } from 'express';
 import { ErrorMessage } from "./common/errorMessage";
-import { AuthEmail, EmailTemplate } from "./mail/mailOptions";
+import { AuthEmail, EmailTemplate } from "./mail/mailTemplate";
 
 const DOMAIN = process.env.DOMAIN || 'localhost'
 const KAKAOID = process.env.EC2_KAKAO_ID || process.env.KAKAO_ID;
@@ -226,8 +226,8 @@ export const tempp = async (req: userIdInRequest, res: Response) => {
                 };
                 //nodemailer 연결 모델 생성
                 let transporter = nodemailer.createTransport({
-                    service: "gmail",
-                    host: "smtp.gmail.com",
+                    service: process.env.NODEMAILER_SERVICE,
+                    host: process.env.NODEMAILER_HOST,
                     port: 587,
                     secure: false,
                     auth: {
