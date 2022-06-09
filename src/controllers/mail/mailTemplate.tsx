@@ -1,4 +1,4 @@
-export class EmailTemplate {
+class EmailTemplate {
     email: string;
     verificationCode: string;
     from: string;

@@ -4,7 +4,8 @@ import { generateAccessToken, sendAccessToken } from '../controllers/token.contr
 import axios from 'axios';
 import { Request, Response } from 'express';
 import { ErrorMessage } from "./common/errorMessage";
-import { AuthEmail, EmailTemplate } from "./mail/mailTemplate";
+import { AuthEmail, TempPasswordEmail } from "./mail/mailTemplate";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 const DOMAIN = process.env.DOMAIN || 'localhost'
 const KAKAOID = process.env.EC2_KAKAO_ID || process.env.KAKAO_ID;
@@ -21,7 +22,7 @@ interface userIdInRequest extends Request {
 }
 
 export const login = async (req: userIdInRequest, res: Response) => {
-    
+
     try {
         const { email, password } = req.body;
 
@@ -38,18 +39,18 @@ export const login = async (req: userIdInRequest, res: Response) => {
         if (!validPassword) {
             return res.status(401).json({ "message": "Invalid password" });
         };
-        
+
         const { id, nickname, area, area2, manager, socialType } = userInfo;
-    
-        if(socialType){ 
+
+        if (socialType) {
             //socialType이 UserSocialType | undefined로 나오는 문제
             //socialType은 default로 'basic'이 들어가 있기에 정상적이면 undefined가 나오지 않는다
-            const userData:IUserData = {
+            const userData: IUserData = {
                 userId: Number(id),
                 nickname: nickname + '',
                 area: area + '',
                 area2: area2 + '',
-                manager: Boolean(manager) ,
+                manager: Boolean(manager),
                 socialType: socialType
             };
             const token = generateAccessToken(userData);
@@ -203,7 +204,7 @@ export const passwordCheck = async (req: userIdInRequest, res: Response) => {
             return res.status(401).json({ "message": "Invalid password" });
         }
 
-            return res.status(200).json({ "message": "ok!" });
+        return res.status(200).json({ "message": "ok!" });
     } catch (error) {
         return res.status(401).json({ "message": "Couldn't Password Check" });
     }
@@ -213,63 +214,52 @@ export const passwordCheck = async (req: userIdInRequest, res: Response) => {
 export const tempp = async (req: userIdInRequest, res: Response) => {
     try {
         const { email } = req.body;
+
         const userInfo = await Users.findByEmail(email);
-        
-        if (userInfo) { 
-            try {
-                const generateRandomCode = (n: any) => {
-                    let str = "";
-                    for (let i = 0; i < n; i++) {
-                        str += Math.floor(Math.random() * 10);
-                    }
-                    return str;
-                };
-                //nodemailer 연결 모델 생성
-                let transporter = nodemailer.createTransport({
-                    service: process.env.NODEMAILER_SERVICE,
-                    host: process.env.NODEMAILER_HOST,
-                    port: 587,
-                    secure: false,
-                    auth: {
-                        user: process.env.NODEMAILER_USER,
-                        pass: process.env.NODEMAILER_PASS
-                    },
-                });
-
-                const verificationCode = generateRandomCode(8);
-                
-                const mail = new EmailTemplate(email, verificationCode)
-                transporter.sendMail(mail, (err: any, info: any) => {
-                    if (err) {
-                    }
-                    
-                });
-
-                await Users.update({
-                    email: email,
-                    password: verificationCode,
-                },
-                    {
-                        where: {
-                            email: email,
-                        },
-                    })
-                    .then(() => {
-                        return res.status(200).json({
-                            "message": "resend password!"
-                        });
-                    });
-            }
-            catch (err) {
-                //console.log(err);
-                res.sendStatus(500);
-            };
+        if (!userInfo) {
+            return res.status(401).json({ "message": "Invalid email" })
         }
-        else {
-            res.status(401).json({ "message": "email check" })
-        };
-    } catch (error) {
 
+        //nodemailer 연결 모델 생성
+        const transporter = nodemailer.createTransport({
+            service: process.env.NODEMAILER_SERVICE,
+            host: process.env.NODEMAILER_HOST,
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.NODEMAILER_USER,
+                pass: process.env.NODEMAILER_PASS
+            },
+        });
+        const generateRandomCode = (n: number) => {
+            let str = "";
+            for (let i = 0; i < n; i++) {
+                str += Math.floor(Math.random() * 10);
+            }
+            return str;
+        };
+        const verificationCode = generateRandomCode(8);
+
+        const mail = new TempPasswordEmail(email, verificationCode)
+        transporter.sendMail(
+            mail, (err: Error | null, info: SMTPTransport.SentMessageInfo) => {
+                if (err) {
+                    return res.status(401).json({ "message": "Couldn't Send Mail" })
+                }
+            });
+
+        await Users.update({ email: email, password: verificationCode },
+            {
+                where: {
+                    email: email,
+                },
+            }
+        );
+
+        return res.status(200).json({ "message": "resend password!" });
+
+    } catch (error) {
+        return res.status(401).json({ "message": "Couldn't Send Temp Password" })
     }
 
 };

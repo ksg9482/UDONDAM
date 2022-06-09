@@ -7,32 +7,59 @@ import { Posts_Tags } from '../models/posts_tags.model';
 import sequelize from '../models';
 
 import { Request, Response } from 'express';
+import { areaData } from './common/areaData';
 interface userIdInRequest extends Request {
-    userId?:number;
-    query:any;
+    userId?: number;
+    query: any;
 }
 
 export const postTag = async (req: userIdInRequest, res: Response) => {
+    //이건 삭제
     req.query.tag = req.query.tag || null;
     req.query.notTag = req.query.notTag || null;
+
+    //이거 사용
+    const tag = req.query.tag ? req.query.tag : null;
+    const notTag = req.query.notTag ? req.query.notTag : null;
 
     if (typeof req.query.notTag === 'string') { //1개면 string, 2개이상이면 array로 들어오기 때문에 array로 통일
         req.query.notTag = [req.query.notTag];
     };
+    // 이걸로 태그 분리 완료
+    const tagHandle = (tags: Array<string>) => {
+        const areaTag = [];
+        const contentTag = [];
 
+        for (let tag of tags) {
+            //'육군' 처럼 area가 아님에도 '군'이나 '시'로 끝나는 태그 식별
+            const result = areaData.find((el) => {
+                return el === tag
+            })
+            
+            result ? areaTag.push(tag) : contentTag.push(tag)
+
+        }
+        return { areaTag, contentTag }
+    }
+
+    const tags = tagHandle(tag)
+    //페이지네이션 용도
     let page = Number(req.query.page);
     //let size = Number(req.query.size);
     let offset = 0;
     if (page !== 0) {
         offset = page * 10;
     }
+    //사실상 여기부터 정리.
     const areaTag = req.query.tag.filter((el: any) => {
         return el[el.length - 1] === '시' || el[el.length - 1] === '군';
     })
     const contentTag = req.query.tag.filter((el: any) => {
         return el[el.length - 1] !== '시' && el[el.length - 1] !== '군' && el[el.length - 1] !== '요';
     });
-
+    //구체적으로: 태그에 해당하는 포스트를 불러와야 한다
+    //해당하는 태그가 하나라도 있다면 가져와야 하고
+    //notTag는 검색결과에서 제외해야 한다.
     try {
         const areaPosts: any = await Posts.findAll({
             include: [
@@ -486,7 +513,6 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
 };
 
 export const postDelete = async (req: userIdInRequest, res: Response) => {
-
     try {
         const postDelete = await Posts.destroy({
             where: {
@@ -499,6 +525,6 @@ export const postDelete = async (req: userIdInRequest, res: Response) => {
         return res.status(400).json({ "message": "post doesn't exist" });
     } catch (err) {
         //console.log(err);
-        return res.status(500).send("Server Error");
+        return res.status(500).send("Coudn't Delete Post");
     };
 };
