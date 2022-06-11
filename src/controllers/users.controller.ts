@@ -1,6 +1,7 @@
 import { Users } from "../models/users.model";
 import { Request, Response } from 'express';
 import { SequelizeMethod } from "sequelize/types/utils";
+import { areaData } from "./common/areaData";
 
 interface userIdInRequest extends Request {
     userId?: number
@@ -8,6 +9,9 @@ interface userIdInRequest extends Request {
 
 export const userInfo = async (req: userIdInRequest, res: Response) => {
     try {
+        const userId = req.userId!
+        const userInfoChange = await Users.findById(userId)
+        //이걸로 바꾸고 어떻게 바꿔서 보내야 하는지 봐야함. 아마 id만 userId로 바꾸면 될듯
         const userInfo = await Users.findOne({
             attributes: [['id', 'userId'], 'email', 'nickname', 'area', 'area2', 'socialType', 'manager'],
             where: { id: req.userId }
@@ -72,12 +76,21 @@ export const areaPatch = async (req: userIdInRequest, res: Response) => {
         area2: string;
     }
     const { area, area2 }: Iarea = req.body;
-
+    
     try {
         if (!area && !area2) {
             return res.status(400).json({ "message": "no data has been sent!" })
         }
-
+        //area 체크
+        const targetArea = area? area : area2;
+        const areaCheck = (targetArea:string) => areaData.find((el) => {
+            return el === targetArea
+        });
+        const areaIsTrue = areaCheck(targetArea)? true : false;
+        if(!areaIsTrue) {
+            return res.status(400).json({ "message": "Invalid Area" })
+        }
+        //area 체크
         if (area) {
             await Users.update({
                 area: area
@@ -92,7 +105,7 @@ export const areaPatch = async (req: userIdInRequest, res: Response) => {
         }
 
         else if (area2) {
-            const patchCheck = await Users.update({
+            await Users.update({
                 area2: area2
             },
                 {

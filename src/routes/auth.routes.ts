@@ -4,6 +4,7 @@ import * as authRouter from '../controllers/auth.controller';
 export const path = '/';
 export const router = express.Router();
 
+router.get('/', authRouter.serverConnect);
 router.post('/login', authRouter.login);
 router.post('/guest', authRouter.guest);
 router.get('/logout',authRouter.logout);

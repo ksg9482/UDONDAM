@@ -66,7 +66,7 @@ export class Users extends Model<IusersAttributes> {
   static findById = async (userId: number) => {
     return await this.findOne({
       where: {
-        email: userId
+        id: userId
       },
       raw:true
     })

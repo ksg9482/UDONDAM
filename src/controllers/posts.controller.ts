@@ -488,7 +488,7 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
         });
 
         await tag.map(async (el: any) => {
-
+            // 어차피 운영진이 주는 태그만 쓰게할거면 findOrCreate쓸 필요가?
             const data: any = await Tags.findOrCreate({
                 attributes: ['id', 'content'],
                 where: {

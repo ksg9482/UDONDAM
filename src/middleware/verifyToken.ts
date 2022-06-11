@@ -16,6 +16,7 @@ const isAuth = (req:userIdInRequest, res:Response, next:NextFunction) => {
             if (err) {
                 return res.status(401).json({ "message": "token doesn't exist" });
             };
+
             const usersInfo = await Users.findById(encoded.userId)
             //const usersInfo = await Users.findOne({ where: { id: encoded.userId } });
             if (!usersInfo) {

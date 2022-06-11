@@ -21,6 +21,10 @@ interface userIdInRequest extends Request {
     userId?: number
 }
 
+export const serverConnect = async (req: Request, res: Response) => {
+    return res.status(200).send("get 응답");
+};
+
 export const login = async (req: userIdInRequest, res: Response) => {
 
     try {

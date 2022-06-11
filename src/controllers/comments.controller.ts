@@ -35,6 +35,7 @@ export const commentUser = async (req: userIdInRequest, res: Response) => {
         };
         //query문 손봐서 -> 각 포스트가 likeCount, commentConut를 가지게끔 해야함
         let commentPost = [];
+        
         for (let el of posts) {
             const { id, content, createAt, postHasManyLikes: likes } = el;
             let commentCount = await Comments.count({
@@ -51,6 +52,8 @@ export const commentUser = async (req: userIdInRequest, res: Response) => {
                     commentCount: commentCount
                 });
         };
+        //likes에 문제 있음.
+        console.log(commentPost)
         return res.status(200).send(commentPost);
     } catch (err) {
         //console.log(err);
