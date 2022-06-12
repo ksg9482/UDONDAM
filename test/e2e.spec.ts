@@ -201,18 +201,25 @@ describe('e2e-test', () => {
         expect(resp.body).toEqual({ "message": "no data has been sent!" });
       });
 
+      it('area에 올바르지 않은 area data를 보내면 실패한다', async () => {
+        const resp: any = await request(app).patch('/user/area').set('Cookie', [jwtToken]).send({ area: '원시근시난시' });
+
+        expect(resp.status).toEqual(400);
+        expect(resp.body).toEqual({ "message": "Invalid Area" });
+      });
+
       it('area에 올바른 area data를 보내면 성공한다', async () => {
         const resp: any = await request(app).patch('/user/area').set('Cookie', [jwtToken]).send({ area: patchData.area });
-
+       
         expect(resp.status).toEqual(200);
-        expect(resp.body).toEqual({ "message": "Area patched!" });
+        expect(resp.body).toEqual({ area: '서울특별시' });
       });
 
       it('area2에 올바른 area data를 보내면 성공한다', async () => {
         const resp: any = await request(app).patch('/user/area').set('Cookie', [jwtToken]).send({ area2: patchData.area2 });
-
+        
         expect(resp.status).toEqual(200);
-        expect(resp.body).toEqual({ "message": "Area2 patched!" });
+        expect(resp.body).toEqual( { area2: '인천광역시' });
       });
 
     });

@@ -7,7 +7,8 @@ import { Posts_Tags } from '../models/posts_tags.model';
 import sequelize from '../models';
 
 import { Request, Response } from 'express';
-import { areaData } from './common/areaData';
+import { areaData } from './common/area/areaData';
+import { areaCheck } from './common/area/areaHandle';
 interface userIdInRequest extends Request {
     userId?: number;
     query: any;
@@ -31,14 +32,11 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
         const contentTag = [];
 
         for (let tag of tags) {
-            //'육군' 처럼 area가 아님에도 '군'이나 '시'로 끝나는 태그 식별
-            const result = areaData.find((el) => {
-                return el === tag
-            })
-            
-            result ? areaTag.push(tag) : contentTag.push(tag)
-
+            //'육군' 처럼 area가 아님에도 '군'이나 '시'로 끝나는 태그 식별        
+            const areaIsTrue = areaCheck(tag)
+            areaIsTrue ? areaTag.push(tag) : contentTag.push(tag)
         }
+        
         return { areaTag, contentTag }
     }
 

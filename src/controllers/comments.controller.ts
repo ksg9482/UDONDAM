@@ -37,12 +37,16 @@ export const commentUser = async (req: userIdInRequest, res: Response) => {
         let commentPost = [];
         
         for (let el of posts) {
-            const { id, content, createAt, postHasManyLikes: likes } = el;
+            //raw로 바꾸고 나타난 문제
+            //likes만 따로 빼서 분리. []로 한 이유는 원래라도 배열로 들어오므로 형식 맞추기 위해.
+            const { id, content, createAt } = el;
+            const likes = el['postHasManyLikes.id']? el['postHasManyLikes.id'] : []
             let commentCount = await Comments.count({
                 where: {
                     postId: id
                 }
             });
+            
             commentPost.push(
                 {
                     id: id,
@@ -51,9 +55,8 @@ export const commentUser = async (req: userIdInRequest, res: Response) => {
                     likeCount: likes.length,
                     commentCount: commentCount
                 });
+                
         };
-        //likes에 문제 있음.
-        console.log(commentPost)
         return res.status(200).send(commentPost);
     } catch (err) {
         //console.log(err);

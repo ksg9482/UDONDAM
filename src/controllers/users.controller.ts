@@ -1,7 +1,8 @@
 import { Users } from "../models/users.model";
 import { Request, Response } from 'express';
 import { SequelizeMethod } from "sequelize/types/utils";
-import { areaData } from "./common/areaData";
+import { areaData } from "./common/area/areaData";
+import { areaCheck, areaUpdate } from "./common/area/areaHandle";
 
 interface userIdInRequest extends Request {
     userId?: number
@@ -10,12 +11,9 @@ interface userIdInRequest extends Request {
 export const userInfo = async (req: userIdInRequest, res: Response) => {
     try {
         const userId = req.userId!
-        const userInfoChange = await Users.findById(userId)
-        //이걸로 바꾸고 어떻게 바꿔서 보내야 하는지 봐야함. 아마 id만 userId로 바꾸면 될듯
-        const userInfo = await Users.findOne({
-            attributes: [['id', 'userId'], 'email', 'nickname', 'area', 'area2', 'socialType', 'manager'],
-            where: { id: req.userId }
-        })
+        const userInfo = await Users.findById(userId,
+            [['id', 'userId'], 'email', 'nickname', 'area', 'area2', 'socialType', 'manager'])
+
         if (!userInfo) {
             return res.status(404).json({ "message": "UserInfo not Found" });
         }
@@ -27,106 +25,71 @@ export const userInfo = async (req: userIdInRequest, res: Response) => {
 };
 
 export const userPatch = async (req: userIdInRequest, res: Response) => {
+    const userId = req.userId!
     const { nickname, password } = req.body;
+    const patchInfo = req.body;
 
+    const message = {
+        nickname: { "message": "nickname patched!" },
+        password: { "message": "password patched!" },
+        user: { "message": "user patched!" }
+    };
     try {
         if (!nickname && !password) {
             return res.status(400).json({ "message": "no data has been sent!" })
         }
 
+        await Users.update(
+            patchInfo,
+            {
+                where: { id: userId }
+            })
+
         if (nickname && password) {
-            await Users.update({
-                nickname: nickname,
-                password: password
-            },
-                {
-                    where: { id: req.userId }
-                })
-            return res.status(200).json({ "message": "user patched!" })
+            return res.status(200).json(message.user)
         }
 
-        else if (nickname) {
-            await Users.update({
-                nickname: nickname
-            },
-                {
-                    where: { id: req.userId }
-                })
-            return res.status(200).json({ "message": "nickname patched!" })
-        }
-
-        else if (password) {
-            await Users.update({
-                password: password
-            },
-                {
-                    where: { id: req.userId }
-                })
-            return res.status(200).json({ "message": "password patched!" })
-        }
+        const messageOutput = nickname ? message.nickname : message.password
+        return res.status(200).json(messageOutput)
     } catch (err) {
-        //console.log(err);
         return res.status(500).json({ "message": "Couldn't Patch Userdata" })
     }
 };
 
 export const areaPatch = async (req: userIdInRequest, res: Response) => {
     interface Iarea {
-        area: string;
-        area2: string;
+        area?: string;
+        area2?: string;
     }
+
+    const userId = req.userId!
     const { area, area2 }: Iarea = req.body;
-    
+    const areaObj = req.body;
+
     try {
+        //둘 중 하나만 들어오고 둘 다 없으면 400응답
         if (!area && !area2) {
             return res.status(400).json({ "message": "no data has been sent!" })
         }
-        //area 체크
-        const targetArea = area? area : area2;
-        const areaCheck = (targetArea:string) => areaData.find((el) => {
-            return el === targetArea
-        });
-        const areaIsTrue = areaCheck(targetArea)? true : false;
-        if(!areaIsTrue) {
+        const targetArea = area ? area : area2
+
+        const areaIsTrue = areaCheck(targetArea!);
+        if (!areaIsTrue) {
             return res.status(400).json({ "message": "Invalid Area" })
         }
-        //area 체크
-        if (area) {
-            await Users.update({
-                area: area
-            },
-                {
-                    where: {
-                        id: req.userId
-                    }
-                })
+        await areaUpdate(userId, areaObj)
 
-            return res.status(200).json({ "message": "Area patched!" })
-        }
-
-        else if (area2) {
-            await Users.update({
-                area2: area2
-            },
-                {
-                    where: {
-                        id: req.userId
-                    }
-                })
-
-            return res.status(200).json({ "message": "Area2 patched!" })
-        }
-
+        return res.status(200).json(areaObj)
     } catch (err) {
-        //console.log(err);
         return res.status(500).json({ "message": "Couldn't Patch Area" })
     }
 };
 
 export const userDelete = async (req: userIdInRequest, res: Response) => {
+    const userId = req.userId!
     try {
         await Users.destroy({
-            where: { id: req.userId }
+            where: { id: userId }
         })
         return res.status(200).clearCookie('jwt').json({ "message": 'delete!' })
     } catch (err) {

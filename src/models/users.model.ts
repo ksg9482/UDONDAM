@@ -54,6 +54,7 @@ export class Users extends Model<IusersAttributes> {
     return await bcrypt.compare(password, hashedPassword);
   };
 
+  //왜 이메일, 아이디 두개로 나눴는가? 로그인 유무. 로그인 안한 상태에선 id가 없기에 이메일로 식별
   static findByEmail = async (email: string) => {
     return await this.findOne({
       where: {
@@ -63,13 +64,27 @@ export class Users extends Model<IusersAttributes> {
     })
   };
 
-  static findById = async (userId: number) => {
-    return await this.findOne({
+  //userId로 간단하게 찾는 용도.
+  static findById = async (userId: number, attributes?:Array<any>) => {
+    const query = attributes
+    ? {
+      where: {
+        id: userId
+      },
+      raw:true,
+      attributes:attributes
+    } 
+    : {
       where: {
         id: userId
       },
       raw:true
-    })
+    }
+    const result = await this.findOne(query);
+    //manager가 boolean인데 mysql은 0, 1로 저장함
+    //@ts-ignore
+    result?.manager === 0 ? result?.manager = false : result?.manager = true
+    return result
   };
 };
 Users.init({
