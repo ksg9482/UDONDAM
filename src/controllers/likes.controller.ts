@@ -38,16 +38,15 @@ export const likesUser = async (req:userIdInRequest,  res: Response) => {
                 return res.status(200).json(likeUserResult);
             }
             else{
-                const response = likeUserResult.map((post:any) => {
-                    let { id, content, createAt, likeCount, CommentCount } = post;
-                    return {
-                        id: id,
-                        content: content,
-                        createAt: createAt,
-                        likeCount: likeCount,
-                        commentCount: CommentCount
-                    };
-                });
+                const responseMapFunction = (post:any) => {let { id, content, createAt, likeCount, CommentCount } = post;
+                return {
+                    id: id,
+                    content: content,
+                    createAt: createAt,
+                    likeCount: likeCount,
+                    commentCount: CommentCount
+                };}
+                const response = likeUserResult.map(responseMapFunction);
                 return res.status(200).json(response);
             };
         };

@@ -26,8 +26,7 @@ export const get = async (req: userIdInRequest, res: Response) => {
     if (recent.length === 0) {
         return res.status(200).json(recent);
     };
-
-    const result = recent.map((el: any, idx: any) => {
+    const resultMapFunction = (el: any, idx: any) => {
         const { tag, notTag } = el;
         const tagArr = tag.split(',');
         const notTagArr = notTag ? notTag.split(',') : null
@@ -36,7 +35,8 @@ export const get = async (req: userIdInRequest, res: Response) => {
             tag: tagArr,
             notTag: notTagArr,
         };
-    });
+    }
+    const result = recent.map(resultMapFunction);
 
     return res.status(200).json(result);
 };
@@ -59,7 +59,7 @@ export const post = async (req: userIdInRequest, res: Response) => {
     //userId 검증
     const userInfo = Users.findById(userId);
     if (!userInfo) {
-        res.status(401).json({ "message": "token doesn't exist" });
+        return res.status(401).json({ "message": "token doesn't exist" });
     };
     const recent: any = await RecentSearchs.findAll({
         attributes: ['id', 'userId', 'tag', 'notTag'],

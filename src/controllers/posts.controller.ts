@@ -103,8 +103,8 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                     }
                 ]
             });
-            const postTags = areaPostTags.filter((el: any) => {
-
+            //filter 조건함수 분리
+            const filterFunction = (el: any) => {
                 const tags = el.dataValues.postHasManyPosts_Tags.map((el: any) => {
                     return el.dataValues.post_TagsBelongToTag.dataValues;
                 });
@@ -134,7 +134,9 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                     return tagCheck === true && notTagCheck === true;
                 }
                 return tagCheck === true;
-            });
+            }
+            //filter 조건함수 분리
+            const postTags = areaPostTags.filter(filterFunction);
 
             areaPostId = postTags.map((el: any) => {
                 return el.dataValues.id;
@@ -153,7 +155,8 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                     }
                 ]
             });
-            const areaNotTagFilter = areaNotTags.filter((el: any) => {
+            //areaNotTagFilter 필터 분리
+            const areaNotTagFilterFunction = (el: any) => {
                 const { tags } = el.dataValues;
                 let notCheck = true;
                 for (let el of tags) {
@@ -164,7 +167,9 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                     };
                 };
                 return notCheck === true;
-            });
+            }
+            //areaNotTagFilter 필터 분리
+            const areaNotTagFilter = areaNotTags.filter(areaNotTagFilterFunction);
             areaPostId = areaNotTagFilter.map((el: any) => {
                 return el.id;
             });
@@ -208,7 +213,8 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
             offset: offset,
             limit: 10
         });
-        const resPosts = posts.map((post: any) => {
+        //map 분리
+        const resPostsMapFunction = (post: any) => {
 
             const {
                 dataValues: { id, content, createAt, public: _public, userId, postsbelongsToUser: { dataValues: { nickname } } },
@@ -239,7 +245,9 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                 createAt: createAt,
                 public: _public
             };
-        });
+        }
+        //map 분리
+        const resPosts = posts.map(resPostsMapFunction);
 
         return res.status(200).json(resPosts);
     } catch (err) {
@@ -336,15 +344,10 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
         });
         let comments = posthasManyComments.map((comment: any) => {
             const {
-                id,
-                content,
-                userId,
-                postId,
-                commentId,
-                createAt,
                 commentsBelongsToUser: {
                     dataValues: user
-                }
+                },
+                id, content, userId, postId, commentId, createAt
             } = comment.dataValues;
             return { id, content, userId, postId, commentId, createAt, user };
         });
@@ -367,7 +370,8 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
         let commentArr: any = [];
         let deleteArr: any = [];
         if (comments.length !== 0) {
-            comments.map((el: any) => {
+            //comments map 분리
+            const commentMapFunction = (el: any) => {
                 const { id, content, userId, postId, commentId, createAt, user } = el;
                 if (commentId === null) {
                     commentArr.push({
@@ -435,7 +439,9 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
                         };
                     };
                 };
-            });
+            }
+            //comments map 분리
+            comments.map(commentMapFunction);
         };
         if (deleteArr.length !== 0) {
             for (let el of deleteArr) {
@@ -485,9 +491,10 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
             content: content, public: _public, userId: userId
         });
 
-        await tag.map(async (el: any) => {
-            // 어차피 운영진이 주는 태그만 쓰게할거면 findOrCreate쓸 필요가?
-            const data: any = await Tags.findOrCreate({
+        //tag map 분리
+        const tagMapFunction = async (el:any) => {
+             // 어차피 운영진이 주는 태그만 쓰게할거면 findOrCreate쓸 필요가?
+             const data: any = await Tags.findOrCreate({
                 attributes: ['id', 'content'],
                 where: {
                     content: el
@@ -499,7 +506,9 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
             await Posts_Tags.create({
                 postId: Post.id, tagId: tagId
             });
-        });
+        }
+        //tag map 분리
+        await tag.map(tagMapFunction);
 
         return res.status(201).json({ "message": "create!" });
 
