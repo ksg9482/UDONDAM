@@ -26,6 +26,17 @@ export class Likes extends Model<IlikesAttributes> {
     postHasManyLikes: Association<Posts, Likes>
     likesBelongsToPost: Association<Likes, Posts>,
   };
+
+  static overlapCheck = async (userId: number, postId: number) => {
+    const result = await this.findOne({
+      where: {
+        userId: userId,
+        postId: postId
+      }
+    });
+
+    return result? true : false;
+  };
 };
 
 Likes.init({
