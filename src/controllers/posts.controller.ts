@@ -125,7 +125,7 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                     }
                 ]
             });
-            console.log('test1 - ',test1,'test2 - ', test2)
+            //console.log('test1 - ',test1,'test2 - ', test2)
              //filter 조건함수 분리
             const filterFunction = (el: any) => {
                 const inputData = el.dataValues.postHasManyPosts_Tags.map((el: any) => {
@@ -531,10 +531,11 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
                 attributes: ['id', 'content'],
                 where: {
                     content: el
-                }
+                },
+                raw:true
             });
-
-            const tagId = data[0].dataValues.id;
+            console.log(data)
+            const tagId = data[0].id;
 
             await Posts_Tags.create({
                 postId: Post.id, tagId: tagId
@@ -546,8 +547,7 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
         return res.status(201).json({ "message": "create!" });
 
     } catch (err) {
-        //console.log(err);
-        return res.status(500).send("Server Error");
+        return res.status(500).send({"message": "Couldn't Create Post "});
     };
 
 };

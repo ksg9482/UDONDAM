@@ -1,4 +1,4 @@
-import {App} from '../src';
+import { App } from '../src';
 
 import sequelize from '../src/models';
 import request from 'supertest';
@@ -87,9 +87,9 @@ describe('e2e-test', () => {
 
     describe('POST /login', () => {
       it('올바른 형식의 로그인은 성공해야 한다', async () => {
-        
+
         const resp: any = await request(app).post('/login').send(loginTest.testUser);
-        
+
         const token = tokenData(resp);
         expect(resp.status).toEqual(200);
         expect(resp.body.data).toEqual({ "userId": 1, "nickname": "익명", "area": "인증해주세요", "area2": "인증해주세요", "manager": false, "socialType": "basic" });
@@ -210,16 +210,16 @@ describe('e2e-test', () => {
 
       it('area에 올바른 area data를 보내면 성공한다', async () => {
         const resp: any = await request(app).patch('/user/area').set('Cookie', [jwtToken]).send({ area: patchData.area });
-       
+
         expect(resp.status).toEqual(200);
         expect(resp.body).toEqual({ area: '서울특별시' });
       });
 
       it('area2에 올바른 area data를 보내면 성공한다', async () => {
         const resp: any = await request(app).patch('/user/area').set('Cookie', [jwtToken]).send({ area2: patchData.area2 });
-        
+
         expect(resp.status).toEqual(200);
-        expect(resp.body).toEqual( { area2: '인천광역시' });
+        expect(resp.body).toEqual({ area2: '인천광역시' });
       });
 
     });
@@ -335,25 +335,45 @@ describe('e2e-test', () => {
   describe('LikesController(e2e)', () => {
     describe('POST /likes', () => {
       it('해당하는 postId를 입력하면 like처리가 되어야 한다', async () => {
-        const resp:any = await request(app).post('/likes').set('Cookie', [jwtToken]).send({postId:1});
+        const resp: any = await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 1 });
 
         expect(resp.status).toEqual(201);
-        expect(resp.body).toEqual({"message": "created"});
+        expect(resp.body).toEqual({ "message": "created" });
       });
 
       it('해당하는 postId에 like요청이 중복되면 이미 처리되었다고 안내되어야 한다', async () => {
-        const resp:any = await request(app).post('/likes').set('Cookie', [jwtToken]).send({postId:1});
-  
+        const resp: any = await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 1 });
+
         expect(resp.status).toEqual(200);
-        expect(resp.body).toEqual({"message": "이미 따봉을 한 상태입니다."});
+        expect(resp.body).toEqual({ "message": "이미 따봉을 한 상태입니다." });
       });
 
     });
 
     describe('GET /likes', () => {
       it('해당하는 userId가 like처리한 post를 알 수 있어야 한다', async () => {
-        const resp:any = await request(app).get('/likes').set('Cookie', [jwtToken]);
-
+        // const testData = [{
+        //   postId: 1,
+        //   content: 'testComment2',
+        //   commentId: null
+        // }, {
+        //   postId: 1,
+        //   content: 'testComment3',
+        //   commentId: null
+        // }, {
+        //   postId: 1,
+        //   content: 'testReComment2!',
+        //   commentId: 1
+        // },{
+        //   postId: 1,
+        //   content: 'testReComment3!',
+        //   commentId: 1
+        // }]
+        // for (let data of testData) {
+        //   await request(app).post('/comment').set('Cookie', [jwtToken]).send(data);
+        // }
+        const resp: any = await request(app).get('/likes').set('Cookie', [jwtToken]);
+        
         expect(resp.status).toEqual(200);
         expect(resp.body[0].id).toEqual(1);
         expect(resp.body[0].likeCount).toEqual(1);
@@ -362,17 +382,17 @@ describe('e2e-test', () => {
 
     describe('DELETE /likes/:postId', () => {
       it('해당하는 like처리를 취소 할 수 있어야 한다', async () => {
-        const resp:any = await request(app).delete(`/likes/${1}`).set('Cookie', [jwtToken]);
+        const resp: any = await request(app).delete(`/likes/${1}`).set('Cookie', [jwtToken]);
 
         expect(resp.status).toEqual(200);
-        expect(resp.body).toEqual({"message": "delete!"});
+        expect(resp.body).toEqual({ "message": "delete!" });
       });
 
       it('해당하는 like 취소 처리가 중복되면 이미 처리되었다고 안내되어야 한다', async () => {
-        const resp:any = await request(app).delete(`/likes/${1}`).set('Cookie', [jwtToken]);
+        const resp: any = await request(app).delete(`/likes/${1}`).set('Cookie', [jwtToken]);
 
         expect(resp.status).toEqual(200);
-        expect(resp.body).toEqual({"message": "이미 따봉을 취소한 상태입니다."});
+        expect(resp.body).toEqual({ "message": "이미 따봉을 취소한 상태입니다." });
       });
     });
 
@@ -380,36 +400,39 @@ describe('e2e-test', () => {
 
   describe('CommentsController(e2e)', () => {
     const commentData = {
-      postId:1,
-      content:'testComment', 
-      commentId:null
-    }
+      postId: 1,
+      content: 'testComment',
+      commentId: null
+    };
     const reCommentData = {
-      postId:1,
-      content:'testReComment!', 
-      commentId:1
-    }
+      postId: 1,
+      content: 'testReComment!',
+      commentId: 1
+    };
+
+
+
     describe('POST /comment', () => {
       it('정확한 데이터를 입력하면 성공해야 한다', async () => {
-        const resp:any = await request(app).post('/comment').set('Cookie', [jwtToken]).send(commentData);
-        
+        const resp: any = await request(app).post('/comment').set('Cookie', [jwtToken]).send(commentData);
+
         expect(resp.status).toEqual(201);
-        expect(resp.body).toEqual({"message": "created!"});
+        expect(resp.body).toEqual({ "message": "created!" });
       });
 
       it('commentId에 데이터가 있어도 성공해야 한다', async () => {
-        const resp:any = await request(app).post('/comment').set('Cookie', [jwtToken]).send(reCommentData);
-        
+        const resp: any = await request(app).post('/comment').set('Cookie', [jwtToken]).send(reCommentData);
+
         expect(resp.status).toEqual(201);
-        expect(resp.body).toEqual({"message": "created!"});
+        expect(resp.body).toEqual({ "message": "created!" });
       });
 
     });
 
     describe('GET /comment', () => {
       it('userId가 작성한 comment가 있는 post를 return해야 한다', async () => {
-        const resp:any = await request(app).get('/comment').set('Cookie', [jwtToken]);
-        
+        const resp: any = await request(app).get('/comment').set('Cookie', [jwtToken]);
+
         //expect(resp.status).toEqual(200);
         expect(resp.body[0].content).toEqual("testContent");
       });
@@ -418,10 +441,10 @@ describe('e2e-test', () => {
 
     describe('DELETE /comment/:commentId', () => {
       it('해당하는 comment가 삭제되어야 한다', async () => {
-        const resp:any = await request(app).delete(`/comment/${1}`).set('Cookie', [jwtToken]);
-        
+        const resp: any = await request(app).delete(`/comment/${1}`).set('Cookie', [jwtToken]);
+
         expect(resp.status).toEqual(200);
-        expect(resp.body).toEqual({"message": "delete!"});
+        expect(resp.body).toEqual({ "message": "delete!" });
       });
 
     });
@@ -430,12 +453,12 @@ describe('e2e-test', () => {
   describe('RecentController(e2e)', () => {
 
     const recentData = {
-      tag:["서울특별시", "공부", "도서관"], 
-      notTag:null
+      tag: ["서울특별시", "공부", "도서관"],
+      notTag: null
     };
     const recentNotTagData = {
-      tag:["서울특별시", "학교", "식당"], 
-      notTag:["교실"]
+      tag: ["서울특별시", "학교", "식당"],
+      notTag: ["교실"]
     };
     describe('POST /recent', () => {
       beforeEach(async () => {
@@ -443,25 +466,25 @@ describe('e2e-test', () => {
       });
 
       it('정확한 데이터를 입력하면 성공해야 한다', async () => {
-        const resp:any = await request(app).post('/recent').set('Cookie', [jwtToken]).send(recentData);
-        
+        const resp: any = await request(app).post('/recent').set('Cookie', [jwtToken]).send(recentData);
+
         expect(resp.status).toEqual(201);
-        expect(resp.body).toEqual({"message": "recentsearch created"});
+        expect(resp.body).toEqual({ "message": "recentsearch created" });
       });
 
       it('notTag가 null이 아니여도 성공해야 한다', async () => {
-        
-        const resp:any = await request(app).post('/recent').set('Cookie', [jwtToken]).send(recentNotTagData);
-        
+
+        const resp: any = await request(app).post('/recent').set('Cookie', [jwtToken]).send(recentNotTagData);
+
         expect(resp.status).toEqual(201);
-        expect(resp.body).toEqual({"message": "recentsearch created"});
+        expect(resp.body).toEqual({ "message": "recentsearch created" });
       });
     });
 
     describe('GET /recent', () => {
       it('입력한 recent를 조회 할 수 있어야 한다', async () => {
-        const resp:any = await request(app).get('/recent').set('Cookie', [jwtToken]);
-        
+        const resp: any = await request(app).get('/recent').set('Cookie', [jwtToken]);
+
         expect(resp.status).toEqual(200);
         expect(resp.body).toBeTruthy();
       });
@@ -471,6 +494,6 @@ describe('e2e-test', () => {
 
   });
 
-  
+
 });
 

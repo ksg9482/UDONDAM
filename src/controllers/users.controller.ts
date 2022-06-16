@@ -93,7 +93,7 @@ export const userDelete = async (req: userIdInRequest, res: Response) => {
         return res.status(200).clearCookie('jwt').json({ "message": 'delete!' })
     } catch (err) {
         //console.log(err);
-        return res.status(500).json({ "message": "Couldn't User Delete" });
+        return res.status(500).json({ "message": "Couldn't Delete User" });
     }
 };
 

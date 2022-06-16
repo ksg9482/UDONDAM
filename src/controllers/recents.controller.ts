@@ -8,37 +8,41 @@ interface userIdInRequest extends Request {
 export const get = async (req: userIdInRequest, res: Response) => {
     const userId = req.userId!;
     const userInfo = Users.findById(userId);
-
-    const recent = await RecentSearchs.findAll({
-        attributes: ['id', 'tag', 'notTag'],
-        where: {
-            userId: userId
-        },
-        order: [['createAt', 'DESC']],
-        limit: 3,
-        raw: true
-    });
-
-    if (!userInfo) {
-        return res.status(401).json({ "message": "token doesn't exist" });
-    };
-
-    if (recent.length === 0) {
-        return res.status(200).json(recent);
-    };
-    const resultMapFunction = (el: any, idx: any) => {
-        const { tag, notTag } = el;
-        const tagArr = tag.split(',');
-        const notTagArr = notTag ? notTag.split(',') : null
-        return {
-            id: idx + 1,
-            tag: tagArr,
-            notTag: notTagArr,
+    try {
+        const recent = await RecentSearchs.findAll({
+            attributes: ['id', 'tag', 'notTag'],
+            where: {
+                userId: userId
+            },
+            order: [['createAt', 'DESC']],
+            limit: 3,
+            raw: true
+        });
+    
+        if (!userInfo) {
+            return res.status(401).json({ "message": "token doesn't exist" });
         };
+    
+        if (recent.length === 0) {
+            return res.status(200).json(recent);
+        };
+        const resultMapFunction = (el: any, idx: any) => {
+            const { tag, notTag } = el;
+            const tagArr = tag.split(',');
+            const notTagArr = notTag ? notTag.split(',') : null
+            return {
+                id: idx + 1,
+                tag: tagArr,
+                notTag: notTagArr,
+            };
+        }
+        const result = recent.map(resultMapFunction);
+    
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).send({"message": "Couldn't Search Recent Tag"});
     }
-    const result = recent.map(resultMapFunction);
-
-    return res.status(200).json(result);
+    
 };
 
 export const post = async (req: userIdInRequest, res: Response) => {
@@ -103,7 +107,7 @@ export const post = async (req: userIdInRequest, res: Response) => {
 
         return res.status(201).json({ "message": "recentsearch created" });
     } catch (err) {
-        return res.status(500).json({ "message": "Server Error" });
+        return res.status(500).send({"message": "Couldn't Create Recent Tag"});
     }
 
 
