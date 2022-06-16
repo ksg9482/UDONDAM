@@ -11,8 +11,8 @@ export interface ItagsAttributes {
 
 export class Tags extends Model<ItagsAttributes> {
 
-  public static readonly id?: number;
-  public static content?: string;
+  readonly id?: number;
+  content?: string;
 
   public static associations: {};
 };

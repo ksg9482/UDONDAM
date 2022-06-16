@@ -15,10 +15,10 @@ export interface IrecentSearchsAttributes {
 
 export class RecentSearchs extends Model<IrecentSearchsAttributes>{
 
-  public static readonly id?: number;
-  public static userId?: number;
-  public static tag?: string;
-  public static notTag?: string;
+  readonly id?: number;
+  userId?: number;
+  tag?: string;
+  notTag?: string;
 
   public static associations: {
     userHasManyRecentsearchs: Association<Users, RecentSearchs>

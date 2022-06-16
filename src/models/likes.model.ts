@@ -15,9 +15,9 @@ export interface IlikesAttributes {
 
 export class Likes extends Model<IlikesAttributes> {
 
-  public static readonly id?: number;
-  public static userId?: number;
-  public static postId?: number;
+  readonly id?: number;
+  userId?: number;
+  postId?: number;
 
   public static associations: {
     userHasManyLikes: Association<Users, Likes>

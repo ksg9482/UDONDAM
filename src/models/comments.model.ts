@@ -18,11 +18,11 @@ export interface IcommentsAttributes {
 export class Comments extends Model<IcommentsAttributes>{
 
 
-  public static readonly id?: number;
-  public static content?: string;
-  public static userId?: number;
-  public static postId?: number;
-  public static commentId?: number | null;
+  readonly id?: number;
+  content?: string;
+  userId?: number;
+  postId?: number;
+  commentId?: number | null;
 
   public static associations: {
     userHasManyComments: Association<Users, Comments>

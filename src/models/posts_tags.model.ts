@@ -15,9 +15,9 @@ import { Tags } from './tags.model';
 
 export class Posts_Tags extends Model<Iposts_tagsAttributes> {
   
-     public static readonly id?: number;
-     public static postId?: number;
-     public static tagId?: number;
+     readonly id?: number;
+     postId?: number;
+     tagId?: number;
 
      public static associations: {
        postHasManyPosts_Tags:Association<Posts, Posts_Tags>;

@@ -15,10 +15,10 @@ export interface IpostsAttributes {
 
 export class Posts extends Model<IpostsAttributes> {
 
-  public static readonly id?: number;
-  public static content?: string;
-  public static userId?: number;
-  public static public?: boolean;
+  readonly id?: number;
+  content?: string;
+  userId?: number;
+  public?: boolean;
 
   public static associations: {
     userHasManyPosts: Association<Users, Posts>,

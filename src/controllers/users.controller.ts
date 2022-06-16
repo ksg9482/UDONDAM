@@ -16,12 +16,13 @@ export const userInfo = async (req: userIdInRequest, res: Response) => {
 
         if (!userInfo) {
             return res.status(404).json({ "message": "UserInfo not Found" });
-        }
+        };
+
         return res.status(200).json(userInfo);
     } catch (err) {
         //console.log(err);
         return res.status(500).json({ "message": "Couldn't Search User" });
-    }
+    };
 };
 
 export const userPatch = async (req: userIdInRequest, res: Response) => {
@@ -29,28 +30,26 @@ export const userPatch = async (req: userIdInRequest, res: Response) => {
     const { nickname, password } = req.body;
     const patchInfo = req.body;
 
-    const message = {
-        nickname: { "message": "nickname patched!" },
-        password: { "message": "password patched!" },
-        user: { "message": "user patched!" }
-    };
     try {
         if (!nickname && !password) {
             return res.status(400).json({ "message": "no data has been sent!" })
-        }
+        };
 
         await Users.update(
             patchInfo,
             {
                 where: { id: userId }
-            })
+            });
 
         if (nickname && password) {
-            return res.status(200).json(message.user)
-        }
+            return res.status(200).json({ "message": "user patched!" })
+        };
 
-        const messageOutput = nickname ? message.nickname : message.password
-        return res.status(200).json(messageOutput)
+        const messageOutput = nickname 
+        ? { "message": "nickname patched!" } 
+        : { "message": "password patched!" };
+
+        return res.status(200).json(messageOutput);
     } catch (err) {
         return res.status(500).json({ "message": "Couldn't Patch Userdata" })
     }
