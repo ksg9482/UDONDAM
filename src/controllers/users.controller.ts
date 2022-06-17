@@ -2,7 +2,7 @@ import { Users } from "../models/users.model";
 import { Request, Response } from 'express';
 import { SequelizeMethod } from "sequelize/types/utils";
 import { areaData } from "./common/area/areaData";
-import { areaCheck, areaUpdate } from "./common/area/areaHandle";
+import { isArea, areaUpdate } from "./common/area/areaHandle";
 
 interface userIdInRequest extends Request {
     userId?: number
@@ -72,7 +72,7 @@ export const areaPatch = async (req: userIdInRequest, res: Response) => {
         }
         const targetArea = area ? area : area2
 
-        const areaIsTrue = areaCheck(targetArea!);
+        const areaIsTrue = isArea(targetArea!);
         if (!areaIsTrue) {
             return res.status(400).json({ "message": "Invalid Area" })
         }

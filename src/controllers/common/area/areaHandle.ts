@@ -6,13 +6,12 @@ export interface Iarea {
     area2?: string;
 }
 
-export const areaCheck = (area: string) => {
+export const isArea = (area: string) => {
     const matchArea = areaData.find((el) => {
         return el === area
     });
-    const result = matchArea ? true : false;
    
-    return result
+    return matchArea ? true : false;
 };
 
 export const areaUpdate = async (userId: number, targetArea: Iarea) => {  
