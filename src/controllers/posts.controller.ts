@@ -80,6 +80,14 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                 }
             ]
         ,raw:true});
+        /*
+SELECT posts.id, posts.content, posts.userId, posts.public, GROUP_CONCAT(tags.content) FROM posts
+JOIN posts_tags ON postId = posts.id
+JOIN tags ON posts_tags.tagId = tags.id
+GROUP BY id
+;
+서울특별시를 어떻게 구분해 넣을까, 낫태그 어떻게 제외시킬까
+        */
 console.log(findAreaPostId)
         if (areaTagPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
             return res.status(200).json(areaTagPosts);
