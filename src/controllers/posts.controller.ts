@@ -61,7 +61,26 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                 }
             ]
         });
-
+        const findAreaPostId: any = await Posts.findAll({
+            attributes:['id',['content','postContent']],
+            include: [
+                {
+                    model: Posts_Tags,
+                    attributes:['id','postId','tagId'],
+                    as: 'postHasManyPosts_Tags',
+                    required:true,
+                    include: [
+                        {
+                            model: Tags,
+                            as: 'post_TagsBelongToTag',
+                            where: { content: tags.areaTag },
+                            attributes: [['content','tagContent']],//,required:true
+                        }
+                    ]
+                }
+            ]
+        ,raw:true});
+console.log(findAreaPostId)
         if (areaTagPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
             return res.status(200).json(areaTagPosts);
         };
@@ -574,7 +593,7 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
                 },
                 raw:true
             });
-            console.log(data)
+            //console.log(data)
             const tagId = data[0].id;
 
             await Posts_Tags.create({

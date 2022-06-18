@@ -64,7 +64,7 @@ const test = await Posts.findAll({
                 };
             }
             const response = likeUserResult.map(responseMapFunction);
-            console.log(likeUserResult, response, test)
+            //console.log(likeUserResult, response, test)
             return res.status(200).json(response);
         };
     };
