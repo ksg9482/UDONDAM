@@ -5,10 +5,12 @@ import { Comments } from '../models/comments.model';
 import { Likes } from '../models/likes.model';
 import { Posts_Tags } from '../models/posts_tags.model';
 import sequelize from '../models';
+import { Op } from 'sequelize'
 
 import { Request, Response } from 'express';
 import { areaData } from './common/area/areaData';
 import { isArea } from './common/area/areaHandle';
+
 interface userIdInRequest extends Request {
     userId?: number;
     query: any;
@@ -44,6 +46,32 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
     //해당하는 태그가 하나라도 있다면 가져와야 하고
     //notTag는 검색결과에서 제외해야 한다.
     try {
+       
+        if(tags) {
+            const query = tags.contentTag 
+            ? { content: {[Op.in]:tags.areaTag} }
+            : { content: {[Op.in]:tags.areaTag} } //여기에 추가 조건
+            const getPostId = await Posts.findAll({
+                attributes:['id'],
+                include: [
+                    {
+                        model: Posts_Tags,
+                        as: 'postHasManyPosts_Tags',
+                        required:true,
+                        include: [
+                            {
+                                model: Tags,
+                                as: 'post_TagsBelongToTag',
+                                where: [/*{[Op.and]:{content:tags.areaTag}},*/{[Op.or]:{content:tags.contentTag}}], //{ content: {[Op.and]:tags.areaTag,[Op.or]:[]} }
+                                attributes: ['content'],
+                            }
+                        ]
+                    }
+                ],
+                raw:true
+            })
+            console.log(getPostId)
+        }
         //정확히 뭘 찾는가? post는 다 찾아오는데 areaTag가 안맞으면 null로 처리하는가 아니면 맞는거만 가져오는가?
         const areaTagPosts: any = await Posts.findAll({
             include: [
@@ -88,7 +116,7 @@ GROUP BY id
 ;
 서울특별시를 어떻게 구분해 넣을까, 낫태그 어떻게 제외시킬까
         */
-console.log(findAreaPostId)
+//console.log(findAreaPostId)
         if (areaTagPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
             return res.status(200).json(areaTagPosts);
         };
