@@ -49,7 +49,7 @@ describe('e2e-test', () => {
 
   afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
-    //await sequelize.sync({ force: true }); //데이터베이스를 초기화한다.
+    await sequelize.sync({ force: true }); //데이터베이스를 초기화한다.
     sequelize.close();
     console.log('test finish.')
   });
@@ -147,7 +147,7 @@ describe('e2e-test', () => {
       it('올바른 userId가 토큰에 담겨 있으면 user 정보 조회에 성공한다', async () => {
         const resp: any = await request(app).get('/user').set('Cookie', [jwtToken]);
 
-        //expect(resp.status).toEqual(200);
+        expect(resp.status).toEqual(200);
         expect(resp.body).toEqual({ "userId": 1, "nickname": "익명", "area": "인증해주세요", "area2": "인증해주세요", "email": "test@test.com", "manager": false, "socialType": "basic" });
       });
 
@@ -313,8 +313,8 @@ describe('e2e-test', () => {
         const resp: any = await request(app).get('/post').set('Cookie', [jwtToken]).query('size=10').query('page=0').query({ tag: ["서울특별시", "공부", "도서관"] }).query({ notTag: ["게임"] });
 
         expect(resp.status).toEqual(200);
-        //expect(resp.body[0].content).toEqual("testContent");
-        //expect(resp.body[0].tag).toBeTruthy();
+        expect(resp.body[0].content).toEqual("testContent");
+        expect(resp.body[0].tag).toBeTruthy();
       });
 
       it('areaTag가 없으면 빈 배열이 return되어야 한다', async () => {
@@ -329,7 +329,7 @@ describe('e2e-test', () => {
       it('userId에 해당하는 postData가 return되어야 한다', async () => {
         const extraPost: any = await request(app).post('/post').set('Cookie', [jwtToken]).send(postTest2);
         const resp: any = await request(app).get('/post/user').set('Cookie', [jwtToken]);
-
+        
         expect(resp.status).toEqual(200);
         expect(resp.body[0].content).toBeTruthy();
         expect(resp.body[1].content).toBeTruthy();
@@ -339,7 +339,7 @@ describe('e2e-test', () => {
     describe('GET /post/:postId', () => {
       it('해당하는 id의 post가 return되어야 한다', async () => {
         const resp: any = await request(app).get(`/post/${2}`).set('Cookie', [jwtToken]);
-
+        
         expect(resp.status).toEqual(200);
         //expect(resp.body.id).toEqual(2);
       });

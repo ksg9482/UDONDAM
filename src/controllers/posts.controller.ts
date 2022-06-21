@@ -70,7 +70,7 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                 ],
                 raw:true
             })
-            console.log(getPostId)
+            //console.log(getPostId)
         }
         //정확히 뭘 찾는가? post는 다 찾아오는데 areaTag가 안맞으면 null로 처리하는가 아니면 맞는거만 가져오는가?
         const areaTagPosts: any = await Posts.findAll({
@@ -125,7 +125,7 @@ GROUP BY id
         let areaTagpostId = areaTagPosts.map((el: any) => { //areaTagPosts postId만 뽑는다 
             return el.dataValues.postHasManyPosts_Tags.length !== 0 ? el.dataValues.id : null
         }).filter((el: any) => { return el !== null });
-
+        console.log(areaTagpostId, areaTagPosts)
         if (tags.contentTag.length !== 0) { //contentTag에 내용이 있으면 
             const areaPostTags: any = await Posts.findAll({
                 where: {
@@ -338,6 +338,9 @@ const notTagCheck = (tagArr: any) => {
             offset: offset,
             limit: 10
         });
+        //1.낫태그 해당하는 포스트 아이디만 distinct로 뽑음 -> 낫태그 해당 포스트아이디.
+        //2.그거만 NOT IN으로 다 제외
+        //3.근데 이건 비효율적
         //map 분리
         const resPostsMapFunction = (post: any) => {
 
@@ -376,7 +379,7 @@ const notTagCheck = (tagArr: any) => {
 
         return res.status(200).json(resPosts);
     } catch (err) {
-        console.log(err)
+        //console.log(err)
         return res.status(500).json({ "message": "Server Error" })
     };
 };
@@ -469,10 +472,10 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
         const tags = postHasManyPosts_Tags.map((tag: any) => {
             return tag.dataValues.post_TagsBelongToTag.dataValues
         });
-        function sortById(arr: any) {
+        const sortById = (arr: any) => {
             arr.sort((a: any, b: any) => a.id - b.id);
         };
-        let comments = posthasManyComments.map((comment: any) => {
+        const comments = posthasManyComments.map((comment: any) => {
             const {
                 commentsBelongsToUser: {
                     dataValues: user
@@ -480,7 +483,7 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
                 id, content, userId, postId, commentId, createAt
             } = comment.dataValues;
             return { id, content, userId, postId, commentId, createAt, user };
-        }).sortById();
+        }).sort((arr: any) => sortById(arr));
 
         
         //sortById(comments);
@@ -569,7 +572,7 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
                 };
             }
             //comments map 분리
-            comments.map(commentMapFunction);
+            comments.map((el:any)=>commentMapFunction(el));
         };
         if (deleteArr.length !== 0) {
             for (let el of deleteArr) {
