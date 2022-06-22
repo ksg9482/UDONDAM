@@ -49,7 +49,7 @@ describe('e2e-test', () => {
 
   afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
-    await sequelize.sync({ force: true }); //데이터베이스를 초기화한다.
+    //await sequelize.sync({ force: true }); //데이터베이스를 초기화한다.
     sequelize.close();
     console.log('test finish.')
   });
@@ -286,7 +286,12 @@ describe('e2e-test', () => {
         content: "testContent7",
         public: true,
         tag: ["서울특별시", "공원"]
-      }
+      },
+      {
+        content: "testContent8",
+        public: true,
+        tag: ["인천광역시","게임", "공원"]
+      },
     ]
 
     describe('POST /post', () => {

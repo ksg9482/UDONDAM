@@ -18,54 +18,68 @@ export const likesUser = async (req: userIdInRequest, res: Response) => {
     }
 
     else {
-        const [likeUserResult, _] = await sequelize.query(`
-            SELECT posts.id, posts.content, posts.userId, posts.public, posts.createAt, posts.updatedAt, 
-            COUNT(likes.id) AS 'likeCount', 
-            COUNT(comments.id) AS 'CommentCount' 
-            FROM posts AS posts 
-            LEFT OUTER JOIN likes
-            ON posts.id = likes.postId AND likes.userId = ${req.userId} 
-            LEFT OUTER JOIN comments
-            ON posts.id = comments.postId AND comments.userId = ${req.userId}
-            WHERE posts.userId = ${req.userId} 
-            GROUP BY posts.id
-            ORDER BY posts.createAt DESC;
-            `);
-//likeCount, commentCount
-const test = await Posts.findAll({
-    attributes:['id', 'content', 'createAt'],
-    where:{userId:userId},
-    raw:true,
-    include:[{
-        model: Likes,
-        attributes: ['userId'],
-        as: 'postHasManyLikes',
-        where:{userId:userId}
-    },
-    // {
-    //     model: Comments,
-    //     attributes: ['id'],
-    //     as: 'posthasManyComments'
-    // }
-]
-})
-        if (likeUserResult.length === 0) {
-            return res.status(200).json(likeUserResult);
+        const originTempLikeCount:any = await Posts.findAll({
+            attributes: ['id'],
+            include: [{
+                model: Likes,
+                required: true,
+                attributes: ['postId'],
+                as:'postHasManyLikes'
+            }]
+        });
+        //console.log(originTempLikeCount)
+        let tempLikeCount:any = originTempLikeCount.map((item:any) => {
+            //console.log(item)
+            const {postHasManyLikes:likes} = item.dataValues;
+            return {likes:likes};
+        })
+
+        const result = await Posts.findAll({
+
+            include: [{
+                model: Likes,
+                //required: true,
+                attributes: ['postId'],
+                where: {
+                    userId: userInfo.id
+                },
+                as:'postHasManyLikes'
+            },
+            {
+                model: Comments,
+                attributes: ['id'],
+                //required: true,
+                as:'posthasManyComments'
+            }],
+            where: {userId:userInfo.id},
+            order: [['createAt','DESC']],
+            // limit: 10
+        });
+        // let likeCount = await likes.count({ where: {postId: id} });
+        //console.log(tempLikeCount[0].dataValues.postHasManyLikes[0])
+        if(result.length === 0){
+            return res.status(200).json(result);
         }
         else {
-            const responseMapFunction = (post: any) => {
-                let { id, content, createAt, likeCount, CommentCount } = post;
+            let likesCount:any = []; //{likes:[{1},{2}]}
+
+            tempLikeCount.map((count:any) => {
+               // console.log(count)
+                let { likes } = count;
+                likesCount.push(likes.length);
+            })
+
+            const response = result.map((post:any, idx:any) => {
+                let { id, content, createAt, posthasManyComments:comments } = post.dataValues;
                 return {
                     id: id,
                     content: content,
                     createAt: createAt,
-                    likeCount: likeCount,
-                    commentCount: CommentCount
-                };
-            }
-            const response = likeUserResult.map(responseMapFunction);
-            //console.log(likeUserResult, response, test)
-            return res.status(200).json(response);
+                    likeCount: likesCount[idx],
+                    commentCount: comments.length
+                    };
+                });
+                return res.status(200).json(response);
         };
     };
 };

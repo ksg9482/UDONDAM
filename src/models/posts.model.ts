@@ -1,9 +1,12 @@
 import {
   DataTypes,
   Model,
-  Association
+  Association,
+  Op
 } from 'sequelize';
 import sequelize from './index';
+import { Posts_Tags } from './posts_tags.model';
+import { Tags } from './tags.model';
 import { Users } from './users.model';
 
 export interface IpostsAttributes {
@@ -24,6 +27,7 @@ export class Posts extends Model<IpostsAttributes> {
     userHasManyPosts: Association<Users, Posts>,
     postsbelongsToUser: Association<Posts, Users>
   };
+
 };
 
 Posts.init({

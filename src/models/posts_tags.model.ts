@@ -25,6 +25,7 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
        tagHasManyPosts_Tags:Association<Tags, Posts_Tags>;
        post_TagsBelongToTag:Association<Posts_Tags, Tags>;
      };
+     
   };
 
     Posts_Tags.init({

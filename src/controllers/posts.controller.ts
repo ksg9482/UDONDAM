@@ -17,63 +17,22 @@ interface userIdInRequest extends Request {
 }
 
 export const postTag = async (req: userIdInRequest, res: Response) => {
-    
+
     let inputTagArr = req.query.tag ? req.query.tag : null;
     let inputNotTagArr = req.query.notTag ? req.query.notTag : null;
 
     //1개면 string, 2개이상이면 array로 들어오기 때문에 array로 통일
-    if (typeof inputNotTagArr === 'string') { 
+    if (typeof inputNotTagArr === 'string') {
         inputNotTagArr = [inputNotTagArr];
     };
-    
-    const setTagGroup = (inputTagArr: Array<string>) => {
-        const areaTag = [];
-        const contentTag = [];
 
-        for (let tag of inputTagArr) {
-            //'육군' 처럼 area가 아님에도 '군'이나 '시'로 끝나는 태그 식별        
-            isArea(tag) ? areaTag.push(tag) : contentTag.push(tag)
-        }
-
-        return { areaTag, contentTag }
-    }
-
-    const tags = setTagGroup(inputTagArr)
-
-    //사실상 여기부터 정리.
-   
-    //구체적으로: 태그에 해당하는 포스트를 불러와야 한다
-    //해당하는 태그가 하나라도 있다면 가져와야 하고
-    //notTag는 검색결과에서 제외해야 한다.
+    const tags = Tags.setTagGroup(inputTagArr)
     try {
+
        
-        if(tags) {
-            const query = tags.contentTag 
-            ? { content: {[Op.in]:tags.areaTag} }
-            : { content: {[Op.in]:tags.areaTag} } //여기에 추가 조건
-            const getPostId = await Posts.findAll({
-                attributes:['id'],
-                include: [
-                    {
-                        model: Posts_Tags,
-                        as: 'postHasManyPosts_Tags',
-                        required:true,
-                        include: [
-                            {
-                                model: Tags,
-                                as: 'post_TagsBelongToTag',
-                                where: [/*{[Op.and]:{content:tags.areaTag}},*/{[Op.or]:{content:tags.contentTag}}], //{ content: {[Op.and]:tags.areaTag,[Op.or]:[]} }
-                                attributes: ['content'],
-                            }
-                        ]
-                    }
-                ],
-                raw:true
-            })
-            //console.log(getPostId)
-        }
         //정확히 뭘 찾는가? post는 다 찾아오는데 areaTag가 안맞으면 null로 처리하는가 아니면 맞는거만 가져오는가?
         const areaTagPosts: any = await Posts.findAll({
+            attributes:[],
             include: [
                 {
                     model: Posts_Tags,
@@ -90,42 +49,83 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
             ]
         });
         const findAreaPostId: any = await Posts.findAll({
-            attributes:['id',['content','postContent']],
+            attributes: ['id', ['content', 'postContent']],
             include: [
                 {
                     model: Posts_Tags,
-                    attributes:['id','postId','tagId'],
+                    attributes: ['id', 'postId', 'tagId'],
                     as: 'postHasManyPosts_Tags',
-                    required:true,
+                    //required: true,
                     include: [
                         {
                             model: Tags,
                             as: 'post_TagsBelongToTag',
                             where: { content: tags.areaTag },
-                            attributes: [['content','tagContent']],//,required:true
+                            attributes: [['content', 'tagContent']],//,required:true
                         }
                     ]
                 }
             ]
-        ,raw:true});
-        /*
-SELECT posts.id, posts.content, posts.userId, posts.public, GROUP_CONCAT(tags.content) FROM posts
-JOIN posts_tags ON postId = posts.id
-JOIN tags ON posts_tags.tagId = tags.id
-GROUP BY id
-;
-서울특별시를 어떻게 구분해 넣을까, 낫태그 어떻게 제외시킬까
-        */
-//console.log(findAreaPostId)
+            , raw: true
+        });
+        const save = tags.areaTag.concat(tags.contentTag)
+        const findPostId_OR = async (tagArr:string[]) => {
+            const result = await Posts_Tags.findAll({
+                attributes:['postId'],
+                include:[
+                    {
+                        model: Posts,
+                        as: 'posts_TagsBelongToPost',
+                        attributes: [/*['content', 'postContent']*/]   
+                    },
+                    {
+                        model: Tags,
+                        as: 'post_TagsBelongToTag',
+                        where: { content:{[Op.in]:tagArr} },
+                        attributes: [/*[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]*/],
+                        
+                    }
+                ],
+                raw:true,
+                group:['postId']
+            })
+
+            return result
+        }
+        //test에 맞는 아이디만 반환되면 태그 검색 했을 때 맞는 태그만 나올것.
+        const targetPostId = await findPostId_OR(tags.areaTag.concat(tags.contentTag)).then((result) => result.map((post:any)=>{return post.postId}))
+        
+        const matchedPost = await Posts_Tags.findAll({
+            attributes:['postId'],
+            where:{postId:{[Op.in]:targetPostId}},
+            include:[
+                {
+                    model: Posts,
+                    as: 'posts_TagsBelongToPost',
+                    attributes: [/*['content', 'postContent']*/],
+                },
+                {
+                    model: Tags,
+                    as: 'post_TagsBelongToTag',
+                    attributes: [[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]],
+                    
+                }
+            ],
+            raw:true,
+            group:['postId'],
+            logging:true
+        })
+        console.log(matchedPost)
         if (areaTagPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
             return res.status(200).json(areaTagPosts);
         };
-//왠지 postId만 뽑는다. 왜 따로 뽑아서 재검색하는지?
-//null 나오는건 inner join이 아니여서. orm바꾸면?
+
         let areaTagpostId = areaTagPosts.map((el: any) => { //areaTagPosts postId만 뽑는다 
-            return el.dataValues.postHasManyPosts_Tags.length !== 0 ? el.dataValues.id : null
+            
+            return el.dataValues.postHasManyPosts_Tags.length !== 0 ? el.dataValues.postHasManyPosts_Tags[0].dataValues.postId : null
         }).filter((el: any) => { return el !== null });
-        console.log(areaTagpostId, areaTagPosts)
+        
+
         if (tags.contentTag.length !== 0) { //contentTag에 내용이 있으면 
             const areaPostTags: any = await Posts.findAll({
                 where: {
@@ -145,120 +145,68 @@ GROUP BY id
                     }
                 ]
             });
-//왠지 postId만 뽑는다. 왜 따로 뽑아서 재검색하는지?
-           
-            const test1 = await Posts.findAll({raw:true,
-                include: [
-                    {
-                        model: Posts_Tags,
-                        as: 'postHasManyPosts_Tags',
-                        include: [
-                            {
-                                model: Tags,
-                                as: 'post_TagsBelongToTag',
-                                where: { content: tags.areaTag },
-                                attributes: ['content'],
-                            }
-                        ]
-                    }
-                ]
-            });
-            const test2 = await Posts.findAll({raw:true,
-                where: {
-                    id: areaTagpostId //areaTag에 해당하는 post만 뽑는다
-                },
-                include: [
-                    {
-                        model: Posts_Tags,
-                        as: 'postHasManyPosts_Tags',
-                        include: [
-                            {
-                                model: Tags,
-                                as: 'post_TagsBelongToTag',
-                                attributes: ['content'], //tag도 뽑는다
-                            }
-                        ]
-                    }
-                ]
-            });
-            //console.log('test1 - ',test1,'test2 - ', test2)
-             //filter 조건함수 분리
-             
-            const filterFunction = (el: any) => {
-                const inputData = el.dataValues.postHasManyPosts_Tags.map((el: any) => {
-                    return el.dataValues.post_TagsBelongToTag.dataValues;
-                });
-                //이건 도대체 뭘 어떻게 바꾸는지?
-                
-                const createTagArr = () => {
 
-                }
-        const tagArr:any = [];
-                const testTagArr = createTagArr()
-//태그가 컨텐츠 태그만 있는지 확인. 앞에서 분류 했을 텐데?
-                const tagCheck = (inputData: any) => {
-                    let result = false;
-                    //태그 배열에 넣기와 태그 체크. 2가지 책임을 갖음
-                    for (let tag of inputData) {
-                        tagArr.push(tag.content) //tagArr에 tag내용을 넣는다
-                        if (tag.content[tag.content.length - 1] !== '시' && tag[tag.content.length - 1] !== '군') { //만약 tag내용이 areaTag가 아니라면
-                            for (let el of tags.contentTag) {
-                                if (el === tag.content) {
-                                    result = true;
-                                };
-                            };
-                        };
-                    };
-                    return result;
-                };
-                // let tagCheck = false;
-                
-                // for (let tag of inputData) {
-                //     tagArr.push(tag.content) //tagArr에 tag내용을 넣는다
-                //     if (tag.content[tag.content.length - 1] !== '시' && tag[tag.content.length - 1] !== '군') { //만약 tag내용이 areaTag가 아니라면
-                //         for (let el of tags.contentTag) {
-                //             if (el === tag.content) {
-                //                 tagCheck = true;
-                //             };
-                //         };
-                //     };
-                // };
-//태그랑 낫태그랑 비교해서 겹치는게 있나 확인. 태그체크가 다 true면 그거만 필터링
-const notTagCheck = (tagArr: any) => {
-    let result = true;
-    for (let el of tagArr) {
-        for (let not of inputNotTagArr) { //notTag가 존재한다면
-            if (not === el) {
-                result = false;
-            };
-        };
-    };
-    //notTag와 el이 겹치지 않아야 true 리턴
-    return result;
-};
-                if (inputNotTagArr) {
-                    // let notTagCheck = true;
-                    // for (let el of tagArr) {
-                    //     for (let not of inputNotTagArr) { //notTag가 존재한다면
-                    //         if (not === el) {
-                    //             notTagCheck = false;
-                    //         };
-                    //     };
-                    // };
-                    //notTag에 해당하지 않는다.
-                    return tagCheck(inputData) === true && notTagCheck(tagArr) === true;
-                }
-                return tagCheck(inputData) === true;
-            }
+            // const postTagsFilter = (el: any) => {
+            //     const inputData = el.dataValues.postHasManyPosts_Tags.map((el: any) => {
+            //         return el.dataValues.post_TagsBelongToTag.dataValues;
+            //     });
+            //     //이건 도대체 뭘 어떻게 바꾸는지?
+
+            //     const tagArr: any = [];
+
+            //     //태그가 컨텐츠 태그만 있는지 확인. 앞에서 분류 했을 텐데?
+            //     const tagCheck = (inputData: any) => {
+            //         let result = false;
+            //         //태그 배열에 넣기와 태그 체크. 2가지 책임을 갖음
+            //         for (let tag of inputData) {
+            //             tagArr.push(tag.content) //tagArr에 tag내용을 넣는다
+            //             if (tag.content[tag.content.length - 1] !== '시' && tag[tag.content.length - 1] !== '군') { //만약 tag내용이 areaTag가 아니라면
+            //                 for (let el of tags.contentTag) {
+            //                     if (el === tag.content) {
+            //                         result = true;
+            //                     };
+            //                 };
+            //             };
+            //         };
+            //         return result;
+            //     };
+
+            //     //태그랑 낫태그랑 비교해서 겹치는게 있나 확인. 태그체크가 다 true면 그거만 필터링
+            //     const notTagCheck = (tagArr: any) => {
+            //         let result = true;
+            //         for (let el of tagArr) {
+            //             for (let not of inputNotTagArr) { //notTag가 존재한다면
+            //                 if (not === el) {
+            //                     result = false;
+            //                 };
+            //             };
+            //         };
+            //         //notTag와 el이 겹치지 않아야 true 리턴
+            //         return result;
+            //     };
+            //     if (inputNotTagArr) {
+            //         // let notTagCheck = true;
+            //         // for (let el of tagArr) {
+            //         //     for (let not of inputNotTagArr) { //notTag가 존재한다면
+            //         //         if (not === el) {
+            //         //             notTagCheck = false;
+            //         //         };
+            //         //     };
+            //         // };
+            //         //notTag에 해당하지 않는다.
+            //         return tagCheck(inputData) === true && notTagCheck(tagArr) === true;
+            //     }
+            //     return tagCheck(inputData) === true;
+            // }
             //filter 조건함수 분리
-            const postTags = areaPostTags.filter((el:any) => filterFunction(el));
-
+            const postTags = areaPostTags//.filter((el: any) => postTagsFilter(el));
+//console.log(postTags, areaPostTags)
             areaTagpostId = postTags.map((el: any) => {
                 return el.dataValues.id;
             });
         };
-//낫태그가 들어왔고, 컨텐츠태그는 없으면 에리어태그만 검색해서 낫 태그 없는거만 필터링
-//이거 ORM으로 못하는지?
+        //낫태그가 들어왔고, 컨텐츠태그는 없으면 에리어태그만 검색해서 낫 태그 없는거만 필터링
+        //이거 ORM으로 못하는지?
         if (inputNotTagArr && tags.contentTag.length === 0) {
             const areaNotTags = await Posts.findAll({
                 where: {
@@ -272,25 +220,25 @@ const notTagCheck = (tagArr: any) => {
                 ]
             });
             //areaNotTagFilter 필터 분리
-            const areaNotTagFilterFunction = (el: any) => {
-                const { tags } = el.dataValues;
-                let notCheck = true;
-                for (let el of tags) {
-                    for (let not of inputNotTagArr) {
-                        if (el.content === not) {
-                            notCheck = false;
-                        };
-                    };
-                };
-                return notCheck === true;
-            }
+            // const areaNotTagFilterFunction = (el: any) => {
+            //     const { tags } = el.dataValues;
+            //     let notCheck = true;
+            //     for (let el of tags) {
+            //         for (let not of inputNotTagArr) {
+            //             if (el.content === not) {
+            //                 notCheck = false;
+            //             };
+            //         };
+            //     };
+            //     return notCheck === true;
+            // }
             //areaNotTagFilter 필터 분리
-            const areaNotTagFilter = areaNotTags.filter((el:any) => areaNotTagFilterFunction(el));
+            const areaNotTagFilter = areaNotTags//.filter((el: any) => areaNotTagFilterFunction(el));
             areaTagpostId = areaNotTagFilter.map((el: any) => {
                 return el.id;
             });
         }; //notTag 관련
-//최종적으로 나오게 할 결과물을 10개씩 끊어서 검색. 그걸 map으로 폼 맞춰서 반환.
+        //최종적으로 나오게 할 결과물을 10개씩 끊어서 검색. 그걸 map으로 폼 맞춰서 반환.
         //페이지네이션 용도
         let page = Number(req.query.page);
         //let size = Number(req.query.size);
@@ -375,7 +323,7 @@ const notTagCheck = (tagArr: any) => {
             };
         }
         //map 분리
-        const resPosts = posts.map((el:any) => resPostsMapFunction(el));
+        const resPosts = posts.map((el: any) => resPostsMapFunction(el));
 
         return res.status(200).json(resPosts);
     } catch (err) {
@@ -385,31 +333,60 @@ const notTagCheck = (tagArr: any) => {
 };
 
 export const postUser = async (req: userIdInRequest, res: Response) => {
+    const posts = await Posts.findAll({
+        attributes: ['id', 'content', 'createAt'],
+        where: {
+            userId: req.userId
+        },
+        include: [
+            {
+                model: Likes,
+                attributes: ['id'],
+                as: 'postHasManyLikes'
+            },
+            {
+                model: Comments,
+                attributes: ['id'],
+                as: 'posthasManyComments',
 
-    const [postUserResults, _] = await sequelize.query(
-        `SELECT posts.id, posts.content, posts.createAt,
-        COUNT(likes.id) AS likeCount,
-        COUNT(comments.id) AS commentCount
-        FROM posts 
-        LEFT OUTER JOIN likes 
-        ON posts.id = likes.postId
-        LEFT OUTER JOIN comments
-        ON posts.id = comments.postId
-        WHERE posts.userId = ${req.userId}
-        GROUP BY posts.id
-        ORDER BY posts.createAt DESC;`
-    );
+            }
+        ],
+        order: [['createAt', 'DESC']]
+    });
+    // const [postUserResults, _] = await sequelize.query(
+    //     `SELECT posts.id, posts.content, posts.createAt,
+    //     COUNT(likes.id) AS likeCount,
+    //     COUNT(comments.id) AS commentCount
+    //     FROM posts 
+    //     LEFT OUTER JOIN likes 
+    //     ON posts.id = likes.postId
+    //     LEFT OUTER JOIN comments
+    //     ON posts.id = comments.postId
+    //     WHERE posts.userId = ${req.userId}
+    //     GROUP BY posts.id
+    //     ORDER BY posts.createAt DESC;`
+    // );
 
-    if (postUserResults.length === 0) {
-        return res.status(200).json(postUserResults);
+    if (posts.length === 0) {
+        return res.status(200).json(posts);
     };
-
-    res.status(200).send(postUserResults);
+    let resPosts: any = [];
+    posts.map((post: any) => {
+        const { id, content, createAt, postHasManyLikes: likes, posthasManyComments: comments } = post;
+        resPosts.push({
+            id: id,
+            content: content,
+            createAt: createAt,
+            likeCount: !likes ? 0 : likes.length,
+            commentCount: comments.length
+        })
+    })
+    res.status(200).send(resPosts);
 };
 
 export const postPick = async (req: userIdInRequest, res: Response) => {
     const postId = req.params.postId;
-    
+
     try {
         const postPick: any = await Posts.findOne({
             where: {
@@ -445,7 +422,7 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
                         }
                     ],
                     as: 'posthasManyComments'
-    
+
                 },
                 {
                     model: Likes,
@@ -485,7 +462,7 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
             return { id, content, userId, postId, commentId, createAt, user };
         }).sort((arr: any) => sortById(arr));
 
-        
+
         //sortById(comments);
 
         let tag = [];
@@ -572,7 +549,7 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
                 };
             }
             //comments map 분리
-            comments.map((el:any)=>commentMapFunction(el));
+            comments.map((el: any) => commentMapFunction(el));
         };
         if (deleteArr.length !== 0) {
             for (let el of deleteArr) {
@@ -630,7 +607,7 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
                 where: {
                     content: el
                 },
-                raw:true
+                raw: true
             });
             //console.log(data)
             const tagId = data[0].id;
@@ -645,7 +622,7 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
         return res.status(201).json({ "message": "create!" });
 
     } catch (err) {
-        return res.status(500).send({"message": "Couldn't Create Post "});
+        return res.status(500).send({ "message": "Couldn't Create Post " });
     };
 
 };
@@ -666,3 +643,4 @@ export const postDelete = async (req: userIdInRequest, res: Response) => {
         return res.status(500).send("Coudn't Delete Post");
     };
 };
+

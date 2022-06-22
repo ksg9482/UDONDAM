@@ -3,6 +3,10 @@ import {
   Model
 } from 'sequelize';
 import sequelize from './index';
+import { Posts_Tags } from './posts_tags.model';
+import { Op } from 'sequelize'
+import { Posts } from './posts.model';
+import { isArea } from '../controllers/common/area/areaHandle';
 
 export interface ItagsAttributes {
   id?: number,
@@ -15,6 +19,19 @@ export class Tags extends Model<ItagsAttributes> {
   content?: string;
 
   public static associations: {};
+
+  static setTagGroup = (inputTagArr: Array<string>) => {
+    const areaTag = [];
+    const contentTag = [];
+
+    for (let tag of inputTagArr) {
+        //'육군' 처럼 area가 아님에도 '군'이나 '시'로 끝나는 태그 식별        
+        isArea(tag) ? areaTag.push(tag) : contentTag.push(tag)
+    }
+
+    return { areaTag, contentTag }
+}
+  
 };
 
 
