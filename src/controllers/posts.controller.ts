@@ -17,7 +17,7 @@ interface userIdInRequest extends Request {
 }
 
 export const postTag = async (req: userIdInRequest, res: Response) => {
-
+    const userId = req.userId!
     let inputTagArr = req.query.tag ? req.query.tag : null;
     let inputNotTagArr = req.query.notTag ? req.query.notTag : null;
 
@@ -48,28 +48,15 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                 }
             ]
         });
-        const findAreaPostId: any = await Posts.findAll({
-            attributes: ['id', ['content', 'postContent']],
-            include: [
-                {
-                    model: Posts_Tags,
-                    attributes: ['id', 'postId', 'tagId'],
-                    as: 'postHasManyPosts_Tags',
-                    //required: true,
-                    include: [
-                        {
-                            model: Tags,
-                            as: 'post_TagsBelongToTag',
-                            where: { content: tags.areaTag },
-                            attributes: [['content', 'tagContent']],//,required:true
-                        }
-                    ]
-                }
-            ]
-            , raw: true
-        });
-        const save = tags.areaTag.concat(tags.contentTag)
+        
+//이걸로 아이디 찾기
         const findPostId_OR = async (tagArr:string[]) => {
+            //만약 AND연산이 필요하면 having을 tagArr.length로 설정하면 된다.
+            const countCheck = 2 //컨텐츠태그가 들어오면 지역+컨텐츠 해서 2개이상.
+            const having = tagArr.length > 1 
+            ? sequelize.literal(`count(postId) >= ${countCheck}`) //컨텐츠 태그가 들어오면 컨텐츠가 있는것만 필터링
+            : sequelize.literal(`count(postId) >= ${1}`)
+            
             const result = await Posts_Tags.findAll({
                 attributes:['postId'],
                 include:[
@@ -82,19 +69,25 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                         model: Tags,
                         as: 'post_TagsBelongToTag',
                         where: { content:{[Op.in]:tagArr} },
-                        attributes: [/*[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]*/],
+                        attributes: [[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]],
                         
                     }
                 ],
                 raw:true,
-                group:['postId']
+                group:['postId'],
+                having: having
             })
 
             return result
-        }
+        };
         //test에 맞는 아이디만 반환되면 태그 검색 했을 때 맞는 태그만 나올것.
-        const targetPostId = await findPostId_OR(tags.areaTag.concat(tags.contentTag)).then((result) => result.map((post:any)=>{return post.postId}))
-        
+//이걸로 아이디에 맞는 포스트 찾기
+        const targetPostId:number[] = await findPostId_OR(inputTagArr).then((result) => result.map((post:any)=>{return post.postId}));       
+        /*
+        commentCount
+        likeCount
+        likeCheck
+        */
         const matchedPost = await Posts_Tags.findAll({
             attributes:['postId'],
             where:{postId:{[Op.in]:targetPostId}},
@@ -102,20 +95,106 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                 {
                     model: Posts,
                     as: 'posts_TagsBelongToPost',
-                    attributes: [/*['content', 'postContent']*/],
+                    attributes: [['content', 'postContent'], 'public', 'createAt'],
+                    include:[
+                        {
+                            model: Users,
+                            as: 'postsbelongsToUser',
+                            attributes: ['nickname'],
+                            required: true,
+                        },
+                        // {
+                        //     model: Likes,
+                        //     as: 'postHasManyLikes',//likeCount
+                        //     attributes: {
+                        //         include:[
+                        //             //tag에 맞춰서 검출되는 게 늘어남. userId가 3개 나오니 count도 3됨
+                        //             [sequelize.fn("COUNT", sequelize.col(`posts_TagsBelongToPost->postHasManyLikes.userId`)), "likeCount"],
+                        //         ]
+                        //     },
+                        // },
+                        // {
+                        //     model: Comments,
+                        //     as: 'posthasManyComments',
+                        //     //attributes: ['content'],//commentCount
+                        //     attributes: {
+                        //         include:['id',
+                        //             [sequelize.fn("COUNT", sequelize.col(`posts_TagsBelongToPost->posthasManyComments.content`)), "commentCount"],
+                        //         ]
+                        //     },
+                        // },
+                    ]
                 },
                 {
                     model: Tags,
                     as: 'post_TagsBelongToTag',
                     attributes: [[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]],
-                    
                 }
             ],
             raw:true,
-            group:['postId'],
-            logging:true
-        })
-        console.log(matchedPost)
+            //
+            group:['postId']
+        });
+//like랑 comment 분리하자. 왜? 서로 결과값 여러개 나오는게 많아서 같은 내용을 여러번 읽음.
+
+//matchedComment 이건 findAll로 내용이랑 갯수. comment에서 재활용(findandCountAll은 IN으로 읽으면 그거 다 읽음)
+
+//matchedLike 이건 Count만. 내가 like했는지 어떻게 확인?
+        // const matchedComment = await Comments.findAll({
+        //     raw:true,
+        //     where:{postId:{[Op.in]:targetPostId}},
+        //     include:[
+        //         {
+        //             model:Users,
+        //             as:'commentsBelongsToUser',
+        //             attributes:['nickname']
+        //         }
+        //     ],
+        //     //attributes:[],//'postId', 'userId'
+        //     logging:true,
+        //     order:['postId']
+        //     //group:'postId'
+        // });
+        const getmachedComment = await Comments.matchedComment(targetPostId)
+        console.log(getmachedComment)
+        //console.log(matchedComment) 
+        /*
+        {
+        id: 1,
+        content: 'testComment1',
+        userId: 2,
+        postId: 2,
+        commentId: null,
+        createAt: 2022-06-23T08:29:46.000Z,
+        updatedAt: 2022-06-23T08:29:46.000Z
+      }
+        */
+        // const matchedLike = await Likes.findAll({
+        //     where: { postId: { [Op.in]: targetPostId } },
+        //     attributes: {
+        //         include: [
+        //             //tag에 맞춰서 검출되는 게 늘어남. userId가 3개 나오니 count도 3됨
+        //             [sequelize.fn("COUNT", sequelize.col('userId')), "likeCount"],
+        //         ],
+        //         exclude:['id', 'createAt', 'updatedAt', 'userId']
+        //     },
+        //     raw: true,
+        //     group: ['postId'],
+        //     logging:true
+        // })
+        const matchedLike = await Likes.matchedLike(targetPostId);
+       
+//isLiked 이건 userId랑 postId 입력하면 like했는지 확인. like에서 재활용
+        // const isLiked = async (userId: number) => {
+        //     const result = await Likes.findOne({
+        //         attributes:['userId'],
+        //         where:{userId: userId}
+        //     });
+
+        //     return result ? true : false
+        // };
+const likeCheck = await Likes.isLiked(userId); //이거 오버랩체크랑 뭐가 다른지?
+
         if (areaTagPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
             return res.status(200).json(areaTagPosts);
         };
@@ -286,6 +365,7 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
             offset: offset,
             limit: 10
         });
+        //console.log(posts)
         //1.낫태그 해당하는 포스트 아이디만 distinct로 뽑음 -> 낫태그 해당 포스트아이디.
         //2.그거만 NOT IN으로 다 제외
         //3.근데 이건 비효율적

@@ -1,7 +1,8 @@
 import {
   DataTypes,
   Model,
-  Association
+  Association,
+  Op
 } from 'sequelize';
 import sequelize from './index';
 import { Posts } from './posts.model';
@@ -32,6 +33,23 @@ export class Comments extends Model<IcommentsAttributes>{
     commentsBelongsToPost: Association<Comments, Posts>,
   };
 
+  static matchedComment = async (targetPostId: number[]) => {
+    const result = await this.findAll({
+      raw: true,
+      where: { postId: { [Op.in]: targetPostId } },
+      include: [
+        {
+          model: Users,
+          as: 'commentsBelongsToUser',
+          attributes: ['nickname']
+        }
+      ],
+      logging: true,
+      order: [['postId', 'DESC']]
+    });
+    
+    return result;
+  };
 
 };
 

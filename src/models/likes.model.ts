@@ -1,7 +1,8 @@
 import {
   DataTypes,
   Model,
-  Association
+  Association,
+  Op
 } from 'sequelize';
 import sequelize from './index';
 import { Posts } from './posts.model';
@@ -35,7 +36,34 @@ export class Likes extends Model<IlikesAttributes> {
       }
     });
 
-    return result? true : false;
+    return result ? true : false;
+  };
+
+  static isLiked = async (userId: number) => {
+    const result = await this.findOne({
+      attributes: ['userId'],
+      where: { userId: userId },
+      raw:true
+    });
+console.log(result)
+    return result ? true : false
+  };
+
+  static matchedLike = async (targetPostId: number[]) => {
+    const result = await Likes.findAll({
+      where: { postId: { [Op.in]: targetPostId } },
+      attributes: {
+        include: [
+          //tag에 맞춰서 검출되는 게 늘어남. userId가 3개 나오니 count도 3됨
+          [sequelize.fn("COUNT", sequelize.col('userId')), "likeCount"],
+        ],
+        exclude: ['id', 'createAt', 'updatedAt', 'userId']
+      },
+      raw: true,
+      group: ['postId'],
+      logging: true
+    })
+    return result;
   };
 };
 

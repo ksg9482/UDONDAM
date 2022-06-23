@@ -49,7 +49,7 @@ describe('e2e-test', () => {
 
   afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
-    //await sequelize.sync({ force: true }); //데이터베이스를 초기화한다.
+    await sequelize.sync({ force: true }); //데이터베이스를 초기화한다.
     sequelize.close();
     console.log('test finish.')
   });
@@ -248,12 +248,12 @@ describe('e2e-test', () => {
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 100));
     }))
     const postTest = {
-      content: "testContent",
+      content: "testContent1",
       public: true,
       tag: ["서울특별시", "공부", "도서관"]
     };
     const postTest2 = {
-      content: "testContent2",
+      content: "검색용으로 들어감",
       public: true,
       tag: ["서울특별시", "게임", "공원"]
     };
@@ -263,35 +263,72 @@ describe('e2e-test', () => {
     }
     const testPosts = [
       {
-        content: "testContent3",
+        content: "testContent2",
         public: true,
         tag: ["서울특별시", "게임", "공원"]
       },
       {
-        content: "testContent4",
+        content: "testContent3",
         public: true,
         tag: ["인천광역시"]
       },
       {
-        content: "testContent5",
+        content: "testContent4",
         public: true,
         tag: ["서울특별시"]
       },
       {
-        content: "testContent6",
+        content: "testContent5",
         public: true,
         tag: ["서울특별시", "게임"]
       },
       {
-        content: "testContent7",
+        content: "testContent6",
         public: true,
         tag: ["서울특별시", "공원"]
       },
       {
-        content: "testContent8",
+        content: "testContent7",
         public: true,
-        tag: ["인천광역시","게임", "공원"]
+        tag: ["인천광역시","게임", "도서관"]
       },
+    ];
+    const testComment = [
+      {
+        postId: 2,
+        content: 'testComment1',
+        commentId: null
+      },
+      {
+        postId: 2,
+        content: 'testComment2',
+        commentId: null
+      },
+      {
+        postId: 5,
+        content: 'testComment3',
+        commentId: null
+      },
+      {
+        postId: 6,
+        content: 'testComment4',
+        commentId: null
+      },
+      {
+        postId: 2,
+        content: 'testReComment1',
+        commentId: 1
+      },
+      {
+        postId: 2,
+        content: 'testReComment2',
+        commentId: 2
+      },
+      {
+        postId: 5,
+        content: 'testReComment3',
+        commentId: 3
+      }
     ]
 
     describe('POST /post', () => {
@@ -301,6 +338,11 @@ describe('e2e-test', () => {
         for(let post of testPosts) {
           await request(app).post('/post').set('Cookie', [jwtToken]).send(post);
         }
+        for(let comment of testComment) {
+          await request(app).post('/comment').set('Cookie', [jwtToken]).send(comment);
+        }
+        await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
+        
         expect(resp.status).toEqual(201)
         expect(resp.body).toEqual({ "message": "create!" })
       });
@@ -315,7 +357,7 @@ describe('e2e-test', () => {
     });
     describe('GET /post', () => {
       it('정상적인 데이터를 보내면 성공해야 한다', async () => {
-        const resp: any = await request(app).get('/post').set('Cookie', [jwtToken]).query('size=10').query('page=0').query({ tag: ["서울특별시", "공부", "도서관"] }).query({ notTag: ["게임"] });
+        const resp: any = await request(app).get('/post').set('Cookie', [jwtToken]).query('size=10').query('page=0').query({ tag: ["서울특별시", "게임", "공원"] }).query({ notTag: ["도서관"] });
 
         expect(resp.status).toEqual(200);
         expect(resp.body[0].content).toEqual("testContent");
@@ -387,26 +429,7 @@ describe('e2e-test', () => {
 
     describe('GET /likes', () => {
       it('해당하는 userId가 like처리한 post를 알 수 있어야 한다', async () => {
-        // const testData = [{
-        //   postId: 1,
-        //   content: 'testComment2',
-        //   commentId: null
-        // }, {
-        //   postId: 1,
-        //   content: 'testComment3',
-        //   commentId: null
-        // }, {
-        //   postId: 1,
-        //   content: 'testReComment2!',
-        //   commentId: 1
-        // },{
-        //   postId: 1,
-        //   content: 'testReComment3!',
-        //   commentId: 1
-        // }]
-        // for (let data of testData) {
-        //   await request(app).post('/comment').set('Cookie', [jwtToken]).send(data);
-        // }
+        
         const resp: any = await request(app).get('/likes').set('Cookie', [jwtToken]);
         
         expect(resp.status).toEqual(200);
@@ -444,6 +467,7 @@ describe('e2e-test', () => {
       content: 'testReComment!',
       commentId: 1
     };
+    
 
 
 
