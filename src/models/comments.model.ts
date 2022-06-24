@@ -36,6 +36,7 @@ export class Comments extends Model<IcommentsAttributes>{
   static matchedComment = async (targetPostId: number[]) => {
     const result = await this.findAll({
       raw: true,
+      attributes:["id",["content","comment"],"userId","postId","commentId","createAt"],
       where: { postId: { [Op.in]: targetPostId } },
       include: [
         {
@@ -47,7 +48,7 @@ export class Comments extends Model<IcommentsAttributes>{
       logging: true,
       order: [['postId', 'DESC']]
     });
-    
+
     return result;
   };
 

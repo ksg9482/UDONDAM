@@ -335,13 +335,13 @@ describe('e2e-test', () => {
       it('정상적인 데이터를 보내면 성공해야 한다', async () => {
         const resp: any = await request(app).post('/post').set('Cookie', [jwtToken]).send(postTest);
 
-        for(let post of testPosts) {
-          await request(app).post('/post').set('Cookie', [jwtToken]).send(post);
-        }
-        for(let comment of testComment) {
-          await request(app).post('/comment').set('Cookie', [jwtToken]).send(comment);
-        }
-        await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
+        // for(let post of testPosts) {
+        //   await request(app).post('/post').set('Cookie', [jwtToken]).send(post);
+        // }
+        // for(let comment of testComment) {
+        //   await request(app).post('/comment').set('Cookie', [jwtToken]).send(comment);
+        // }
+        // await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
         
         expect(resp.status).toEqual(201)
         expect(resp.body).toEqual({ "message": "create!" })

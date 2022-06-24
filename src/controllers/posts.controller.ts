@@ -49,12 +49,11 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
             ]
         });
         
-//이걸로 아이디 찾기
         const findPostId_OR = async (tagArr:string[]) => {
             //만약 AND연산이 필요하면 having을 tagArr.length로 설정하면 된다.
-            const countCheck = 2 //컨텐츠태그가 들어오면 지역+컨텐츠 해서 2개이상.
+            const countCheck = 2 //컨텐츠태그가 들어오면 지역+컨텐츠 해서 2개이상. tagArr.length일 경우 3개 들어오면 강제로 AND됨
             const having = tagArr.length > 1 
-            ? sequelize.literal(`count(postId) >= ${countCheck}`) //컨텐츠 태그가 들어오면 컨텐츠가 있는것만 필터링
+            ? sequelize.literal(`count(postId) >= ${countCheck}`)
             : sequelize.literal(`count(postId) >= ${1}`)
             
             const result = await Posts_Tags.findAll({
@@ -83,12 +82,9 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
         //test에 맞는 아이디만 반환되면 태그 검색 했을 때 맞는 태그만 나올것.
 //이걸로 아이디에 맞는 포스트 찾기
         const targetPostId:number[] = await findPostId_OR(inputTagArr).then((result) => result.map((post:any)=>{return post.postId}));       
-        /*
-        commentCount
-        likeCount
-        likeCheck
-        */
-        const matchedPost = await Posts_Tags.findAll({
+        
+        //like랑 comment 분리. 결과값 여러개 나오는게 많아서 같은 내용이 여기저기 참조됨.
+        const matchedPostAndTag = await Posts_Tags.findAll({
             attributes:['postId'],
             where:{postId:{[Op.in]:targetPostId}},
             include:[
@@ -102,27 +98,7 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                             as: 'postsbelongsToUser',
                             attributes: ['nickname'],
                             required: true,
-                        },
-                        // {
-                        //     model: Likes,
-                        //     as: 'postHasManyLikes',//likeCount
-                        //     attributes: {
-                        //         include:[
-                        //             //tag에 맞춰서 검출되는 게 늘어남. userId가 3개 나오니 count도 3됨
-                        //             [sequelize.fn("COUNT", sequelize.col(`posts_TagsBelongToPost->postHasManyLikes.userId`)), "likeCount"],
-                        //         ]
-                        //     },
-                        // },
-                        // {
-                        //     model: Comments,
-                        //     as: 'posthasManyComments',
-                        //     //attributes: ['content'],//commentCount
-                        //     attributes: {
-                        //         include:['id',
-                        //             [sequelize.fn("COUNT", sequelize.col(`posts_TagsBelongToPost->posthasManyComments.content`)), "commentCount"],
-                        //         ]
-                        //     },
-                        // },
+                        }
                     ]
                 },
                 {
@@ -132,58 +108,45 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                 }
             ],
             raw:true,
-            //
-            group:['postId']
+            group:['postId'],
+            order: [['postId', 'DESC']]
         });
-//like랑 comment 분리하자. 왜? 서로 결과값 여러개 나오는게 많아서 같은 내용을 여러번 읽음.
 
-//matchedComment 이건 findAll로 내용이랑 갯수. comment에서 재활용(findandCountAll은 IN으로 읽으면 그거 다 읽음)
+        const getmachedComment = await Comments.matchedComment(targetPostId);
 
-//matchedLike 이건 Count만. 내가 like했는지 어떻게 확인?
-        // const matchedComment = await Comments.findAll({
-        //     raw:true,
-        //     where:{postId:{[Op.in]:targetPostId}},
-        //     include:[
-        //         {
-        //             model:Users,
-        //             as:'commentsBelongsToUser',
-        //             attributes:['nickname']
-        //         }
-        //     ],
-        //     //attributes:[],//'postId', 'userId'
-        //     logging:true,
-        //     order:['postId']
-        //     //group:'postId'
-        // });
-        const getmachedComment = await Comments.matchedComment(targetPostId)
-        console.log(getmachedComment)
-        //console.log(matchedComment) 
-        /*
-        {
-        id: 1,
-        content: 'testComment1',
-        userId: 2,
-        postId: 2,
-        commentId: null,
-        createAt: 2022-06-23T08:29:46.000Z,
-        updatedAt: 2022-06-23T08:29:46.000Z
-      }
-        */
-        // const matchedLike = await Likes.findAll({
-        //     where: { postId: { [Op.in]: targetPostId } },
-        //     attributes: {
-        //         include: [
-        //             //tag에 맞춰서 검출되는 게 늘어남. userId가 3개 나오니 count도 3됨
-        //             [sequelize.fn("COUNT", sequelize.col('userId')), "likeCount"],
-        //         ],
-        //         exclude:['id', 'createAt', 'updatedAt', 'userId']
-        //     },
-        //     raw: true,
-        //     group: ['postId'],
-        //     logging:true
-        // })
+        const setCommentForm = (commentArr:Comments[]) => {
+            const countResult = {};
+            /*
+            {
+                postId_5:[
+                    {
+                      id: 3,
+                      comment: 'testComment3',
+                      userId: 2,
+                      postId: 5,
+                      commentId: null,
+                      createAt: 2022-06-23T23:23:57.000Z,
+                      'commentsBelongsToUser.nickname': '익명'
+                    }, {
+                      id: 7,
+                      comment: 'testReComment3',
+                      userId: 2,
+                      postId: 5,
+                      commentId: 3,
+                      createAt: 2022-06-23T23:23:57.000Z,
+                      'commentsBelongsToUser.nickname': '익명'
+                    }
+                ],
+                postId_2:[]..... count는 length로 잴 수 있게끔
+            }
+            */
+            for (let comment of commentArr) {
+                console.log(comment)
+            }
+        }
+        setCommentForm(getmachedComment)
         const matchedLike = await Likes.matchedLike(targetPostId);
-       
+       //console.log(matchedPostAndTag, getmachedComment, matchedLike)
 //isLiked 이건 userId랑 postId 입력하면 like했는지 확인. like에서 재활용
         // const isLiked = async (userId: number) => {
         //     const result = await Likes.findOne({
@@ -631,6 +594,7 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
             //comments map 분리
             comments.map((el: any) => commentMapFunction(el));
         };
+        console.log(comments)
         if (deleteArr.length !== 0) {
             for (let el of deleteArr) {
                 let idx = commentArr.findIndex((ele: any) => el.id < ele.id);

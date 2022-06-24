@@ -38,7 +38,13 @@ export class Likes extends Model<IlikesAttributes> {
 
     return result ? true : false;
   };
-
+  //만약 1만개 이상의 포스트가 불러와지고 그중에 like되어있는거를 어떻게?
+  //내 userId는 고정. for문 등으로 하나하나 검사하면 db연결 때문에 병목.
+  //가져올 때 db에서 판단해주면? 지금 내 실력으론 감도 안잡힘
+  //가져온 후 서버에서 검사? 
+  //DB에 물어보는 것도 어차피 10개 단위. IN으로 넣어서 그 10개중 like.userId겹치는 걸로
+  //서버에서 맞추는 건 오히려 비효율. 만약 100만 like였으면 그걸 10번 반복해야함.
+  //postId 10개 단위 -> 10개에 맞춰 like, comment. 10개 중 내가 like한거, [{postId2:[{commentId1:{content:"s",re:[]}}]}]식으로 comment폼
   static isLiked = async (userId: number) => {
     const result = await this.findOne({
       attributes: ['userId'],
