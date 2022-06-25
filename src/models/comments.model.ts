@@ -52,6 +52,26 @@ export class Comments extends Model<IcommentsAttributes>{
     return result;
   };
 
+  static setCommentForm = (commentArr: any) => {
+    const commentByPostId: any = {};
+
+    for (let comment of commentArr) {
+      if (commentByPostId[`postId${comment.postId}`]) {
+        commentByPostId[`postId${comment.postId}`].push(comment);
+        continue;
+      }
+      commentByPostId[`postId${comment.postId}`] = [comment]
+    }
+
+    return commentByPostId;
+  };
+
+  static getCommentCount = (targetPostId: number, sortedComment: any) => {
+    const targetArr = sortedComment[`postId${targetPostId}`];
+
+    return targetArr.length;
+  };
+
 };
 
 Comments.init({

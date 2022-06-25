@@ -29,10 +29,10 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
     const tags = Tags.setTagGroup(inputTagArr)
     try {
 
-       
+
         //정확히 뭘 찾는가? post는 다 찾아오는데 areaTag가 안맞으면 null로 처리하는가 아니면 맞는거만 가져오는가?
         const areaTagPosts: any = await Posts.findAll({
-            attributes:[],
+            attributes: [],
             include: [
                 {
                     model: Posts_Tags,
@@ -48,51 +48,52 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                 }
             ]
         });
-        
-        const findPostId_OR = async (tagArr:string[]) => {
+
+        const findPostId_OR = async (tagArr: string[]) => {
             //만약 AND연산이 필요하면 having을 tagArr.length로 설정하면 된다.
             const countCheck = 2 //컨텐츠태그가 들어오면 지역+컨텐츠 해서 2개이상. tagArr.length일 경우 3개 들어오면 강제로 AND됨
-            const having = tagArr.length > 1 
-            ? sequelize.literal(`count(postId) >= ${countCheck}`)
-            : sequelize.literal(`count(postId) >= ${1}`)
-            
+            const having = tagArr.length > 1
+                ? sequelize.literal(`count(postId) >= ${countCheck}`)
+                : sequelize.literal(`count(postId) >= ${1}`)
+
             const result = await Posts_Tags.findAll({
-                attributes:['postId'],
-                include:[
+                attributes: ['postId'],
+                include: [
                     {
                         model: Posts,
                         as: 'posts_TagsBelongToPost',
-                        attributes: [/*['content', 'postContent']*/]   
+                        attributes: [/*['content', 'postContent']*/]
                     },
                     {
                         model: Tags,
                         as: 'post_TagsBelongToTag',
-                        where: { content:{[Op.in]:tagArr} },
+                        where: { content: { [Op.in]: tagArr } },
                         attributes: [[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]],
-                        
+
                     }
                 ],
-                raw:true,
-                group:['postId'],
-                having: having
+                raw: true,
+                group: ['postId'],
+                having: having,
+                limit:10
             })
 
             return result
         };
         //test에 맞는 아이디만 반환되면 태그 검색 했을 때 맞는 태그만 나올것.
-//이걸로 아이디에 맞는 포스트 찾기
-        const targetPostId:number[] = await findPostId_OR(inputTagArr).then((result) => result.map((post:any)=>{return post.postId}));       
-        
+        //이걸로 아이디에 맞는 포스트 찾기
+        const targetPostId: number[] = await findPostId_OR(inputTagArr).then((result) => result.map((post: any) => { return post.postId }));
+
         //like랑 comment 분리. 결과값 여러개 나오는게 많아서 같은 내용이 여기저기 참조됨.
         const matchedPostAndTag = await Posts_Tags.findAll({
-            attributes:['postId'],
-            where:{postId:{[Op.in]:targetPostId}},
-            include:[
+            attributes: ['postId'],
+            where: { postId: { [Op.in]: targetPostId } },
+            include: [
                 {
                     model: Posts,
                     as: 'posts_TagsBelongToPost',
                     attributes: [['content', 'postContent'], 'public', 'createAt'],
-                    include:[
+                    include: [
                         {
                             model: Users,
                             as: 'postsbelongsToUser',
@@ -107,66 +108,56 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
                     attributes: [[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]],
                 }
             ],
-            raw:true,
-            group:['postId'],
+            raw: true,
+            group: ['postId'],
             order: [['postId', 'DESC']]
         });
 
         const getmachedComment = await Comments.matchedComment(targetPostId);
+        const sortedComment = Comments.setCommentForm(getmachedComment);
 
-        const setCommentForm = (commentArr:Comments[]) => {
-            const countResult = {};
-            /*
-            {
-                postId_5:[
-                    {
-                      id: 3,
-                      comment: 'testComment3',
-                      userId: 2,
-                      postId: 5,
-                      commentId: null,
-                      createAt: 2022-06-23T23:23:57.000Z,
-                      'commentsBelongsToUser.nickname': '익명'
-                    }, {
-                      id: 7,
-                      comment: 'testReComment3',
-                      userId: 2,
-                      postId: 5,
-                      commentId: 3,
-                      createAt: 2022-06-23T23:23:57.000Z,
-                      'commentsBelongsToUser.nickname': '익명'
-                    }
-                ],
-                postId_2:[]..... count는 length로 잴 수 있게끔
-            }
-            */
-            for (let comment of commentArr) {
-                console.log(comment)
-            }
-        }
-        setCommentForm(getmachedComment)
         const matchedLike = await Likes.matchedLike(targetPostId);
-       //console.log(matchedPostAndTag, getmachedComment, matchedLike)
-//isLiked 이건 userId랑 postId 입력하면 like했는지 확인. like에서 재활용
-        // const isLiked = async (userId: number) => {
-        //     const result = await Likes.findOne({
-        //         attributes:['userId'],
-        //         where:{userId: userId}
-        //     });
+        const likedPostArr = await Likes.isLiked(userId, targetPostId); 
+        
+        const setPostForm = (postAndTagArr: any, commentArr: any, likeArr: any) => {
 
-        //     return result ? true : false
-        // };
-const likeCheck = await Likes.isLiked(userId); //이거 오버랩체크랑 뭐가 다른지?
+            const result = postAndTagArr.map((post: any) => {
+                const publicCheck = post['posts_TagsBelongToPost.public'] === 1 ? true : false;
+                const tagArr = post['post_TagsBelongToTag.post_TagsBelongToTag.content'].split(',');
+                const commentCount = Comments.getCommentCount(post.postId, commentArr);
+                const likeCheck = likedPostArr.postId.find((postId: number) => {
+                    return postId === post.postId
+                });
+                
+                const postForm = {
+                    id: post.postId,
+                    userId: post['posts_TagsBelongToPost.postsbelongsToUser.id'],
+                    nickname: post['posts_TagsBelongToPost.postsbelongsToUser.nickname'],
+                    content: post['posts_TagsBelongToPost.postContent'],
+                    tag: tagArr,
+                    commentCount: commentCount,
+                    likeCount: likeArr[`postId_${post.postId}`].likeCount,
+                    likeCheck: likeCheck? true : false,
+                    createAt: post['posts_TagsBelongToPost.createAt'],
+                    public: publicCheck
+                };
+                return postForm;
+            });
 
+            return result;
+        };
+        //반환해야하는 폼은 일단 완성. 이제 NOT연산, offset처리 남음
+        const postForm = setPostForm(matchedPostAndTag, sortedComment, matchedLike);
+        
         if (areaTagPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
             return res.status(200).json(areaTagPosts);
         };
 
         let areaTagpostId = areaTagPosts.map((el: any) => { //areaTagPosts postId만 뽑는다 
-            
+
             return el.dataValues.postHasManyPosts_Tags.length !== 0 ? el.dataValues.postHasManyPosts_Tags[0].dataValues.postId : null
         }).filter((el: any) => { return el !== null });
-        
+
 
         if (tags.contentTag.length !== 0) { //contentTag에 내용이 있으면 
             const areaPostTags: any = await Posts.findAll({
@@ -242,7 +233,7 @@ const likeCheck = await Likes.isLiked(userId); //이거 오버랩체크랑 뭐�
             // }
             //filter 조건함수 분리
             const postTags = areaPostTags//.filter((el: any) => postTagsFilter(el));
-//console.log(postTags, areaPostTags)
+            //console.log(postTags, areaPostTags)
             areaTagpostId = postTags.map((el: any) => {
                 return el.dataValues.id;
             });
@@ -492,9 +483,8 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
         const tags = postHasManyPosts_Tags.map((tag: any) => {
             return tag.dataValues.post_TagsBelongToTag.dataValues
         });
-        const sortById = (arr: any) => {
-            arr.sort((a: any, b: any) => a.id - b.id);
-        };
+
+
         const comments = posthasManyComments.map((comment: any) => {
             const {
                 commentsBelongsToUser: {
@@ -502,11 +492,10 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
                 },
                 id, content, userId, postId, commentId, createAt
             } = comment.dataValues;
+
             return { id, content, userId, postId, commentId, createAt, user };
-        }).sort((arr: any) => sortById(arr));
-
-
-        //sortById(comments);
+        })
+        const sortedComment = comments.sort((a: any, b: any) => a.id - b.id);
 
         let tag = [];
         for (let el of tags) {
@@ -520,7 +509,7 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
         };
         let commentArr: any = [];
         let deleteArr: any = [];
-        if (comments.length !== 0) {
+        if (sortedComment.length !== 0) {
             //comments map 분리
             const commentMapFunction = (el: any) => {
                 const { id, content, userId, postId, commentId, createAt, user } = el;
@@ -592,9 +581,9 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
                 };
             }
             //comments map 분리
-            comments.map((el: any) => commentMapFunction(el));
+            sortedComment.map((el: any) => commentMapFunction(el));
         };
-        console.log(comments)
+
         if (deleteArr.length !== 0) {
             for (let el of deleteArr) {
                 let idx = commentArr.findIndex((ele: any) => el.id < ele.id);
@@ -615,12 +604,13 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
             content: content,
             public: _public,
             likeCount: likes.length,
-            commentCount: comments.length,
+            commentCount: sortedComment.length,
             likeCheck: likeCheck,
             createAt: createAt,
             tag: tag,
             comment: commentArr
         };
+        //console.log(resPost)
         return res.status(200).json(resPost);
     } catch (err) {
         //console.log(err);

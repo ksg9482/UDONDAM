@@ -28,6 +28,26 @@ export class Likes extends Model<IlikesAttributes> {
     likesBelongsToPost: Association<Likes, Posts>,
   };
 
+  static likeArrToObj = (likeArr:any) => {
+    const result = likeArr.reduce((acc: any, cur: any) => {
+      const accKey = Object.keys(acc)[0];
+      const curKey = Object.keys(cur)[0];
+      
+      if(accKey === curKey) {
+        acc[accKey] = [acc[accKey]];
+        acc[accKey].push(cur[curKey])
+        
+        return acc
+      }
+
+      acc[curKey] = cur[curKey];
+      
+      return acc;
+    })
+    
+    return result
+  }
+
   static overlapCheck = async (userId: number, postId: number) => {
     const result = await this.findOne({
       where: {
@@ -38,29 +58,28 @@ export class Likes extends Model<IlikesAttributes> {
 
     return result ? true : false;
   };
-  //만약 1만개 이상의 포스트가 불러와지고 그중에 like되어있는거를 어떻게?
-  //내 userId는 고정. for문 등으로 하나하나 검사하면 db연결 때문에 병목.
-  //가져올 때 db에서 판단해주면? 지금 내 실력으론 감도 안잡힘
-  //가져온 후 서버에서 검사? 
-  //DB에 물어보는 것도 어차피 10개 단위. IN으로 넣어서 그 10개중 like.userId겹치는 걸로
-  //서버에서 맞추는 건 오히려 비효율. 만약 100만 like였으면 그걸 10번 반복해야함.
-  //postId 10개 단위 -> 10개에 맞춰 like, comment. 10개 중 내가 like한거, [{postId2:[{commentId1:{content:"s",re:[]}}]}]식으로 comment폼
-  static isLiked = async (userId: number) => {
-    const result = await this.findOne({
-      attributes: ['userId'],
-      where: { userId: userId },
+  
+  static isLiked = async (userId: number, targetPostIdArr: number[]) => {
+    const result = await this.findAll({
+      attributes: ['postId'],
+      where: { 
+        userId: userId,
+        postId: {[Op.in]: targetPostIdArr }
+      },
       raw:true
     });
-console.log(result)
-    return result ? true : false
+
+    const likeObj = this.likeArrToObj(result);
+    
+    return likeObj;
   };
 
-  static matchedLike = async (targetPostId: number[]) => {
+  static matchedLike = async (targetPostIdArr: number[]) => {
     const result = await Likes.findAll({
-      where: { postId: { [Op.in]: targetPostId } },
+      where: { postId: { [Op.in]: targetPostIdArr } },
       attributes: {
         include: [
-          //tag에 맞춰서 검출되는 게 늘어남. userId가 3개 나오니 count도 3됨
+          //왜 like를 분리했나? tag에 맞춰서 검출되는 게 늘어남. 태그당 postId가 1개 나오니 count도 늘어남
           [sequelize.fn("COUNT", sequelize.col('userId')), "likeCount"],
         ],
         exclude: ['id', 'createAt', 'updatedAt', 'userId']
@@ -68,8 +87,32 @@ console.log(result)
       raw: true,
       group: ['postId'],
       logging: true
-    })
-    return result;
+    });
+
+    //식별할만한 키가 postId로 나와서 식별 힘듦. 키를 postId2 같은 식으로 바꿔줌.
+    const changedLikeForm = result.map((likeArr: any) => {
+      const postId = likeArr.postId;
+      const formChange:any = {};
+    
+      formChange[`postId_${postId}`] = {postId:postId,likeCount:likeArr.likeCount}
+      
+      return formChange
+    });
+    
+    const likeArrToObj = this.likeArrToObj(changedLikeForm);
+    
+    if(changedLikeForm.length !== targetPostIdArr.length || changedLikeForm.length === 0) {
+      const likeObj = likeArrToObj;
+      for (let postId of targetPostIdArr) {
+        if(likeObj[`postId_${postId}`]) {
+          continue ;
+        }
+        likeObj[`postId_${postId}`] = { postId: postId, likeCount: 0 };
+      }
+      return likeObj;
+    }
+    
+    return likeArrToObj;
   };
 };
 

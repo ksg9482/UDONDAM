@@ -110,6 +110,7 @@ export const likesCreate = async (req: userIdInRequest, res: Response) => {
         });
         return res.status(201).json({ "message": "created" });
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ "message": "Couldn't Create Like" });
     }
 

@@ -39,6 +39,24 @@ const emailCheckTest = {
   }
 };
 
+const testUserArr = [
+  {
+    email: "test1@test.com",
+    password: "12345"
+    
+  },
+  {
+    email: "test2@test.com",
+    password: "12345"
+    
+  },
+  {
+    email: "test3@test.com",
+    password: "12345"
+    
+  }
+];
+
 
 
 describe('e2e-test', () => {
@@ -57,6 +75,7 @@ describe('e2e-test', () => {
 
   describe('AuthController(e2e)', () => {
     describe('POST /signup', () => {
+      
 
       it('연결 확인', async () => {
         const nodeEnv = process.env.NODE_ENV
@@ -68,7 +87,9 @@ describe('e2e-test', () => {
 
       it('회원가입', async () => {
         const resp: any = await request(app).post('/signup').send(loginTest.testUser);
-
+        for (let testUser of testUserArr) {
+          await request(app).post('/signup').send(testUser);
+        }
         expect(resp.status).toEqual(201);
         expect(resp.body).toEqual({ message: 'Sign Up!' });
       })
@@ -87,7 +108,7 @@ describe('e2e-test', () => {
 
     describe('POST /login', () => {
       it('올바른 형식의 로그인은 성공해야 한다', async () => {
-
+        
         const resp: any = await request(app).post('/login').send(loginTest.testUser);
 
         const token = tokenData(resp);
@@ -121,7 +142,7 @@ describe('e2e-test', () => {
         expect(resp.status).toEqual(200);
         expect(resp.body).toEqual({ "message": "logout!" });
       });
-      //catch로 빠지는건 어떻게?
+      
     });
 
     describe('POST /emailCheck', () => {
@@ -329,19 +350,51 @@ describe('e2e-test', () => {
         content: 'testReComment3',
         commentId: 3
       }
-    ]
+    ];
+    
+    
+    
 
     describe('POST /post', () => {
       it('정상적인 데이터를 보내면 성공해야 한다', async () => {
+
+        const testUserTokenArr: any = {
+          'loginToken1': '',
+          'loginToken2': '',
+          'loginToken3': ''
+        };
+        const testInputArr = [
+          {token:'loginToken1', postId:{postId: 2}},
+          {token:'loginToken2', postId:{postId: 2}},
+          {token:'loginToken3', postId:{postId: 5}},
+          {token:'loginToken1', postId:{postId: 5}},
+          {token:'loginToken2', postId:{postId: 5}},
+        ];
+
         const resp: any = await request(app).post('/post').set('Cookie', [jwtToken]).send(postTest);
 
-        // for(let post of testPosts) {
-        //   await request(app).post('/post').set('Cookie', [jwtToken]).send(post);
-        // }
-        // for(let comment of testComment) {
-        //   await request(app).post('/comment').set('Cookie', [jwtToken]).send(comment);
-        // }
-        // await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
+        //토큰 할당하는 기능
+        for (let testUser of testUserArr) {
+          const testResp = await request(app).post('/login').send(testUser);
+          const testToken = tokenData(testResp);
+          const userEmail = testUser.email.split('@')[0];
+          const emailNumber = Number(userEmail.slice(userEmail.length-1))
+
+          testUserTokenArr[`loginToken${emailNumber}`] = testToken;
+        };
+
+        for(let post of testPosts) {
+          await request(app).post('/post').set('Cookie', [jwtToken]).send(post);
+        }
+        for(let comment of testComment) {
+          await request(app).post('/comment').set('Cookie', [jwtToken]).send(comment);
+        }
+        for (let testInput of testInputArr) {
+          const token = testUserTokenArr[testInput.token]
+          await request(app).post('/likes').set('Cookie', [token]).send(testInput.postId);
+        };
+        await request(app).post('/likes').set('Cookie', [testUserTokenArr['loginToken3']]).send({ postId: 2});
+        //await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
         
         expect(resp.status).toEqual(201)
         expect(resp.body).toEqual({ "message": "create!" })
@@ -360,7 +413,7 @@ describe('e2e-test', () => {
         const resp: any = await request(app).get('/post').set('Cookie', [jwtToken]).query('size=10').query('page=0').query({ tag: ["서울특별시", "게임", "공원"] }).query({ notTag: ["도서관"] });
 
         expect(resp.status).toEqual(200);
-        expect(resp.body[0].content).toEqual("testContent");
+        expect(resp.body[0].content).toEqual("testContent1");
         expect(resp.body[0].tag).toBeTruthy();
       });
 
@@ -388,7 +441,7 @@ describe('e2e-test', () => {
         const resp: any = await request(app).get(`/post/${2}`).set('Cookie', [jwtToken]);
         
         expect(resp.status).toEqual(200);
-        //expect(resp.body.id).toEqual(2);
+        expect(resp.body.id).toEqual(2);
       });
     });
 
@@ -492,8 +545,8 @@ describe('e2e-test', () => {
       it('userId가 작성한 comment가 있는 post를 return해야 한다', async () => {
         const resp: any = await request(app).get('/comment').set('Cookie', [jwtToken]);
 
-        //expect(resp.status).toEqual(200);
-        expect(resp.body[0].content).toEqual("testContent");
+        expect(resp.status).toEqual(200);
+        expect(resp.body[0].content).toEqual("testContent1");
       });
 
     });
