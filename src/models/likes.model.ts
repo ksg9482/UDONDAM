@@ -28,15 +28,28 @@ export class Likes extends Model<IlikesAttributes> {
     likesBelongsToPost: Association<Likes, Posts>,
   };
 
-  static likeArrToObj = (likeArr:any) => {
+  static mergeLikePostIdArr = (likeArr:any) => {
+    console.log('mergeLikePostIdArr의 likeArr - ',likeArr)
+    if (likeArr.length === 0) {
+      return {};
+    };
+    if (likeArr.length === 1) {
+      const postIdArr = { postId: [likeArr[0].postId]};
+      console.log('mergeLikePostIdArr의 likeArr가 1개 - ',postIdArr)
+      return postIdArr;
+    }
+    
     const result = likeArr.reduce((acc: any, cur: any) => {
+      
       const accKey = Object.keys(acc)[0];
       const curKey = Object.keys(cur)[0];
       
       if(accKey === curKey) {
-        acc[accKey] = [acc[accKey]];
-        acc[accKey].push(cur[curKey])
-        
+        if(!Array.isArray(acc[accKey])) {
+          acc[accKey] = [acc[accKey]];
+        };
+        acc[accKey].push(cur[curKey]);
+
         return acc
       }
 
@@ -44,7 +57,7 @@ export class Likes extends Model<IlikesAttributes> {
       
       return acc;
     })
-    
+    console.log('mergeLikePostIdArr의 likeArr가 여러개 - ',result)
     return result
   }
 
@@ -68,13 +81,14 @@ export class Likes extends Model<IlikesAttributes> {
       },
       raw:true
     });
-
-    const likeObj = this.likeArrToObj(result);
+    const test = this.mergeLikePostIdArr([ { postId: 2 },{ postId: 3 },{ postId: 5 },{ postId: 7 }]);
+    const mergedLikeArr = this.mergeLikePostIdArr(result);
     
-    return likeObj;
+    return mergedLikeArr;
   };
 
   static matchedLike = async (targetPostIdArr: number[]) => {
+    
     const result = await Likes.findAll({
       where: { postId: { [Op.in]: targetPostIdArr } },
       attributes: {
@@ -99,10 +113,10 @@ export class Likes extends Model<IlikesAttributes> {
       return formChange
     });
     
-    const likeArrToObj = this.likeArrToObj(changedLikeForm);
+    const mergeLikePostIdArr = this.mergeLikePostIdArr(changedLikeForm);
     
     if(changedLikeForm.length !== targetPostIdArr.length || changedLikeForm.length === 0) {
-      const likeObj = likeArrToObj;
+      const likeObj = mergeLikePostIdArr;
       for (let postId of targetPostIdArr) {
         if(likeObj[`postId_${postId}`]) {
           continue ;
@@ -112,7 +126,7 @@ export class Likes extends Model<IlikesAttributes> {
       return likeObj;
     }
     
-    return likeArrToObj;
+    return mergeLikePostIdArr;
   };
 };
 

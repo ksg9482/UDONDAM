@@ -33,7 +33,7 @@ export class Comments extends Model<IcommentsAttributes>{
     commentsBelongsToPost: Association<Comments, Posts>,
   };
 
-  static matchedComment = async (targetPostId: number[]) => {
+  static getMatchedComment = async (targetPostId: number[]) => {
     const result = await this.findAll({
       raw: true,
       attributes:["id",["content","comment"],"userId","postId","commentId","createAt"],
@@ -68,7 +68,9 @@ export class Comments extends Model<IcommentsAttributes>{
 
   static getCommentCount = (targetPostId: number, sortedComment: any) => {
     const targetArr = sortedComment[`postId${targetPostId}`];
-
+    if(!targetArr) {
+      return 0;
+    }
     return targetArr.length;
   };
 

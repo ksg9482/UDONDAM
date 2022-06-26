@@ -21,71 +21,77 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
     let inputTagArr = req.query.tag ? req.query.tag : null;
     let inputNotTagArr = req.query.notTag ? req.query.notTag : null;
 
+    let page = Number(req.query.page);
+    let offset = 0;
+    if (page !== 0) {
+        offset = page * 10;
+    }
+
     //1개면 string, 2개이상이면 array로 들어오기 때문에 array로 통일
     if (typeof inputNotTagArr === 'string') {
         inputNotTagArr = [inputNotTagArr];
     };
 
-    const tags = Tags.setTagGroup(inputTagArr)
+    const tags = Tags.setTagGroup(inputTagArr);
+    if(tags.areaTag.length === 0) {
+        return res.status(200).json([]);
+    }
+
     try {
-
-
-        //정확히 뭘 찾는가? post는 다 찾아오는데 areaTag가 안맞으면 null로 처리하는가 아니면 맞는거만 가져오는가?
-        const areaTagPosts: any = await Posts.findAll({
-            attributes: [],
-            include: [
-                {
-                    model: Posts_Tags,
-                    as: 'postHasManyPosts_Tags',
-                    include: [
-                        {
-                            model: Tags,
-                            as: 'post_TagsBelongToTag',
-                            where: { content: tags.areaTag },
-                            attributes: ['content'],
-                        }
-                    ]
-                }
-            ]
-        });
-
-        const findPostId_OR = async (tagArr: string[]) => {
+        const findPostId_OR = async (tagArr: string[], notTagArr?: string[]) => {
             //만약 AND연산이 필요하면 having을 tagArr.length로 설정하면 된다.
             const countCheck = 2 //컨텐츠태그가 들어오면 지역+컨텐츠 해서 2개이상. tagArr.length일 경우 3개 들어오면 강제로 AND됨
             const having = tagArr.length > 1
                 ? sequelize.literal(`count(postId) >= ${countCheck}`)
-                : sequelize.literal(`count(postId) >= ${1}`)
+                : sequelize.literal(`count(postId) >= ${1}`);
+            
+            const includeNotTag_false = {
+                model: Posts,
+                as: 'posts_TagsBelongToPost',
+                attributes: [/*['content', 'postContent']*/]
+            };
+            
+            const includeNotTag_true = {
+                model: Posts,
+                as: 'posts_TagsBelongToPost',
+                attributes: [/*['content', 'postContent']*/],
+                where:{id:{[Op.notIn]: [sequelize.literal(`(
+                    SELECT DISTINCT posts.id FROM posts
+                JOIN posts_tags ON posts_tags.postId = posts.id
+                JOIN tags ON tags.id = posts_tags.tagId
+                WHERE tags.content IN ('${notTagArr?.join("','")}')
+                )`)]}}
+            };
+
+            const postModelByNotTag = !notTagArr ? includeNotTag_false : includeNotTag_true;
 
             const result = await Posts_Tags.findAll({
                 attributes: ['postId'],
                 include: [
-                    {
-                        model: Posts,
-                        as: 'posts_TagsBelongToPost',
-                        attributes: [/*['content', 'postContent']*/]
-                    },
+                    postModelByNotTag,
                     {
                         model: Tags,
                         as: 'post_TagsBelongToTag',
                         where: { content: { [Op.in]: tagArr } },
                         attributes: [[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]],
-
                     }
                 ],
                 raw: true,
                 group: ['postId'],
                 having: having,
-                limit:10
+                limit: 10,
+                offset: offset
             })
 
-            return result
+            return result;
         };
-        //test에 맞는 아이디만 반환되면 태그 검색 했을 때 맞는 태그만 나올것.
+        
         //이걸로 아이디에 맞는 포스트 찾기
-        const targetPostId: number[] = await findPostId_OR(inputTagArr).then((result) => result.map((post: any) => { return post.postId }));
-
+        const targetPostId: number[] = await findPostId_OR(inputTagArr ,inputNotTagArr)
+        .then((result) => result.map((post: any) => { return post.postId }));
+        
         //like랑 comment 분리. 결과값 여러개 나오는게 많아서 같은 내용이 여기저기 참조됨.
-        const matchedPostAndTag = await Posts_Tags.findAll({
+        const matchedPostAndTagArr = await Posts_Tags.findAll({
             attributes: ['postId'],
             where: { postId: { [Op.in]: targetPostId } },
             include: [
@@ -113,253 +119,17 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
             order: [['postId', 'DESC']]
         });
 
-        const getmachedComment = await Comments.matchedComment(targetPostId);
-        const sortedComment = Comments.setCommentForm(getmachedComment);
+        const matchedCommentArr = await Comments.getMatchedComment(targetPostId);
+        const commentArrToObj = Comments.setCommentForm(matchedCommentArr);
 
-        const matchedLike = await Likes.matchedLike(targetPostId);
-        const likedPostArr = await Likes.isLiked(userId, targetPostId); 
-        
-        const setPostForm = (postAndTagArr: any, commentArr: any, likeArr: any) => {
+        const matchedLikeArr = await Likes.matchedLike(targetPostId);
+        console.log('postTag의 matchedLike - ',matchedLikeArr)
+        const isLikedObj = await Likes.isLiked(userId, targetPostId);
 
-            const result = postAndTagArr.map((post: any) => {
-                const publicCheck = post['posts_TagsBelongToPost.public'] === 1 ? true : false;
-                const tagArr = post['post_TagsBelongToTag.post_TagsBelongToTag.content'].split(',');
-                const commentCount = Comments.getCommentCount(post.postId, commentArr);
-                const likeCheck = likedPostArr.postId.find((postId: number) => {
-                    return postId === post.postId
-                });
-                
-                const postForm = {
-                    id: post.postId,
-                    userId: post['posts_TagsBelongToPost.postsbelongsToUser.id'],
-                    nickname: post['posts_TagsBelongToPost.postsbelongsToUser.nickname'],
-                    content: post['posts_TagsBelongToPost.postContent'],
-                    tag: tagArr,
-                    commentCount: commentCount,
-                    likeCount: likeArr[`postId_${post.postId}`].likeCount,
-                    likeCheck: likeCheck? true : false,
-                    createAt: post['posts_TagsBelongToPost.createAt'],
-                    public: publicCheck
-                };
-                return postForm;
-            });
+        //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
+        const postForm = Posts.setPostForm(matchedPostAndTagArr, commentArrToObj, matchedLikeArr, isLikedObj);
 
-            return result;
-        };
-        //반환해야하는 폼은 일단 완성. 이제 NOT연산, offset처리 남음
-        const postForm = setPostForm(matchedPostAndTag, sortedComment, matchedLike);
-        
-        if (areaTagPosts.length === 0) { //areaTag에 해당하는 post가 없으면 그냥 return
-            return res.status(200).json(areaTagPosts);
-        };
-
-        let areaTagpostId = areaTagPosts.map((el: any) => { //areaTagPosts postId만 뽑는다 
-
-            return el.dataValues.postHasManyPosts_Tags.length !== 0 ? el.dataValues.postHasManyPosts_Tags[0].dataValues.postId : null
-        }).filter((el: any) => { return el !== null });
-
-
-        if (tags.contentTag.length !== 0) { //contentTag에 내용이 있으면 
-            const areaPostTags: any = await Posts.findAll({
-                where: {
-                    id: areaTagpostId //areaTag에 해당하는 post만 뽑는다
-                },
-                include: [
-                    {
-                        model: Posts_Tags,
-                        as: 'postHasManyPosts_Tags',
-                        include: [
-                            {
-                                model: Tags,
-                                as: 'post_TagsBelongToTag',
-                                attributes: ['content'], //tag도 뽑는다
-                            }
-                        ]
-                    }
-                ]
-            });
-
-            // const postTagsFilter = (el: any) => {
-            //     const inputData = el.dataValues.postHasManyPosts_Tags.map((el: any) => {
-            //         return el.dataValues.post_TagsBelongToTag.dataValues;
-            //     });
-            //     //이건 도대체 뭘 어떻게 바꾸는지?
-
-            //     const tagArr: any = [];
-
-            //     //태그가 컨텐츠 태그만 있는지 확인. 앞에서 분류 했을 텐데?
-            //     const tagCheck = (inputData: any) => {
-            //         let result = false;
-            //         //태그 배열에 넣기와 태그 체크. 2가지 책임을 갖음
-            //         for (let tag of inputData) {
-            //             tagArr.push(tag.content) //tagArr에 tag내용을 넣는다
-            //             if (tag.content[tag.content.length - 1] !== '시' && tag[tag.content.length - 1] !== '군') { //만약 tag내용이 areaTag가 아니라면
-            //                 for (let el of tags.contentTag) {
-            //                     if (el === tag.content) {
-            //                         result = true;
-            //                     };
-            //                 };
-            //             };
-            //         };
-            //         return result;
-            //     };
-
-            //     //태그랑 낫태그랑 비교해서 겹치는게 있나 확인. 태그체크가 다 true면 그거만 필터링
-            //     const notTagCheck = (tagArr: any) => {
-            //         let result = true;
-            //         for (let el of tagArr) {
-            //             for (let not of inputNotTagArr) { //notTag가 존재한다면
-            //                 if (not === el) {
-            //                     result = false;
-            //                 };
-            //             };
-            //         };
-            //         //notTag와 el이 겹치지 않아야 true 리턴
-            //         return result;
-            //     };
-            //     if (inputNotTagArr) {
-            //         // let notTagCheck = true;
-            //         // for (let el of tagArr) {
-            //         //     for (let not of inputNotTagArr) { //notTag가 존재한다면
-            //         //         if (not === el) {
-            //         //             notTagCheck = false;
-            //         //         };
-            //         //     };
-            //         // };
-            //         //notTag에 해당하지 않는다.
-            //         return tagCheck(inputData) === true && notTagCheck(tagArr) === true;
-            //     }
-            //     return tagCheck(inputData) === true;
-            // }
-            //filter 조건함수 분리
-            const postTags = areaPostTags//.filter((el: any) => postTagsFilter(el));
-            //console.log(postTags, areaPostTags)
-            areaTagpostId = postTags.map((el: any) => {
-                return el.dataValues.id;
-            });
-        };
-        //낫태그가 들어왔고, 컨텐츠태그는 없으면 에리어태그만 검색해서 낫 태그 없는거만 필터링
-        //이거 ORM으로 못하는지?
-        if (inputNotTagArr && tags.contentTag.length === 0) {
-            const areaNotTags = await Posts.findAll({
-                where: {
-                    id: areaTagpostId
-                },
-                include: [
-                    {
-                        model: Tags,
-                        attributes: ['content'],
-                    }
-                ]
-            });
-            //areaNotTagFilter 필터 분리
-            // const areaNotTagFilterFunction = (el: any) => {
-            //     const { tags } = el.dataValues;
-            //     let notCheck = true;
-            //     for (let el of tags) {
-            //         for (let not of inputNotTagArr) {
-            //             if (el.content === not) {
-            //                 notCheck = false;
-            //             };
-            //         };
-            //     };
-            //     return notCheck === true;
-            // }
-            //areaNotTagFilter 필터 분리
-            const areaNotTagFilter = areaNotTags//.filter((el: any) => areaNotTagFilterFunction(el));
-            areaTagpostId = areaNotTagFilter.map((el: any) => {
-                return el.id;
-            });
-        }; //notTag 관련
-        //최종적으로 나오게 할 결과물을 10개씩 끊어서 검색. 그걸 map으로 폼 맞춰서 반환.
-        //페이지네이션 용도
-        let page = Number(req.query.page);
-        //let size = Number(req.query.size);
-        let offset = 0;
-        if (page !== 0) {
-            offset = page * 10;
-        }
-        //페이지네이션 용도
-
-        const posts = await Posts.findAll({
-            where: {
-                id: areaTagpostId
-            },
-            include: [
-                {
-                    model: Users,
-                    attributes: ['nickname'],
-                    required: true,
-                    as: 'postsbelongsToUser'
-                },
-                {
-                    model: Likes,
-                    attributes: ['userId'],
-                    as: 'postHasManyLikes'
-                },
-                {
-                    model: Comments,
-                    attributes: ['id'],
-                    as: 'posthasManyComments'
-                },
-                {
-                    model: Posts_Tags,
-                    as: 'postHasManyPosts_Tags',
-                    include: [
-                        {
-                            model: Tags,
-                            as: 'post_TagsBelongToTag',
-                            attributes: ['content'], //tag도 뽑는다
-                            required: true
-                        }
-                    ]
-                }
-            ],
-            order: [['createAt', 'DESC']],
-            offset: offset,
-            limit: 10
-        });
-        //console.log(posts)
-        //1.낫태그 해당하는 포스트 아이디만 distinct로 뽑음 -> 낫태그 해당 포스트아이디.
-        //2.그거만 NOT IN으로 다 제외
-        //3.근데 이건 비효율적
-        //map 분리
-        const resPostsMapFunction = (post: any) => {
-
-            const {
-                dataValues: { id, content, createAt, public: _public, userId, postsbelongsToUser: { dataValues: { nickname } } },
-                postHasManyLikes: likes,
-                posthasManyComments: comments,
-                postHasManyPosts_Tags: tags,
-            } = post;
-
-            let tag = [];
-            for (let el of tags) {
-                tag.push(el.dataValues.post_TagsBelongToTag.dataValues.content)
-            };
-            let likeCheck = false;
-            for (let like of likes) {
-                if (like.userId === req.userId) {
-                    likeCheck = true;
-                }
-            };
-            return {
-                id: id,
-                userId: userId,
-                nickname: nickname,
-                content: content,
-                tag: tag,
-                commentCount: comments.length,
-                likeCount: likes.length,
-                likeCheck: likeCheck,
-                createAt: createAt,
-                public: _public
-            };
-        }
-        //map 분리
-        const resPosts = posts.map((el: any) => resPostsMapFunction(el));
-
-        return res.status(200).json(resPosts);
+        return res.status(200).json(postForm);
     } catch (err) {
         //console.log(err)
         return res.status(500).json({ "message": "Server Error" })
@@ -385,26 +155,15 @@ export const postUser = async (req: userIdInRequest, res: Response) => {
 
             }
         ],
-        order: [['createAt', 'DESC']]
+        order: [['createAt', 'DESC']],
     });
-    // const [postUserResults, _] = await sequelize.query(
-    //     `SELECT posts.id, posts.content, posts.createAt,
-    //     COUNT(likes.id) AS likeCount,
-    //     COUNT(comments.id) AS commentCount
-    //     FROM posts 
-    //     LEFT OUTER JOIN likes 
-    //     ON posts.id = likes.postId
-    //     LEFT OUTER JOIN comments
-    //     ON posts.id = comments.postId
-    //     WHERE posts.userId = ${req.userId}
-    //     GROUP BY posts.id
-    //     ORDER BY posts.createAt DESC;`
-    // );
+    
 
     if (posts.length === 0) {
         return res.status(200).json(posts);
     };
     let resPosts: any = [];
+    
     posts.map((post: any) => {
         const { id, content, createAt, postHasManyLikes: likes, posthasManyComments: comments } = post;
         resPosts.push({
@@ -419,7 +178,8 @@ export const postUser = async (req: userIdInRequest, res: Response) => {
 };
 
 export const postPick = async (req: userIdInRequest, res: Response) => {
-    const postId = req.params.postId;
+    //const userId = req.userId!
+    const postId = Number(req.params.postId);
 
     try {
         const postPick: any = await Posts.findOne({
@@ -466,6 +226,48 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
             ]
         });
 
+        //findOne은 객체로 반환된다.
+        const matchedPostAndTag = await Posts_Tags.findOne({
+            attributes: ['postId'],
+            where: { postId: postId },
+            include: [
+                {
+                    model: Posts,
+                    as: 'posts_TagsBelongToPost',
+                    attributes: [['content', 'postContent'], 'public', 'createAt'],
+                    include: [
+                        {
+                            model: Users,
+                            as: 'postsbelongsToUser',
+                            attributes: ['nickname'],
+                            required: true,
+                        }
+                    ]
+                },
+                {
+                    model: Tags,
+                    as: 'post_TagsBelongToTag',
+                    attributes: [[sequelize.fn('GROUP_CONCAT', sequelize.col("post_TagsBelongToTag.content")), "post_TagsBelongToTag.content"]],
+                }
+            ],
+            raw: true,
+            group: ['postId'],
+            order: [['postId', 'DESC']]
+        });
+
+        const matchedCommentArr = await Comments.getMatchedComment([postId]);
+        const sortedCommentObj = Comments.setCommentForm(matchedCommentArr);
+        //comment를 배열로해서 넣어야 함.
+        
+        const matchedLikeArr  = await Likes.matchedLike([postId]);
+        console.log('postPick의 matchedLike - ',matchedLikeArr)
+        const isLikedObj = await Likes.isLiked(req.userId!, [postId]);
+        //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
+        const postForm = Posts.setPostForm([matchedPostAndTag], sortedCommentObj, matchedLikeArr, isLikedObj);
+        const insertComment = (commentArr: any, postArr: any[]) => {
+            console.log(commentArr, postArr);
+        };
+        const complitePostForm = insertComment(sortedCommentObj, postForm);
         const {
             id,
             userId,
@@ -610,10 +412,10 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
             tag: tag,
             comment: commentArr
         };
-        //console.log(resPost)
+        //console.log(...postForm, resPost)
         return res.status(200).json(resPost);
     } catch (err) {
-        //console.log(err);
+        console.log(err);
         res.status(500).json({ "message": "Server Error" })
     };
 };

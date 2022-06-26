@@ -296,7 +296,7 @@ describe('e2e-test', () => {
       {
         content: "testContent4",
         public: true,
-        tag: ["서울특별시"]
+        tag: ["서울특별시", "도서관", "게임"]
       },
       {
         content: "testContent5",
@@ -394,7 +394,7 @@ describe('e2e-test', () => {
           await request(app).post('/likes').set('Cookie', [token]).send(testInput.postId);
         };
         await request(app).post('/likes').set('Cookie', [testUserTokenArr['loginToken3']]).send({ postId: 2});
-        //await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
+        await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
         
         expect(resp.status).toEqual(201)
         expect(resp.body).toEqual({ "message": "create!" })
@@ -410,7 +410,7 @@ describe('e2e-test', () => {
     });
     describe('GET /post', () => {
       it('정상적인 데이터를 보내면 성공해야 한다', async () => {
-        const resp: any = await request(app).get('/post').set('Cookie', [jwtToken]).query('size=10').query('page=0').query({ tag: ["서울특별시", "게임", "공원"] }).query({ notTag: ["도서관"] });
+        const resp: any = await request(app).get('/post').set('Cookie', [jwtToken]).query('size=10').query('page=0').query({ tag: ["서울특별시", "공부", "도서관"] }).query({ notTag: ["공원"] });
 
         expect(resp.status).toEqual(200);
         expect(resp.body[0].content).toEqual("testContent1");
@@ -419,7 +419,7 @@ describe('e2e-test', () => {
 
       it('areaTag가 없으면 빈 배열이 return되어야 한다', async () => {
         const resp: any = await request(app).get('/post').set('Cookie', [jwtToken]).query('size=10').query('page=0').query({ tag: ["공부", "도서관"] });
-
+        
         expect(resp.status).toEqual(200);
         expect(resp.body).toEqual([]);
       });
