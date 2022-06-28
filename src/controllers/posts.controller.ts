@@ -120,61 +120,73 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
         });
 
         const matchedCommentArr = await Comments.getMatchedComment(targetPostId);
-        const commentArrToObj = Comments.setCommentForm(matchedCommentArr);
+        
+        const sortedcommentArr = Comments.setCommentForm(matchedCommentArr);
 
         const matchedLikeArr = await Likes.matchedLike(targetPostId);
-        console.log('postTag의 matchedLike - ',matchedLikeArr)
+        //console.log('postTag의 matchedLike - ',targetPostId, matchedLikeArr)
+        /*형식이 바뀌어서 나옴
+        {
+            postId_1: { postId: 1, likeCount: 0 },
+            postId_4: { postId: 4, likeCount: 0 }
+        }
+        */
         const isLikedObj = await Likes.isLiked(userId, targetPostId);
 
         //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
-        const postForm = Posts.setPostForm(matchedPostAndTagArr, commentArrToObj, matchedLikeArr, isLikedObj);
+        const postForm = Posts.setPostForm(matchedPostAndTagArr, sortedcommentArr, matchedLikeArr, isLikedObj);
 
         return res.status(200).json(postForm);
     } catch (err) {
         //console.log(err)
-        return res.status(500).json({ "message": "Server Error" })
+        return res.status(500).json({ "message": "Couldn't Find Tag Posts " });
     };
 };
 
 export const postUser = async (req: userIdInRequest, res: Response) => {
-    const posts = await Posts.findAll({
-        attributes: ['id', 'content', 'createAt'],
-        where: {
-            userId: req.userId
-        },
-        include: [
-            {
-                model: Likes,
-                attributes: ['id'],
-                as: 'postHasManyLikes'
+    try {
+        const posts = await Posts.findAll({
+            attributes: ['id', 'content', 'createAt'],
+            where: {
+                userId: req.userId
             },
-            {
-                model: Comments,
-                attributes: ['id'],
-                as: 'posthasManyComments',
-
-            }
-        ],
-        order: [['createAt', 'DESC']],
-    });
+            include: [
+                {
+                    model: Likes,
+                    attributes: ['id'],
+                    as: 'postHasManyLikes'
+                },
+                {
+                    model: Comments,
+                    attributes: ['id'],
+                    as: 'posthasManyComments',
     
-
-    if (posts.length === 0) {
-        return res.status(200).json(posts);
-    };
-    let resPosts: any = [];
+                }
+            ],
+            order: [['createAt', 'DESC']],
+        });
+        
     
-    posts.map((post: any) => {
-        const { id, content, createAt, postHasManyLikes: likes, posthasManyComments: comments } = post;
-        resPosts.push({
-            id: id,
-            content: content,
-            createAt: createAt,
-            likeCount: !likes ? 0 : likes.length,
-            commentCount: comments.length
+        if (posts.length === 0) {
+            return res.status(200).json(posts);
+        };
+        let resPosts: any = [];
+        
+        posts.map((post: any) => {
+            const { id, content, createAt, postHasManyLikes: likes, posthasManyComments: comments } = post;
+            resPosts.push({
+                id: id,
+                content: content,
+                createAt: createAt,
+                likeCount: !likes ? 0 : likes.length,
+                commentCount: comments.length
+            })
         })
-    })
-    res.status(200).send(resPosts);
+        return res.status(200).send(resPosts);
+    } catch (error) {
+        return res.status(500).json({ "message": "Couldn't Find User Posts " });
+    }
+    
 };
 
 export const postPick = async (req: userIdInRequest, res: Response) => {
@@ -260,12 +272,18 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
         //comment를 배열로해서 넣어야 함.
         
         const matchedLikeArr  = await Likes.matchedLike([postId]);
-        console.log('postPick의 matchedLike - ',matchedLikeArr)
+        
+
+
         const isLikedObj = await Likes.isLiked(req.userId!, [postId]);
         //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
         const postForm = Posts.setPostForm([matchedPostAndTag], sortedCommentObj, matchedLikeArr, isLikedObj);
-        const insertComment = (commentArr: any, postArr: any[]) => {
-            console.log(commentArr, postArr);
+        const insertComment = (commentArr: any[], postArr: any[]) => {
+            //console.log(commentArr, postArr);
+
+            const result = Comments.setComment(commentArr, postArr);
+            
+            return result;
         };
         const complitePostForm = insertComment(sortedCommentObj, postForm);
         const {
@@ -412,18 +430,17 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
             tag: tag,
             comment: commentArr
         };
-        //console.log(...postForm, resPost)
-        return res.status(200).json(resPost);
+        //console.log(complitePostForm[0])
+        //return res.status(200).json(resPost);
+        return res.status(200).json(complitePostForm[0]);
     } catch (err) {
         console.log(err);
-        res.status(500).json({ "message": "Server Error" })
+        res.status(500).json({ "message": { "message": "Couldn't Find Post for postId" } })
     };
 };
 
 export const postCreate = async (req: userIdInRequest, res: Response) => {
-
     const userId = Number(req.userId);
-
     const { content, public: _public, tag } = req.body;
 
     try {
@@ -435,25 +452,24 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
             content: content, public: _public, userId: userId
         });
 
-        //tag map 분리
-        const tagMapFunction = async (el: any) => {
-            // 어차피 운영진이 주는 태그만 쓰게할거면 findOrCreate쓸 필요가?
+        //tag 모델에 옮기자
+        const tagMapFunction = async (insertTag: any) => {
             const data: any = await Tags.findOrCreate({
                 attributes: ['id', 'content'],
                 where: {
-                    content: el
+                    content: insertTag
                 },
                 raw: true
             });
             //console.log(data)
             const tagId = data[0].id;
 
-            await Posts_Tags.create({
+            return await Posts_Tags.create({
                 postId: Post.id, tagId: tagId
             });
         }
         //tag map 분리
-        await tag.map(tagMapFunction);
+        await tag.map((insertTag:any) => tagMapFunction(insertTag));
 
         return res.status(201).json({ "message": "create!" });
 
@@ -476,7 +492,7 @@ export const postDelete = async (req: userIdInRequest, res: Response) => {
         return res.status(400).json({ "message": "post doesn't exist" });
     } catch (err) {
         //console.log(err);
-        return res.status(500).send("Coudn't Delete Post");
+        return res.status(500).send({ "message": "Couldn't Delete Post" });
     };
 };
 

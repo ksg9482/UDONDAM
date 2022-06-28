@@ -374,27 +374,27 @@ describe('e2e-test', () => {
         const resp: any = await request(app).post('/post').set('Cookie', [jwtToken]).send(postTest);
 
         //토큰 할당하는 기능
-        for (let testUser of testUserArr) {
-          const testResp = await request(app).post('/login').send(testUser);
-          const testToken = tokenData(testResp);
-          const userEmail = testUser.email.split('@')[0];
-          const emailNumber = Number(userEmail.slice(userEmail.length-1))
+        // for (let testUser of testUserArr) {
+        //   const testResp = await request(app).post('/login').send(testUser);
+        //   const testToken = tokenData(testResp);
+        //   const userEmail = testUser.email.split('@')[0];
+        //   const emailNumber = Number(userEmail.slice(userEmail.length-1))
 
-          testUserTokenArr[`loginToken${emailNumber}`] = testToken;
-        };
+        //   testUserTokenArr[`loginToken${emailNumber}`] = testToken;
+        // };
 
-        for(let post of testPosts) {
-          await request(app).post('/post').set('Cookie', [jwtToken]).send(post);
-        }
-        for(let comment of testComment) {
-          await request(app).post('/comment').set('Cookie', [jwtToken]).send(comment);
-        }
-        for (let testInput of testInputArr) {
-          const token = testUserTokenArr[testInput.token]
-          await request(app).post('/likes').set('Cookie', [token]).send(testInput.postId);
-        };
-        await request(app).post('/likes').set('Cookie', [testUserTokenArr['loginToken3']]).send({ postId: 2});
-        await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
+        // for(let post of testPosts) {
+        //   await request(app).post('/post').set('Cookie', [jwtToken]).send(post);
+        // }
+        // for(let comment of testComment) {
+        //   await request(app).post('/comment').set('Cookie', [jwtToken]).send(comment);
+        // }
+        // for (let testInput of testInputArr) {
+        //   const token = testUserTokenArr[testInput.token]
+        //   await request(app).post('/likes').set('Cookie', [token]).send(testInput.postId);
+        // };
+        // await request(app).post('/likes').set('Cookie', [testUserTokenArr['loginToken3']]).send({ postId: 2});
+        // await request(app).post('/likes').set('Cookie', [jwtToken]).send({ postId: 2 });
         
         expect(resp.status).toEqual(201)
         expect(resp.body).toEqual({ "message": "create!" })
@@ -554,7 +554,7 @@ describe('e2e-test', () => {
     describe('DELETE /comment/:commentId', () => {
       it('해당하는 comment가 삭제되어야 한다', async () => {
         const resp: any = await request(app).delete(`/comment/${1}`).set('Cookie', [jwtToken]);
-
+        
         expect(resp.status).toEqual(200);
         expect(resp.body).toEqual({ "message": "delete!" });
       });

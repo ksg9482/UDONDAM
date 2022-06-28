@@ -36,7 +36,7 @@ export class Comments extends Model<IcommentsAttributes>{
   static getMatchedComment = async (targetPostId: number[]) => {
     const result = await this.findAll({
       raw: true,
-      attributes:["id",["content","comment"],"userId","postId","commentId","createAt"],
+      attributes: ["id", "content", "userId", "postId", "commentId", "createAt"],
       where: { postId: { [Op.in]: targetPostId } },
       include: [
         {
@@ -52,28 +52,88 @@ export class Comments extends Model<IcommentsAttributes>{
     return result;
   };
 
-  static setCommentForm = (commentArr: any) => {
-    const commentByPostId: any = {};
-
-    for (let comment of commentArr) {
-      if (commentByPostId[`postId${comment.postId}`]) {
-        commentByPostId[`postId${comment.postId}`].push(comment);
-        continue;
+  static setRecomment = (commentList: any[]) => {
+    const resultArr = [];
+    
+    for (let comment of commentList) {
+      if(comment.commentId === null) {
+        resultArr.push(comment)
+        continue ;
+      };
+      const targetCommentId = comment.commentId;
+      const targetComment = resultArr.find((comment: any) => {
+        return comment.id === targetCommentId;
+      });
+  
+      if(!targetComment.comment) {
+        targetComment.comment = [];
       }
-      commentByPostId[`postId${comment.postId}`] = [comment]
+      
+      targetComment.comment.push(comment);
+    };
+    return resultArr;
+  }
+
+  static setCommentForm = (commentArr: any) => {
+    
+    if (commentArr.length === 0) {
+      return [];
+    }
+
+    const commentByPostId: any = [];
+    const recommentSorted = this.setRecomment(commentArr)
+    
+    for (let comment of recommentSorted) {
+      //commentId 있으면 거기에 넣어줘야 함
+      
+      
+      const arrCheck = commentByPostId.find((commentUnit: any) => {
+        return commentUnit.postId === comment.postId;
+      });
+
+      if (arrCheck) {
+        arrCheck.commentList.push(comment);
+        continue;
+      };
+
+      commentByPostId.push({ postId: comment.postId, commentList: [comment] })
     }
 
     return commentByPostId;
   };
 
   static getCommentCount = (targetPostId: number, sortedComment: any) => {
-    const targetArr = sortedComment[`postId${targetPostId}`];
-    if(!targetArr) {
+    const targetArr = sortedComment.find((commentUnit:any) => {
+      return commentUnit.postId === targetPostId;
+    })
+    if (!targetArr) {
       return 0;
     }
-    return targetArr.length;
+    return targetArr.commentList.length;
   };
 
+  static setComment = (commentArr:any[], postArr:any[]) => {
+    const resultPostArr:any = [];
+
+    for (let post of postArr) {
+        const postId = post.id;
+        
+        if(commentArr.length === 0) {
+            post['comment'] = [];
+            resultPostArr.push(post)
+            continue;
+        }
+        
+        const targetComment = commentArr.find((comment:any)=> {
+            return comment.postId === postId;
+        }).commentList;
+        
+        post['comment'] = targetComment ;
+        resultPostArr.push(post);
+    };
+    console.log(resultPostArr)
+    return resultPostArr;
+};
 };
 
 Comments.init({

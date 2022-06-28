@@ -9,10 +9,21 @@ import { Posts } from './posts.model';
 import { Users } from './users.model';
 
 export interface IlikesAttributes {
-  id?: number,
-  userId: number,
-  postId: number
+  id?: number;
+  userId: number;
+  postId: number;
 };
+
+interface IlikeFormChange {
+  postId: number;
+  likeCount: number;
+}
+
+interface resultArrOutput {
+  postId:number;
+  likeCount:number;
+}
+
 
 export class Likes extends Model<IlikesAttributes> {
 
@@ -29,16 +40,17 @@ export class Likes extends Model<IlikesAttributes> {
   };
 
   static mergeLikePostIdArr = (likeArr:any) => {
-    console.log('mergeLikePostIdArr의 likeArr - ',likeArr)
+    
     if (likeArr.length === 0) {
       return {};
     };
+ 
     if (likeArr.length === 1) {
-      const postIdArr = { postId: [likeArr[0].postId]};
-      console.log('mergeLikePostIdArr의 likeArr가 1개 - ',postIdArr)
+      const key = Object.keys(likeArr[0])[0];
+      const postIdArr = { postId: [likeArr[0][key]]};
+      
       return postIdArr;
     }
-    
     const result = likeArr.reduce((acc: any, cur: any) => {
       
       const accKey = Object.keys(acc)[0];
@@ -57,7 +69,7 @@ export class Likes extends Model<IlikesAttributes> {
       
       return acc;
     })
-    console.log('mergeLikePostIdArr의 likeArr가 여러개 - ',result)
+    
     return result
   }
 
@@ -81,15 +93,14 @@ export class Likes extends Model<IlikesAttributes> {
       },
       raw:true
     });
-    const test = this.mergeLikePostIdArr([ { postId: 2 },{ postId: 3 },{ postId: 5 },{ postId: 7 }]);
-    const mergedLikeArr = this.mergeLikePostIdArr(result);
     
-    return mergedLikeArr;
+    return result;
   };
+
 
   static matchedLike = async (targetPostIdArr: number[]) => {
     
-    const result = await Likes.findAll({
+    const resultArr = await Likes.findAll({
       where: { postId: { [Op.in]: targetPostIdArr } },
       attributes: {
         include: [
@@ -99,34 +110,10 @@ export class Likes extends Model<IlikesAttributes> {
         exclude: ['id', 'createAt', 'updatedAt', 'userId']
       },
       raw: true,
-      group: ['postId'],
-      logging: true
-    });
-
-    //식별할만한 키가 postId로 나와서 식별 힘듦. 키를 postId2 같은 식으로 바꿔줌.
-    const changedLikeForm = result.map((likeArr: any) => {
-      const postId = likeArr.postId;
-      const formChange:any = {};
-    
-      formChange[`postId_${postId}`] = {postId:postId,likeCount:likeArr.likeCount}
-      
-      return formChange
+      group: ['postId']
     });
     
-    const mergeLikePostIdArr = this.mergeLikePostIdArr(changedLikeForm);
-    
-    if(changedLikeForm.length !== targetPostIdArr.length || changedLikeForm.length === 0) {
-      const likeObj = mergeLikePostIdArr;
-      for (let postId of targetPostIdArr) {
-        if(likeObj[`postId_${postId}`]) {
-          continue ;
-        }
-        likeObj[`postId_${postId}`] = { postId: postId, likeCount: 0 };
-      }
-      return likeObj;
-    }
-    
-    return mergeLikePostIdArr;
+    return resultArr;
   };
 };
 
