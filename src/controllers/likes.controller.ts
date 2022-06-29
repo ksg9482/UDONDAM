@@ -1,6 +1,7 @@
 import { Likes } from "../models/likes.model";
 import { Users } from "../models/users.model";
 import sequelize from '../models';
+import { Op } from 'sequelize';
 
 import { Request, Response } from 'express';
 import { Posts } from "../models/posts.model";
@@ -17,65 +18,44 @@ export const likesUser = async (req: userIdInRequest, res: Response) => {
         return res.status(401).json({ "message": "token doesn't exist" });
     }
     try {
-        const originTempLikeCount: any = await Posts.findAll({
-            attributes: ['id'],
-            include: [{
-                model: Likes,
-                required: true,
-                attributes: ['postId'],
-                as: 'postHasManyLikes'
-            }]
+        //아이디만 검출 -> 아이를 IN으로 넣어서 post+likeCount 반환
+        //각 포스트의 likeCount를 얻어야 하는데 like 검색조건이 userId라 갯수 반환이 제대로 안됨
+        const matchedPostId: any = await Posts.findAll({
+            attributes:[[sequelize.fn('DISTINCT', sequelize.col('posts.id')) ,'id']],
+            include: [
+                {
+                    model: Likes,
+                    attributes: ['id'],
+                    as: 'postHasManyLikes',
+                    where:{
+                        userId: userId
+                    }
+                }
+            ],
+            raw: true
+        });
+        const postIdArr = Comments.getPostIdArr(matchedPostId)
+        
+        const matchedPostAndComment: any = await Posts.findAll({
+            attributes:[[sequelize.fn('DISTINCT', sequelize.col('posts.id')) ,'id'],'content', 'createAt'],
+            include: [
+                {
+                    model: Comments,
+                    attributes: [[sequelize.fn("COUNT", sequelize.col('posthasManyComments.content')), "commentCount"]],
+                    as: 'posthasManyComments'
+                }
+            ],
+            where:{id:{[Op.in]:postIdArr}},
+            raw: true,
+            group:['posts.id'],
+            order: [['id', 'DESC']]
         });
 
-        let tempLikeCount: any = originTempLikeCount.map((item: any) => {
-
-            const { postHasManyLikes: likes } = item.dataValues;
-            return { likes: likes };
-        })
-
-        const result = await Posts.findAll({
-
-            include: [{
-                model: Likes,
-                attributes: ['postId'],
-                where: {
-                    userId: userInfo.id
-                },
-                as: 'postHasManyLikes'
-            },
-            {
-                model: Comments,
-                attributes: ['id'],
-                as: 'posthasManyComments'
-            }],
-            where: { userId: userInfo.id },
-            order: [['createAt', 'DESC']],
-        });
-
-        if (result.length === 0) {
-            return res.status(200).json(result);
-        }
-
-        let likesCount: any = [];
-
-        tempLikeCount.map((count: any) => {
-
-            let { likes } = count;
-            likesCount.push(likes.length);
-        })
-
-        const response = result.map((post: any, idx: any) => {
-            let { id, content, createAt, posthasManyComments: comments } = post.dataValues;
-            return {
-                id: id,
-                content: content,
-                createAt: createAt,
-                likeCount: likesCount[idx],
-                commentCount: comments.length
-            };
-        });
-        //console.log(response)
-        return res.status(200).json(response);
+         const likeCountArr = await Likes.matchedLike(postIdArr);
+        
+         const likePostForm = Comments.setCommentPostForm(matchedPostAndComment, likeCountArr);
+         
+        return res.status(200).json(likePostForm);
 
     } catch (error) {
         return res.status(500).json({ "message": "Couldn't Find Like Post for UserId" })
@@ -108,7 +88,6 @@ export const likesCreate = async (req: userIdInRequest, res: Response) => {
         });
         return res.status(201).json({ "message": "created" });
     } catch (error) {
-        console.log(error)
         return res.status(500).json({ "message": "Couldn't Create Like" });
     }
 

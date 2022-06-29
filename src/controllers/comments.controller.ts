@@ -33,9 +33,9 @@ export const commentUser = async (req: userIdInRequest, res: Response) => {
         
         const likeCountArr = await Likes.matchedLike(postIdArr);
         
-        const likePostForm = Comments.setCommentPostForm(matchedPostAndComment, likeCountArr);
+        const commentPostForm = Comments.setCommentPostForm(matchedPostAndComment, likeCountArr);
 
-        return res.status(200).send(likePostForm);
+        return res.status(200).send(commentPostForm);
     } catch (err) {
         return res.status(500).json({ "message": "Couldn't Find Comment Post for UserId" });
     };

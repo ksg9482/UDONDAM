@@ -182,7 +182,7 @@ export const postUser = async (req: userIdInRequest, res: Response) => {
 };
 
 export const postPick = async (req: userIdInRequest, res: Response) => {
-    //const userId = req.userId!
+    const userId = req.userId!
     const postId = Number(req.params.postId);
 
     try {
@@ -219,7 +219,7 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
         const sortedCommentObj = Comments.setCommentForm(matchedCommentArr);
         
         const matchedLikeArr  = await Likes.matchedLike([postId]);
-        const isLikedObj = await Likes.isLiked(req.userId!, [postId]);
+        const isLikedObj = await Likes.isLiked(userId, [postId]);
 
         //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
         const postForm = Posts.setPostForm([matchedPostAndTag], sortedCommentObj, matchedLikeArr, isLikedObj);

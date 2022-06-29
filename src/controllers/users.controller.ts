@@ -20,7 +20,6 @@ export const userInfo = async (req: userIdInRequest, res: Response) => {
 
         return res.status(200).json(userInfo);
     } catch (err) {
-        //console.log(err);
         return res.status(500).json({ "message": "Couldn't Search User" });
     };
 };
