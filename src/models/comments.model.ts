@@ -45,7 +45,6 @@ export class Comments extends Model<IcommentsAttributes>{
           attributes: ['nickname']
         }
       ],
-      logging: true,
       order: [['postId', 'DESC']]
     });
 
@@ -131,9 +130,55 @@ export class Comments extends Model<IcommentsAttributes>{
         post['comment'] = targetComment ;
         resultPostArr.push(post);
     };
-    console.log(resultPostArr)
+    
     return resultPostArr;
 };
+
+static insertComment = (commentArr: any[], postArr: any[]) => {
+  const result = this.setComment(commentArr, postArr);
+ 
+  return result;
+};
+
+static getPostIdArr = (postArr: any) => {
+  const resultArr = [];
+  for (let post of postArr) {
+      resultArr.push(post.id);
+  };
+
+  return resultArr
+};
+
+static setCommentPostForm = (postArr:any, likeCountArr:any[]) => {
+
+  interface IresultForm {
+      id: number;
+      content: string;
+      createAt: string;
+      commentCount: number;
+      likeCount:number;
+  }
+  
+  const result = postArr.map((targetPost:any) => {
+      const form:IresultForm = {
+          id: targetPost.id,
+          content: targetPost.content,
+          createAt:targetPost.createAt,
+          commentCount: targetPost['posthasManyComments.commentCount'],
+          likeCount:0
+      };
+
+      const findLikeCount = likeCountArr.find((likeUnit:any) => {return likeUnit.postId === targetPost.id});
+      
+      if (findLikeCount) {
+          form.likeCount = findLikeCount.likeCount
+      }
+
+      return form;
+  })
+  return result;
+}
+
 };
 
 Comments.init({

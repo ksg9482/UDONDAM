@@ -3,6 +3,7 @@ import { Posts } from '../models/posts.model';
 import { Likes } from '../models/likes.model';
 
 import { Request, Response } from 'express';
+import sequelize from '../models';
 interface userIdInRequest extends Request {
     userId?:number
 }
@@ -10,57 +11,33 @@ interface userIdInRequest extends Request {
 
 export const commentUser = async (req: userIdInRequest, res: Response) => {
     try {
-        let posts: any = await Posts.findAll({
+
+        const matchedPostAndComment: any = await Posts.findAll({
+            attributes:[[sequelize.fn('DISTINCT', sequelize.col('posts.id')) ,'id'],'content', 'createAt'],
             include: [
                 {
                     model: Comments,
-                    attributes: [],
+                    attributes: [[sequelize.fn("COUNT", sequelize.col('posthasManyComments.content')), "commentCount"]],
                     where: {
                         userId: req.userId
                     },
                     as: 'posthasManyComments'
-                },
-                {
-                    model: Likes,
-                    attributes: ['id'],
-                    as: 'postHasManyLikes'
                 }
             ],
             raw: true,
-            order: [['createAt', 'DESC']]
+            group:['posts.id'],
+            order: [['id', 'DESC']]
         });
 
-        if (posts.length === 0) {
-            return res.status(200).json(posts);
-        };
-        //query문 손봐서 -> 각 포스트가 likeCount, commentConut를 가지게끔 해야함
-        let commentPost = [];
+        const postIdArr = Comments.getPostIdArr(matchedPostAndComment);
         
-        for (let el of posts) {
-            //raw로 바꾸고 나타난 문제
-            //likes만 따로 빼서 분리. []로 한 이유는 원래라도 배열로 들어오므로 형식 맞추기 위해.
-            const { id, content, createAt } = el;
-            const likes = el['postHasManyLikes.id']? el['postHasManyLikes.id'] : []
-            let commentCount = await Comments.count({
-                where: {
-                    postId: id
-                }
-            });
-            
-            commentPost.push(
-                {
-                    id: id,
-                    content: content,
-                    createAt: createAt,
-                    likeCount: likes.length,
-                    commentCount: commentCount
-                });
-                
-        };
-        return res.status(200).send(commentPost);
+        const likeCountArr = await Likes.matchedLike(postIdArr);
+        
+        const likePostForm = Comments.setCommentPostForm(matchedPostAndComment, likeCountArr);
+
+        return res.status(200).send(likePostForm);
     } catch (err) {
-        //console.log(err);
-        return res.status(500).json({ "message": "Server Error" });
+        return res.status(500).json({ "message": "Couldn't Find Comment Post for UserId" });
     };
 };
 
@@ -92,8 +69,7 @@ export const commentCreate = async (req: userIdInRequest, res: Response) => {
 export const commentDelete = async (req: userIdInRequest, res: Response) => {
 const userId = req.userId!;
     try {
-        // 댓글은 완전히 삭제되는 것이 아니라 삭제된 댓글이라는 내용으로 변화
-        // 그럼 데이터베이스가 무한정 늘기만 한다. 어떻게 해결? 단지 삭제 된 댓글이라는 내용을 보관하기 위해 용량을 소모하는 것은 비효율적.
+        
         const commentDelete = await Comments.update(
             {
                 content: '삭제 된 댓글 입니다'

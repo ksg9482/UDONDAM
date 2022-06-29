@@ -16,72 +16,70 @@ export const likesUser = async (req: userIdInRequest, res: Response) => {
     if (!userInfo) {
         return res.status(401).json({ "message": "token doesn't exist" });
     }
-
-    else {
-        const originTempLikeCount:any = await Posts.findAll({
+    try {
+        const originTempLikeCount: any = await Posts.findAll({
             attributes: ['id'],
             include: [{
                 model: Likes,
                 required: true,
                 attributes: ['postId'],
-                as:'postHasManyLikes'
+                as: 'postHasManyLikes'
             }]
         });
-        //console.log(originTempLikeCount)
-        let tempLikeCount:any = originTempLikeCount.map((item:any) => {
-            //console.log(item)
-            const {postHasManyLikes:likes} = item.dataValues;
-            return {likes:likes};
+
+        let tempLikeCount: any = originTempLikeCount.map((item: any) => {
+
+            const { postHasManyLikes: likes } = item.dataValues;
+            return { likes: likes };
         })
 
         const result = await Posts.findAll({
 
             include: [{
                 model: Likes,
-                //required: true,
                 attributes: ['postId'],
                 where: {
                     userId: userInfo.id
                 },
-                as:'postHasManyLikes'
+                as: 'postHasManyLikes'
             },
             {
                 model: Comments,
                 attributes: ['id'],
-                //required: true,
-                as:'posthasManyComments'
+                as: 'posthasManyComments'
             }],
-            where: {userId:userInfo.id},
-            order: [['createAt','DESC']],
-            // limit: 10
+            where: { userId: userInfo.id },
+            order: [['createAt', 'DESC']],
         });
-        // let likeCount = await likes.count({ where: {postId: id} });
-        //console.log(tempLikeCount[0].dataValues.postHasManyLikes[0])
-        if(result.length === 0){
+
+        if (result.length === 0) {
             return res.status(200).json(result);
         }
-        else {
-            let likesCount:any = []; //{likes:[{1},{2}]}
 
-            tempLikeCount.map((count:any) => {
-               // console.log(count)
-                let { likes } = count;
-                likesCount.push(likes.length);
-            })
+        let likesCount: any = [];
 
-            const response = result.map((post:any, idx:any) => {
-                let { id, content, createAt, posthasManyComments:comments } = post.dataValues;
-                return {
-                    id: id,
-                    content: content,
-                    createAt: createAt,
-                    likeCount: likesCount[idx],
-                    commentCount: comments.length
-                    };
-                });
-                return res.status(200).json(response);
-        };
-    };
+        tempLikeCount.map((count: any) => {
+
+            let { likes } = count;
+            likesCount.push(likes.length);
+        })
+
+        const response = result.map((post: any, idx: any) => {
+            let { id, content, createAt, posthasManyComments: comments } = post.dataValues;
+            return {
+                id: id,
+                content: content,
+                createAt: createAt,
+                likeCount: likesCount[idx],
+                commentCount: comments.length
+            };
+        });
+        //console.log(response)
+        return res.status(200).json(response);
+
+    } catch (error) {
+        return res.status(500).json({ "message": "Couldn't Find Like Post for UserId" })
+    }
 };
 
 export const likesCreate = async (req: userIdInRequest, res: Response) => {

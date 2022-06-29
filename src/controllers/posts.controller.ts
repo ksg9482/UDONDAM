@@ -86,7 +86,6 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
             return result;
         };
         
-        //이걸로 아이디에 맞는 포스트 찾기
         const targetPostId: number[] = await findPostId_OR(inputTagArr ,inputNotTagArr)
         .then((result) => result.map((post: any) => { return post.postId }));
         
@@ -124,13 +123,7 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
         const sortedcommentArr = Comments.setCommentForm(matchedCommentArr);
 
         const matchedLikeArr = await Likes.matchedLike(targetPostId);
-        //console.log('postTag의 matchedLike - ',targetPostId, matchedLikeArr)
-        /*형식이 바뀌어서 나옴
-        {
-            postId_1: { postId: 1, likeCount: 0 },
-            postId_4: { postId: 4, likeCount: 0 }
-        }
-        */
+       
         const isLikedObj = await Likes.isLiked(userId, targetPostId);
 
         //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
@@ -138,7 +131,6 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
 
         return res.status(200).json(postForm);
     } catch (err) {
-        //console.log(err)
         return res.status(500).json({ "message": "Couldn't Find Tag Posts " });
     };
 };
@@ -194,50 +186,6 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
     const postId = Number(req.params.postId);
 
     try {
-        const postPick: any = await Posts.findOne({
-            where: {
-                id: postId
-            },
-            include: [
-                {
-                    model: Users,
-                    attributes: ['nickname'],
-                    required: true,
-                    as: 'postsbelongsToUser'
-                },
-                {
-                    model: Posts_Tags,
-                    include: [
-                        {
-                            model: Tags,
-                            attributes: ['content'],
-                            required: true,
-                            as: 'post_TagsBelongToTag'
-                        }
-                    ],
-                    as: 'postHasManyPosts_Tags'
-                },
-                {
-                    model: Comments,
-                    include: [
-                        {
-                            model: Users,
-                            attributes: ['nickname'],
-                            required: true,
-                            as: 'commentsBelongsToUser'
-                        }
-                    ],
-                    as: 'posthasManyComments'
-
-                },
-                {
-                    model: Likes,
-                    attributes: ['userId'],
-                    as: 'postHasManyLikes'
-                }
-            ]
-        });
-
         //findOne은 객체로 반환된다.
         const matchedPostAndTag = await Posts_Tags.findOne({
             attributes: ['postId'],
@@ -269,178 +217,24 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
 
         const matchedCommentArr = await Comments.getMatchedComment([postId]);
         const sortedCommentObj = Comments.setCommentForm(matchedCommentArr);
-        //comment를 배열로해서 넣어야 함.
         
         const matchedLikeArr  = await Likes.matchedLike([postId]);
-        
-
-
         const isLikedObj = await Likes.isLiked(req.userId!, [postId]);
+
         //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
         const postForm = Posts.setPostForm([matchedPostAndTag], sortedCommentObj, matchedLikeArr, isLikedObj);
-        const insertComment = (commentArr: any[], postArr: any[]) => {
-            //console.log(commentArr, postArr);
-
-            const result = Comments.setComment(commentArr, postArr);
-            
-            return result;
-        };
-        const complitePostForm = insertComment(sortedCommentObj, postForm);
-        const {
-            id,
-            userId,
-            public: _public,
-            content,
-            createAt,
-            postsbelongsToUser: {
-                dataValues: user
-            },
-            postHasManyPosts_Tags,
-            posthasManyComments,
-            postHasManyLikes: likes,
-        } = postPick.dataValues;
-
-        const tags = postHasManyPosts_Tags.map((tag: any) => {
-            return tag.dataValues.post_TagsBelongToTag.dataValues
-        });
-
-
-        const comments = posthasManyComments.map((comment: any) => {
-            const {
-                commentsBelongsToUser: {
-                    dataValues: user
-                },
-                id, content, userId, postId, commentId, createAt
-            } = comment.dataValues;
-
-            return { id, content, userId, postId, commentId, createAt, user };
-        })
-        const sortedComment = comments.sort((a: any, b: any) => a.id - b.id);
-
-        let tag = [];
-        for (let el of tags) {
-            tag.push(el.content);
-        };
-        let likeCheck = false;
-        for (let el of likes) {
-            if (el.userId === req.userId) {
-                likeCheck = true;
-            };
-        };
-        let commentArr: any = [];
-        let deleteArr: any = [];
-        if (sortedComment.length !== 0) {
-            //comments map 분리
-            const commentMapFunction = (el: any) => {
-                const { id, content, userId, postId, commentId, createAt, user } = el;
-                if (commentId === null) {
-                    commentArr.push({
-                        id: id,
-                        content: content,
-                        nickname: user.nickname,
-                        userId: userId,
-                        postId: postId,
-                        commentId: commentId,
-                        createAt: createAt,
-                        comment: []
-                    });
-                }
-                else {
-                    let commentCheck = false;
-                    for (let comment of commentArr) {
-                        if (comment.id === commentId) {
-                            commentCheck = true;
-                            comment.comment.push({
-                                id: id,
-                                content: content,
-                                nickname: user.nickname,
-                                userId: userId,
-                                postId: postId,
-                                commentId: commentId,
-                                createAt: createAt
-                            })
-                        }
-                    };
-                    if (!commentCheck) {
-                        if (deleteArr.length !== 0) {
-                            for (let el of deleteArr) {
-                                if (el.id === commentId) {
-                                    el.comment.push({
-                                        id: id,
-                                        content: content,
-                                        nickname: user.nickname,
-                                        userId: userId,
-                                        postId: postId,
-                                        commentId: commentId,
-                                        createAt: createAt
-                                    })
-                                }
-                            }
-                        }
-                        else {
-                            deleteArr.push({
-                                id: commentId,
-                                content: '탈퇴 한 회원이 작성한 댓글입니다',
-                                nickname: null,
-                                userId: null,
-                                postId: postId,
-                                commentId: null,
-                                createAt: null,
-                                comment: [{
-                                    id: id,
-                                    content: content,
-                                    nickname: user.nickname,
-                                    userId: userId,
-                                    postId: postId,
-                                    commentId: commentId,
-                                    createAt: createAt
-                                }]
-                            });
-                        };
-                    };
-                };
-            }
-            //comments map 분리
-            sortedComment.map((el: any) => commentMapFunction(el));
-        };
-
-        if (deleteArr.length !== 0) {
-            for (let el of deleteArr) {
-                let idx = commentArr.findIndex((ele: any) => el.id < ele.id);
-                if (idx === -1) {
-                    commentArr.push(el)
-                }
-                else {
-                    let left = commentArr.slice(0, idx);
-                    let right = commentArr.slice(idx, commentArr.length);
-                    commentArr = [...left, el, ...right]
-                };
-            };
-        };
-        const resPost = {
-            id: id,
-            userId: userId,
-            nickname: user.nickname,
-            content: content,
-            public: _public,
-            likeCount: likes.length,
-            commentCount: sortedComment.length,
-            likeCheck: likeCheck,
-            createAt: createAt,
-            tag: tag,
-            comment: commentArr
-        };
-        //console.log(complitePostForm[0])
-        //return res.status(200).json(resPost);
+        
+        const complitePostForm = Comments.insertComment(sortedCommentObj, postForm);
+        
         return res.status(200).json(complitePostForm[0]);
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ "message": { "message": "Couldn't Find Post for postId" } })
+        return res.status(500).json({ "message": "Couldn't Find Post for postId" });
     };
 };
 
 export const postCreate = async (req: userIdInRequest, res: Response) => {
     const userId = Number(req.userId);
+    
     const { content, public: _public, tag } = req.body;
 
     try {
@@ -452,24 +246,8 @@ export const postCreate = async (req: userIdInRequest, res: Response) => {
             content: content, public: _public, userId: userId
         });
 
-        //tag 모델에 옮기자
-        const tagMapFunction = async (insertTag: any) => {
-            const data: any = await Tags.findOrCreate({
-                attributes: ['id', 'content'],
-                where: {
-                    content: insertTag
-                },
-                raw: true
-            });
-            //console.log(data)
-            const tagId = data[0].id;
-
-            return await Posts_Tags.create({
-                postId: Post.id, tagId: tagId
-            });
-        }
-        //tag map 분리
-        await tag.map((insertTag:any) => tagMapFunction(insertTag));
+        const createTag = await Tags.createTag(tag);
+        const createPostsTags = await Posts_Tags.createPostsTags(Post.id, createTag.tagId);
 
         return res.status(201).json({ "message": "create!" });
 

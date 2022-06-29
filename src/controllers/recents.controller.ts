@@ -26,19 +26,11 @@ export const get = async (req: userIdInRequest, res: Response) => {
         if (recent.length === 0) {
             return res.status(200).json(recent);
         };
-        const resultMapFunction = (el: any, idx: any) => {
-            const { tag, notTag } = el;
-            const tagArr = tag.split(',');
-            const notTagArr = notTag ? notTag.split(',') : null
-            return {
-                id: idx + 1,
-                tag: tagArr,
-                notTag: notTagArr,
-            };
-        }
-        const result = recent.map(resultMapFunction);
-    
-        return res.status(200).json(result);
+        
+        
+        const recentForm = RecentSearchs.recentStrToArr(recent);
+        
+        return res.status(200).json(recentForm);
     } catch (error) {
         return res.status(500).send({"message": "Couldn't Search Recent Tag"});
     }

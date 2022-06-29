@@ -20,6 +20,33 @@ export class Tags extends Model<ItagsAttributes> {
 
   public static associations: {};
 
+  static createTag = async (insertTagArr:any) => {
+
+    interface IresultObj {
+      tagId:number[]
+    }
+
+    const resultObj:IresultObj = {tagId:[]};
+
+    for(let tag of insertTagArr) {
+        const result: any = await this.findOrCreate({
+            attributes: ['id', 'content'],
+            where: {
+                content: tag
+            },
+            raw: true
+        });
+
+        if(!result || result.length === 0) {
+          continue;
+        }
+        const extractTagId = result[0].id
+        resultObj.tagId.push(extractTagId);
+    }
+    
+    return resultObj;
+};
+
   static setTagGroup = (inputTagArr: Array<string>) => {
     const areaTag = [];
     const contentTag = [];

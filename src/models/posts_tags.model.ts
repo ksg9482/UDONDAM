@@ -26,6 +26,25 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
        post_TagsBelongToTag:Association<Posts_Tags, Tags>;
      };
      
+     static createPostsTags = async (postId:number, tagIdArr: any) => {
+            
+      const resultArr:any = [];
+
+      if(!postId || tagIdArr.length === 0) {
+        return resultArr;
+      }
+
+      for (let tagId of tagIdArr) {
+          const result = (await this.create({
+              postId: postId, 
+              tagId: tagId
+          })).get({plain:true})
+
+          resultArr.push(result)
+      }
+
+      return resultArr;
+  }
   };
 
     Posts_Tags.init({

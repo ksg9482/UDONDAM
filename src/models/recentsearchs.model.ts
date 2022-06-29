@@ -24,6 +24,23 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
     userHasManyRecentsearchs: Association<Users, RecentSearchs>
     resentSearchsBelongsToUser: Association<RecentSearchs, Users>,
   };
+
+  static recentStrToArr = (recentStr: any) => {
+
+    const recentInput = [...recentStr];
+
+    const recentOutput = recentInput.map((recentUnit: any) => {
+        const tagArr = recentUnit.tag.split(',');
+        const notTagArr = recentUnit.notTag ? recentUnit.notTag.split(',') : null;
+
+        recentUnit.tag = tagArr;
+        recentUnit.notTag = notTagArr;
+
+        return recentUnit;
+    })
+
+    return recentOutput
+};
 };
 RecentSearchs.init({
   id: {

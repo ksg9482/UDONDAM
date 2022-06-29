@@ -71,7 +71,7 @@ export const login = async (req: userIdInRequest, res: Response) => {
 //여기가 문제. 게스트가 고정된 userId를 발급받는다.
 export const guest = async (req: userIdInRequest, res: Response) => {
     const userData = {
-        userId: 5,
+        userId: 0,
         nickname: '게스트',
         manager: false,
         socialType: UserSocialType.basic,
@@ -140,32 +140,9 @@ export const email = async (req: userIdInRequest, res: Response) => {
 
         const verificationCode = generateRandomCode(6);
 
-        // const mailOptions = {
-        //     from: `[UDONDAM] <${process.env.NODEMAILER_USER}>`,
-        //     to: email,
-        //     subject: `[UDONDAM] 이메일 인증번호를 확인해주세요`,
-        //     html: `<div style="background-color: white;
-        //         display: flex; align-items: center; text-align: center;
-        //         flex-direction:column; font-size: 20px;">
-        //         <div style="background-size: 58px;
-        //         background-color: black;
-        //         width: 50rem; min-height: 45rem;
-        //         border-radius: 15px 15px 15px 15px;
-        //         padding: 2rem;">
-        //         <img width="300" alt="로고-우동담-dark-배경o" src="https://user-images.githubusercontent.com/87490361/143793727-047f5764-454d-4b9f-94cd-d82d0f959623.png">
-        //         <div style="text-align: left; padding:10px 10px 0;">
-        //         <h3 style="text-align: left; color:white;">이메일 인증을 완료하시려면 <b>인증번호</b>를 입력해주세요.</h3>
-        //         <h3 style="color:white;">인증번호를 입력하셔야만 이메일 인증이 완료됩니다.</h3>
-        //         <h3 style="color:white;">UDONDAM 인증번호 : <u>${verificationCode}</u></h3>
-        //         </div></div></div>`,
-        // };
         const authEmail = new AuthEmail(email, verificationCode)
 
-        transporter.sendMail(authEmail, (err: any, info: any) => {
-            if (err) {
-                //console.log(err);
-            }
-        });
+        transporter.sendMail(authEmail, (err: any, info: any) => {});
         //이거도 문제. 인증번호를 클라이언트에 전송해서 가지고 있게 하는 자체가 위험하다
         return res.status(200).json({
             "verificationCode": verificationCode
