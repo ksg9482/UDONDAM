@@ -18,8 +18,12 @@ interface userIdInRequest extends Request {
 
 export const postTag = async (req: userIdInRequest, res: Response) => {
     const userId = req.userId!
-    let inputTagArr = req.query.tag ? req.query.tag : null;
-    let inputNotTagArr = req.query.notTag ? req.query.notTag : null;
+    let inputTagArr:string[] = req.query.tag ? req.query.tag : null;
+    let inputNotTagArr:string[] | null = req.query.notTag 
+    ? typeof req.query.notTag === 'string' 
+        ? [req.query.notTag] 
+        : req.query.notTag
+    : null;
 
     let page = Number(req.query.page);
     let offset = 0;
@@ -38,7 +42,7 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
     }
 
     try {
-        const findPostId_OR = async (tagArr: string[], notTagArr?: string[]) => {
+        const findPostId_OR = async (tagArr: string[], notTagArr: string[] |null) => {
             //만약 AND연산이 필요하면 having을 tagArr.length로 설정하면 된다.
             const countCheck = 2 //컨텐츠태그가 들어오면 지역+컨텐츠 해서 2개이상. tagArr.length일 경우 3개 들어오면 강제로 AND됨
             const having = tagArr.length > 1
@@ -48,13 +52,13 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
             const includeNotTag_false = {
                 model: Posts,
                 as: 'posts_TagsBelongToPost',
-                attributes: [/*['content', 'postContent']*/]
+                attributes: []
             };
             
             const includeNotTag_true = {
                 model: Posts,
                 as: 'posts_TagsBelongToPost',
-                attributes: [/*['content', 'postContent']*/],
+                attributes: [],
                 where:{id:{[Op.notIn]: [sequelize.literal(`(
                     SELECT DISTINCT posts.id FROM posts
                 JOIN posts_tags ON posts_tags.postId = posts.id
@@ -136,6 +140,13 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
 };
 
 export const postUser = async (req: userIdInRequest, res: Response) => {
+    interface IpostUserOutput {
+        id: number;
+        content: string;
+        createAt: Date;
+        likeCount: number;
+        commentCount: number;
+    }
     try {
         const posts = await Posts.findAll({
             attributes: ['id', 'content', 'createAt'],
@@ -162,7 +173,7 @@ export const postUser = async (req: userIdInRequest, res: Response) => {
         if (posts.length === 0) {
             return res.status(200).json(posts);
         };
-        let resPosts: any = [];
+        let resPosts: IpostUserOutput[] = [];
         
         posts.map((post: any) => {
             const { id, content, createAt, postHasManyLikes: likes, posthasManyComments: comments } = post;

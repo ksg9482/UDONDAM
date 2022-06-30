@@ -5,6 +5,7 @@ import {
   Op
 } from 'sequelize';
 import sequelize from './index';
+import { Likes } from './likes.model';
 import { Posts } from './posts.model';
 import { Users } from './users.model';
 
@@ -16,6 +17,8 @@ export interface IcommentsAttributes {
   commentId?: number | null
 };
 
+
+
 export class Comments extends Model<IcommentsAttributes>{
 
 
@@ -24,6 +27,7 @@ export class Comments extends Model<IcommentsAttributes>{
   userId?: number;
   postId?: number;
   commentId?: number | null;
+  comment?: Comments[];
 
   public static associations: {
     userHasManyComments: Association<Users, Comments>
@@ -51,19 +55,20 @@ export class Comments extends Model<IcommentsAttributes>{
     return result;
   };
 
-  static setRecomment = (commentList: any[]) => {
-    const resultArr = [];
+  static setRecomment = (commentList: Comments[]) => {
+    const resultArr:Comments[] = [];
     
     for (let comment of commentList) {
       if(comment.commentId === null) {
         resultArr.push(comment)
         continue ;
       };
-      const targetCommentId = comment.commentId;
+      const targetCommentId = comment.commentId!;
+      //대댓글이 들어가야 할 코멘트는 이미 들어가 있음(commentId === null, order 처리)
       const targetComment = resultArr.find((comment: any) => {
         return comment.id === targetCommentId;
-      });
-  
+      })!;
+
       if(!targetComment.comment) {
         targetComment.comment = [];
       }
@@ -72,14 +77,20 @@ export class Comments extends Model<IcommentsAttributes>{
     };
     return resultArr;
   }
+  
 
-  static setCommentForm = (commentArr: any) => {
+  static setCommentForm = (commentArr: Comments[]) => {
     
+    interface IcommentByPostId {
+      postId: number;
+      commentList: Comments[]
+    };
+
     if (commentArr.length === 0) {
       return [];
     }
 
-    const commentByPostId: any = [];
+    const commentByPostId: IcommentByPostId[] = [];
     const recommentSorted = this.setRecomment(commentArr)
     
     for (let comment of recommentSorted) {
@@ -93,15 +104,18 @@ export class Comments extends Model<IcommentsAttributes>{
       if (arrCheck) {
         arrCheck.commentList.push(comment);
         continue;
-      };
+      }
 
-      commentByPostId.push({ postId: comment.postId, commentList: [comment] })
+      if(comment.postId) {
+        commentByPostId.push({ postId: comment.postId, commentList: [comment] })
+      }
+      
     }
 
     return commentByPostId;
   };
 
-  static getCommentCount = (targetPostId: number, sortedComment: any) => {
+  static getCommentCount = (targetPostId: number, sortedComment: any[]):number => {
     const targetArr = sortedComment.find((commentUnit:any) => {
       return commentUnit.postId === targetPostId;
     })
@@ -112,7 +126,21 @@ export class Comments extends Model<IcommentsAttributes>{
   };
 
   static setComment = (commentArr:any[], postArr:any[]) => {
-    const resultPostArr:any = [];
+    interface IsetCommentOutput {
+      id: number,
+      userId: number,
+      nickname: string,
+      content: string,
+      tag: string[],
+      commentCount: number,
+      likeCount: number,
+      likeCheck: boolean,
+      createAt: Date,
+      public: boolean,
+      comment: any[]
+    };
+
+    const resultPostArr:IsetCommentOutput[] = [];
 
     for (let post of postArr) {
         const postId = post.id;
@@ -135,13 +163,14 @@ export class Comments extends Model<IcommentsAttributes>{
 };
 
 static insertComment = (commentArr: any[], postArr: any[]) => {
+  
   const result = this.setComment(commentArr, postArr);
- 
+  
   return result;
 };
 
-static getPostIdArr = (postArr: any) => {
-  const resultArr = [];
+static getPostIdArr = (postArr: any[]):number[] => {
+  const resultArr:number[] = [];
   for (let post of postArr) {
       resultArr.push(post.id);
   };
@@ -149,14 +178,18 @@ static getPostIdArr = (postArr: any) => {
   return resultArr
 };
 
-static setCommentPostForm = (postArr:any, likeCountArr:any[]) => {
+static setCommentPostForm = (postArr:Posts[], likeCountArr:Likes[]) => {
 
   interface IresultForm {
       id: number;
       content: string;
       createAt: string;
       commentCount: number;
-      likeCount:number;
+      likeCount:number | undefined;
+  }
+  
+  interface IfindLikeCount extends Likes {
+    likeCount?: number;
   }
   
   const result = postArr.map((targetPost:any) => {
@@ -168,7 +201,7 @@ static setCommentPostForm = (postArr:any, likeCountArr:any[]) => {
           likeCount:0
       };
 
-      const findLikeCount = likeCountArr.find((likeUnit:any) => {return likeUnit.postId === targetPost.id});
+      const findLikeCount:IfindLikeCount | undefined = likeCountArr.find((likeUnit:any) => {return likeUnit.postId === targetPost.id});
       
       if (findLikeCount) {
           form.likeCount = findLikeCount.likeCount
@@ -177,7 +210,8 @@ static setCommentPostForm = (postArr:any, likeCountArr:any[]) => {
       return form;
   })
   return result;
-}
+};
+ 
 
 };
 
