@@ -13,6 +13,7 @@ export interface IrecentSearchsAttributes {
   notTag?: string
 }
 
+
 export class RecentSearchs extends Model<IrecentSearchsAttributes>{
 
   readonly id?: number;
@@ -25,7 +26,7 @@ export class RecentSearchs extends Model<IrecentSearchsAttributes>{
     resentSearchsBelongsToUser: Association<RecentSearchs, Users>,
   };
 
-  static recentStrToArr = (recentStr: any) => {
+  static recentStrToArr = (recentStr: any[]) => {
 
     const recentInput = [...recentStr];
 

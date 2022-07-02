@@ -90,7 +90,7 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
             return result;
         };
         
-        const targetPostId: number[] = await findPostId_OR(inputTagArr ,inputNotTagArr)
+        const targetPostId = await findPostId_OR(inputTagArr ,inputNotTagArr)
         .then((result) => result.map((post: any) => { return post.postId }));
         
         //like랑 comment 분리. 결과값 여러개 나오는게 많아서 같은 내용이 여기저기 참조됨.
@@ -123,11 +123,9 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
         });
 
         const matchedCommentArr = await Comments.getMatchedComment(targetPostId);
-        
         const sortedcommentArr = Comments.setCommentForm(matchedCommentArr);
 
         const matchedLikeArr = await Likes.matchedLike(targetPostId);
-       
         const isLikedObj = await Likes.isLiked(userId, targetPostId);
 
         //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트

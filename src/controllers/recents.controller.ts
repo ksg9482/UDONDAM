@@ -27,7 +27,9 @@ export const get = async (req: userIdInRequest, res: Response) => {
             return res.status(200).json(recent);
         };
         
-        
+       
+        //{ id: 1, tag: '서울특별시,공부,도서관', notTag: null }에서
+        //{ id: 1, tag: ['서울특별시','공부','도서관'], notTag: null }로
         const recentForm = RecentSearchs.recentStrToArr(recent);
         
         return res.status(200).json(recentForm);

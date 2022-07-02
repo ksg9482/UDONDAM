@@ -20,7 +20,7 @@ export class Tags extends Model<ItagsAttributes> {
 
   public static associations: {};
 
-  static createTag = async (insertTagArr:any) => {
+  static createTag = async (insertTagArr:string[]) => {
 
     interface IresultObj {
       tagId:number[]

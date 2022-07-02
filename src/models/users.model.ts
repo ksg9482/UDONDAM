@@ -137,12 +137,12 @@ Users.init({
   updatedAt: 'updatedAt',
 
   hooks: {
-    beforeCreate: async (user: any): Promise<void> => {
+    beforeCreate: async (user: Users): Promise<void> => {
       if (user.password) {
         user.password = await Users.hashPassword(user.password);
       }
     },
-    beforeUpdate: async (user: any): Promise<void> => {
+    beforeUpdate: async (user: Users): Promise<void> => {
       if (user.password) {
         user.password = await Users.hashPassword(user.password);
       }
