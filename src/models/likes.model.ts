@@ -39,39 +39,39 @@ export class Likes extends Model<IlikesAttributes> {
     likesBelongsToPost: Association<Likes, Posts>,
   };
 
-  static mergeLikePostIdArr = (likeArr:any) => {
-    
-    if (likeArr.length === 0) {
-      return {};
-    };
+  // static mergeLikePostIdArr = (likeArr:any) => {
+  //   console.log(likeArr)
+  //   if (likeArr.length === 0) {
+  //     return {};
+  //   };
  
-    if (likeArr.length === 1) {
-      const key = Object.keys(likeArr[0])[0];
-      const postIdArr = { postId: [likeArr[0][key]]};
+  //   if (likeArr.length === 1) {
+  //     const key = Object.keys(likeArr[0])[0];
+  //     const postIdArr = { postId: [likeArr[0][key]]};
       
-      return postIdArr;
-    }
-    const result = likeArr.reduce((acc: any, cur: any) => {
+  //     return postIdArr;
+  //   }
+  //   const result = likeArr.reduce((acc: any, cur: any) => {
       
-      const accKey = Object.keys(acc)[0];
-      const curKey = Object.keys(cur)[0];
+  //     const accKey = Object.keys(acc)[0];
+  //     const curKey = Object.keys(cur)[0];
       
-      if(accKey === curKey) {
-        if(!Array.isArray(acc[accKey])) {
-          acc[accKey] = [acc[accKey]];
-        };
-        acc[accKey].push(cur[curKey]);
+  //     if(accKey === curKey) {
+  //       if(!Array.isArray(acc[accKey])) {
+  //         acc[accKey] = [acc[accKey]];
+  //       };
+  //       acc[accKey].push(cur[curKey]);
 
-        return acc
-      }
+  //       return acc
+  //     }
 
-      acc[curKey] = cur[curKey];
+  //     acc[curKey] = cur[curKey];
       
-      return acc;
-    })
+  //     return acc;
+  //   })
     
-    return result
-  }
+  //   return result
+  // }
 
   static overlapCheck = async (userId: number, postId: number) => {
     const result = await this.findOne({

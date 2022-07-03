@@ -1,4 +1,4 @@
-import { Posts } from '../models/posts.model';
+import { IlikeArr, Posts } from '../models/posts.model';
 import { Tags } from '../models/tags.model';
 import { Users } from '../models/users.model';
 import { Comments } from '../models/comments.model';
@@ -125,12 +125,13 @@ export const postTag = async (req: userIdInRequest, res: Response) => {
         const matchedCommentArr = await Comments.getMatchedComment(targetPostId);
         const sortedcommentArr = Comments.setCommentForm(matchedCommentArr);
 
-        const matchedLikeArr = await Likes.matchedLike(targetPostId);
-        const isLikedObj = await Likes.isLiked(userId, targetPostId);
+        const matchedLikeArr:any = await Likes.matchedLike(targetPostId);
+        const isLikedObj:any = await Likes.isLiked(userId, targetPostId);
 
         //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
         const postForm = Posts.setPostForm(matchedPostAndTagArr, sortedcommentArr, matchedLikeArr, isLikedObj);
 
+        console.log(postForm)
         return res.status(200).json(postForm);
     } catch (err) {
         return res.status(500).json({ "message": "Couldn't Find Tag Posts " });
@@ -227,9 +228,9 @@ export const postPick = async (req: userIdInRequest, res: Response) => {
         const matchedCommentArr = await Comments.getMatchedComment([postId]);
         const sortedCommentObj = Comments.setCommentForm(matchedCommentArr);
         
-        const matchedLikeArr  = await Likes.matchedLike([postId]);
-        const isLikedObj = await Likes.isLiked(userId, [postId]);
-
+        const matchedLikeArr:any  = await Likes.matchedLike([postId]);
+        const isLikedObj:any = await Likes.isLiked(userId, [postId]);
+        
         //포스트 & 태그, postId별로 정리된 코멘트, 각 포스트별 like수, 사용자가 like한 포스트
         const postForm = Posts.setPostForm([matchedPostAndTag], sortedCommentObj, matchedLikeArr, isLikedObj);
         

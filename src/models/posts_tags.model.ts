@@ -26,7 +26,7 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
        post_TagsBelongToTag:Association<Posts_Tags, Tags>;
      };
      
-     static createPostsTags = async (postId:number, tagIdArr: any) => {
+     static createPostsTags = async (postId:number, tagIdArr: number[] | []) => {
             
       const resultArr:any = [];
 
@@ -42,7 +42,7 @@ export class Posts_Tags extends Model<Iposts_tagsAttributes> {
 
           resultArr.push(result)
       }
-
+      
       return resultArr;
   }
   };
